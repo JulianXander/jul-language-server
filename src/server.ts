@@ -15,7 +15,7 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
-import { parseCode } from '../../ts-compiler/src/parser';
+import { parseCode } from '../../jul-compiler/src/parser';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
