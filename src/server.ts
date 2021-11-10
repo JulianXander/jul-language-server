@@ -37,7 +37,8 @@ connection.onInitialize((params: InitializeParams) => {
 			// Tell the client that this server supports code completion.
 			completionProvider: {
 				resolveProvider: true
-			}
+			},
+			hoverProvider: true
 		}
 	};
 	return result;
@@ -93,6 +94,7 @@ connection.onDidChangeWatchedFiles(_change => {
 	connection.console.log('We received an file change event');
 });
 
+//#region autocomplete
 // This handler provides the initial list of the completion items.
 connection.onCompletion(
 	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
@@ -128,6 +130,15 @@ connection.onCompletionResolve(
 		return item;
 	}
 );
+//#endregion autocomplete
+
+//#region hover
+connection.onHover((hoverParams) => {
+	return {
+		contents: 'test',
+	};
+});
+//#endregion hover
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events
