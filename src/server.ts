@@ -16,6 +16,7 @@ import {
 } from 'vscode-languageserver-textdocument';
 
 import { parseCode } from '../../jul-compiler/src/parser';
+import { AbstractSyntaxTree, Expression } from '../../jul-compiler/src/abstract-syntax-tree';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -23,6 +24,7 @@ const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+const parsedDocuments: { [documentUri: string]: AbstractSyntaxTree; } = {};
 
 let hasDiagnosticRelatedInformationCapability = false;
 
@@ -51,7 +53,9 @@ documents.onDidChangeContent(change => {
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const text = textDocument.getText();
-	const { errors } = parseCode(text);
+	const parsed = parseCode(text);
+	parsedDocuments[textDocument.uri] = parsed;
+	const { errors } = parsed;
 
 	const diagnostics: Diagnostic[] = errors?.map(error => {
 		const diagnostic: Diagnostic = {
@@ -134,8 +138,23 @@ connection.onCompletionResolve(
 
 //#region hover
 connection.onHover((hoverParams) => {
+	const parsed = parsedDocuments[hoverParams.textDocument.uri];
+	if (!parsed) {
+		return;
+	}
+	const foundExpression = findExpressionByPosition(parsed, hoverParams.position.line, hoverParams.position.character);
+	// TODO functionCall, definition berücksichtigen?
+	if (foundExpression?.type === 'reference') {
+		// hoverParams.position.
+		// TODO find expression by position row/column
+		// parsed.parsed
+		// TODO check for ref, provide Type information, doc comments
+		return {
+			contents: 'test: ' + foundExpression.names[0],
+		};
+	}
 	return {
-		contents: 'test',
+		contents: 'expr type: ' + foundExpression?.type,
 	};
 });
 //#endregion hover
@@ -146,3 +165,16 @@ documents.listen(connection);
 
 // Listen on the connection
 connection.listen();
+
+//#region helper
+
+function findExpressionByPosition(
+	ast: AbstractSyntaxTree,
+	rowIndex: number,
+	columnIndex: number
+): Expression | undefined {
+	// TODO
+	return ast.parsed?.[0];
+}
+
+//#endregion helper
