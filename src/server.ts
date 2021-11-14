@@ -16,7 +16,7 @@ import {
 } from 'vscode-languageserver-textdocument';
 
 import { parseCode } from '../../jul-compiler/src/parser';
-import { AbstractSyntaxTree, Expression, PositionedExpression } from '../../jul-compiler/src/abstract-syntax-tree';
+import { AbstractSyntaxTree, Expression, Positioned, PositionedExpression } from '../../jul-compiler/src/abstract-syntax-tree';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -172,7 +172,7 @@ function findExpressionByPosition(
 	ast: AbstractSyntaxTree,
 	rowIndex: number,
 	columnIndex: number,
-): Expression | undefined {
+): PositionedExpression | undefined {
 	return ast.parsed && findExpressionByPosition2(ast.parsed, rowIndex, columnIndex);
 }
 
@@ -180,7 +180,7 @@ function findExpressionByPosition2(
 	expressions: Expression[],
 	rowIndex: number,
 	columnIndex: number,
-): Expression | undefined {
+): PositionedExpression | undefined {
 	const foundOuter = expressions.find(expression => {
 		return isPositionInRange(rowIndex, columnIndex, expression);
 	});
@@ -195,12 +195,20 @@ function findInnerExpressionByPosition(
 	expression: Expression,
 	rowIndex: number,
 	columnIndex: number,
-): Expression | undefined {
+): PositionedExpression | undefined {
 	switch (expression.type) {
 		case 'definition': {
-			// TODO check name range
-			// return expression.name
+			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
+				return expression.name;
+			}
 			const foundInner = findInnerExpressionByPosition(expression.value, rowIndex, columnIndex);
+			return foundInner;
+		}
+
+		case 'functionCall': {
+			// TODO check fnref range
+			// return expression.name
+			const foundInner = findInnerExpressionByPosition(expression.params, rowIndex, columnIndex);
 			return foundInner;
 		}
 
@@ -220,7 +228,7 @@ function findInnerExpressionByPosition(
 function isPositionInRange(
 	rowIndex: number,
 	columnIndex: number,
-	range: PositionedExpression,
+	range: Positioned,
 ): boolean {
 	return (range.startRowIndex < rowIndex
 		|| (range.startRowIndex === rowIndex && range.startColumnIndex <= columnIndex))
