@@ -16,7 +16,7 @@ import {
 } from 'vscode-languageserver-textdocument';
 
 import { parseCode } from '../../jul-compiler/src/parser';
-import { AbstractSyntaxTree, Expression, Positioned, PositionedExpression } from '../../jul-compiler/src/abstract-syntax-tree';
+import { AbstractSyntaxTree, DefinitionNames, Expression, Positioned, PositionedExpression } from '../../jul-compiler/src/abstract-syntax-tree';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -192,7 +192,7 @@ function findExpressionByPosition2(
 }
 
 function findInnerExpressionByPosition(
-	expression: Expression,
+	expression: Expression | DefinitionNames,
 	rowIndex: number,
 	columnIndex: number,
 ): PositionedExpression | undefined {
@@ -201,16 +201,30 @@ function findInnerExpressionByPosition(
 			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
 				return expression.name;
 			}
-			const foundInner = findInnerExpressionByPosition(expression.value, rowIndex, columnIndex);
-			return foundInner;
+			const foundValue = findInnerExpressionByPosition(expression.value, rowIndex, columnIndex);
+			return foundValue;
 		}
 
 		case 'functionCall': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.functionReference)) {
 				return expression.functionReference;
 			}
-			const foundInner = findInnerExpressionByPosition(expression.params, rowIndex, columnIndex);
-			return foundInner;
+			const foundArguments = findInnerExpressionByPosition(expression.arguments, rowIndex, columnIndex);
+			return foundArguments;
+		}
+
+		case 'functionLiteral': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
+				const foundParams = findInnerExpressionByPosition(expression.params, rowIndex, columnIndex);
+				return foundParams;
+			}
+			const foundBody = findExpressionByPosition2(expression.body, rowIndex, columnIndex);
+			return foundBody;
+		}
+
+		case 'list': {
+			const foundValue = findExpressionByPosition2(expression.values, rowIndex, columnIndex);
+			return foundValue;
 		}
 
 		case 'reference':
