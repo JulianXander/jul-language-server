@@ -16,7 +16,7 @@ import {
 } from 'vscode-languageserver-textdocument';
 
 import { parseCode } from '../../jul-compiler/src/parser';
-import { AbstractSyntaxTree, Expression } from '../../jul-compiler/src/abstract-syntax-tree';
+import { AbstractSyntaxTree, Expression, PositionedExpression } from '../../jul-compiler/src/abstract-syntax-tree';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -171,10 +171,61 @@ connection.listen();
 function findExpressionByPosition(
 	ast: AbstractSyntaxTree,
 	rowIndex: number,
-	columnIndex: number
+	columnIndex: number,
 ): Expression | undefined {
-	// TODO
-	return ast.parsed?.[0];
+	return ast.parsed && findExpressionByPosition2(ast.parsed, rowIndex, columnIndex);
+}
+
+function findExpressionByPosition2(
+	expressions: Expression[],
+	rowIndex: number,
+	columnIndex: number,
+): Expression | undefined {
+	const foundOuter = expressions.find(expression => {
+		return isPositionInRange(rowIndex, columnIndex, expression);
+	});
+	if (!foundOuter) {
+		return undefined;
+	}
+	const foundInner = findInnerExpressionByPosition(foundOuter, rowIndex, columnIndex);
+	return foundInner;
+}
+
+function findInnerExpressionByPosition(
+	expression: Expression,
+	rowIndex: number,
+	columnIndex: number,
+): Expression | undefined {
+	switch (expression.type) {
+		case 'definition': {
+			// TODO check name range
+			// return expression.name
+			const foundInner = findInnerExpressionByPosition(expression.value, rowIndex, columnIndex);
+			return foundInner;
+		}
+
+		case 'reference':
+			// TODO find expression name aus dem array names
+			return expression;
+
+		default: {
+			// TODO
+			return undefined;
+			// const assertNever: never = expression.type;
+			// throw new Error(`Unexpected expression.type: ${assertNever}`);
+		}
+	}
+}
+
+function isPositionInRange(
+	rowIndex: number,
+	columnIndex: number,
+	range: PositionedExpression,
+): boolean {
+	return (range.startRowIndex < rowIndex
+		|| (range.startRowIndex === rowIndex && range.startColumnIndex <= columnIndex))
+		&& (range.endRowIndex > rowIndex
+			|| (range.endRowIndex === rowIndex && range.endColumnIndex >= columnIndex));
 }
 
 //#endregion helper
