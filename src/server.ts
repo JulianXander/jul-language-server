@@ -206,8 +206,9 @@ function findInnerExpressionByPosition(
 		}
 
 		case 'functionCall': {
-			// TODO check fnref range
-			// return expression.name
+			if (isPositionInRange(rowIndex, columnIndex, expression.functionReference)) {
+				return expression.functionReference;
+			}
 			const foundInner = findInnerExpressionByPosition(expression.params, rowIndex, columnIndex);
 			return foundInner;
 		}
