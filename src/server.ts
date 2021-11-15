@@ -235,13 +235,19 @@ function findExpressionInExpression(
 		}
 
 		case 'dictionary': {
-			// if (isPositionInRange(rowIndex, columnIndex, expression.names)) {
-			// 	const foundName = findExpressionInExpression(expression.names, rowIndex, columnIndex);
-			// 	return foundName;
-			// }
-			// const foundValue = findExpressionInExpression(expression.values, rowIndex, columnIndex);
-			// return foundValue;
-			return undefined;
+			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex);
+			return foundValue;
+		}
+
+		case 'dictionaryValue': {
+			// TODO name
+			const typeGuard = expression.typeGuard;
+			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex);
+				return foundType;
+			}
+			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex);
+			return foundValue;
 		}
 
 		case 'empty':
