@@ -16,7 +16,7 @@ import {
 } from 'vscode-languageserver-textdocument';
 
 import { parseCode } from '../../jul-compiler/src/parser';
-import { AbstractSyntaxTree, DefinitionNames, Expression, Positioned, PositionedExpression } from '../../jul-compiler/src/abstract-syntax-tree';
+import { AbstractSyntaxTree, DefinitionNames, Expression, Positioned, PositionedExpression, ValueExpression } from '../../jul-compiler/src/abstract-syntax-tree';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -142,7 +142,7 @@ connection.onHover((hoverParams) => {
 	if (!parsed) {
 		return;
 	}
-	const foundExpression = findExpressionByPosition(parsed, hoverParams.position.line, hoverParams.position.character);
+	const foundExpression = findExpressionInAst(parsed, hoverParams.position.line, hoverParams.position.character);
 	// TODO functionCall, definition berücksichtigen?
 	if (foundExpression?.type === 'reference') {
 		// hoverParams.position.
@@ -168,16 +168,18 @@ connection.listen();
 
 //#region helper
 
-function findExpressionByPosition(
+//#region findExpression
+
+function findExpressionInAst(
 	ast: AbstractSyntaxTree,
 	rowIndex: number,
 	columnIndex: number,
 ): PositionedExpression | undefined {
-	return ast.parsed && findExpressionByPosition2(ast.parsed, rowIndex, columnIndex);
+	return ast.parsed && findExpressionInExpressions(ast.parsed, rowIndex, columnIndex);
 }
 
-function findExpressionByPosition2(
-	expressions: Expression[],
+function findExpressionInExpressions(
+	expressions: PositionedExpression[],
 	rowIndex: number,
 	columnIndex: number,
 ): PositionedExpression | undefined {
@@ -187,55 +189,107 @@ function findExpressionByPosition2(
 	if (!foundOuter) {
 		return undefined;
 	}
-	const foundInner = findInnerExpressionByPosition(foundOuter, rowIndex, columnIndex);
+	const foundInner = findExpressionInExpression(foundOuter, rowIndex, columnIndex);
 	return foundInner;
 }
 
-function findInnerExpressionByPosition(
-	expression: Expression | DefinitionNames,
+function findExpressionInExpression(
+	expression: PositionedExpression,
 	rowIndex: number,
 	columnIndex: number,
 ): PositionedExpression | undefined {
 	switch (expression.type) {
+		case 'branching': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
+				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex);
+				return foundValue;
+			}
+			const foundBranch = findExpressionInExpressions(expression.branches, rowIndex, columnIndex);
+			return foundBranch;
+		}
+
 		case 'definition': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
 				return expression.name;
 			}
-			const foundValue = findInnerExpressionByPosition(expression.value, rowIndex, columnIndex);
+			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex);
 			return foundValue;
 		}
+
+		case 'definitionNames': {
+			// TODO rest
+			// if (expression.rest &&  isPositionInRange(rowIndex, columnIndex, expression.rest)) {
+			// 	return expression.rest;
+			// }
+			const foundValue = findExpressionInExpressions(expression.singleNames, rowIndex, columnIndex);
+			return foundValue;
+		}
+
+		case 'destructuring': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.names)) {
+				const foundName = findExpressionInExpression(expression.names, rowIndex, columnIndex);
+				return foundName;
+			}
+			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex);
+			return foundValue;
+		}
+
+		case 'dictionary': {
+			// if (isPositionInRange(rowIndex, columnIndex, expression.names)) {
+			// 	const foundName = findExpressionInExpression(expression.names, rowIndex, columnIndex);
+			// 	return foundName;
+			// }
+			// const foundValue = findExpressionInExpression(expression.values, rowIndex, columnIndex);
+			// return foundValue;
+			return undefined;
+		}
+
+		case 'empty':
+			return undefined;
 
 		case 'functionCall': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.functionReference)) {
 				return expression.functionReference;
 			}
-			const foundArguments = findInnerExpressionByPosition(expression.arguments, rowIndex, columnIndex);
+			const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex);
 			return foundArguments;
 		}
 
 		case 'functionLiteral': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
-				const foundParams = findInnerExpressionByPosition(expression.params, rowIndex, columnIndex);
+				const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex);
 				return foundParams;
 			}
-			const foundBody = findExpressionByPosition2(expression.body, rowIndex, columnIndex);
+			const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex);
 			return foundBody;
 		}
 
 		case 'list': {
-			const foundValue = findExpressionByPosition2(expression.values, rowIndex, columnIndex);
+			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex);
 			return foundValue;
 		}
+
+		case 'name': {
+			// TODO check name range, source, typeguard, fallback
+			return expression;
+		}
+
+		case 'number':
+			return undefined;
 
 		case 'reference':
 			// TODO find expression name aus dem array names
 			return expression;
 
+		case 'string': {
+			const values = expression.values.filter((value): value is ValueExpression => value.type !== 'stringToken');
+			const foundValue = findExpressionInExpressions(values, rowIndex, columnIndex);
+			return foundValue;
+		}
+
 		default: {
-			// TODO
-			return undefined;
-			// const assertNever: never = expression.type;
-			// throw new Error(`Unexpected expression.type: ${assertNever}`);
+			const assertNever: never = expression;
+			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
 		}
 	}
 }
@@ -250,5 +304,7 @@ function isPositionInRange(
 		&& (range.endRowIndex > rowIndex
 			|| (range.endRowIndex === rowIndex && range.endColumnIndex >= columnIndex));
 }
+
+//#endregion findExpression
 
 //#endregion helper
