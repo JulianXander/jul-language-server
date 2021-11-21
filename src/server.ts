@@ -16,7 +16,14 @@ import {
 } from 'vscode-languageserver-textdocument';
 
 import { parseCode } from '../../jul-compiler/src/parser';
-import { SyntaxTree, DefinitionNames, Expression, Positioned, PositionedExpression, ValueExpression } from '../../jul-compiler/src/syntax-tree';
+import {
+	Positioned,
+	PositionedExpression,
+	ValueExpression,
+	SymbolTable,
+	ParsedFile,
+	SymbolDefinition
+} from '../../jul-compiler/src/syntax-tree';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -24,7 +31,7 @@ const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-const parsedDocuments: { [documentUri: string]: SyntaxTree; } = {};
+const parsedDocuments: { [documentUri: string]: ParsedFile; } = {};
 
 let hasDiagnosticRelatedInformationCapability = false;
 
@@ -142,20 +149,28 @@ connection.onHover((hoverParams) => {
 	if (!parsed) {
 		return;
 	}
-	const foundExpression = findExpressionInAst(parsed, hoverParams.position.line, hoverParams.position.character);
-	// TODO functionCall, definition berücksichtigen?
-	if (foundExpression?.type === 'reference') {
-		// hoverParams.position.
-		// TODO find expression by position row/column
-		// parsed.parsed
-		// TODO check for ref, provide Type information, doc comments
+	// TODO find funciontLiteral, show param + return type
+	// const foundExpression = findExpressionInParsedFile(parsed, hoverParams.position.line, hoverParams.position.character);
+	// // TODO functionCall, definition berücksichtigen?
+	// if (foundExpression?.type === 'reference') {
+	// 	// hoverParams.position.
+	// 	// TODO find expression by position row/column
+	// 	// parsed.parsed
+	// 	// TODO check for ref, provide Type information, doc comments
+	// 	return {
+	// 		contents: 'test: ' + foundExpression.names[0],
+	// 	};
+	// }
+	// return {
+	// 	contents: 'expr type: ' + foundExpression?.type,
+	// };
+
+	const foundSymbol = getSymbolDefinition(parsed, hoverParams.position.line, hoverParams.position.character);
+	if (foundSymbol) {
 		return {
-			contents: 'test: ' + foundExpression.names[0],
+			contents: 'type: ' + foundSymbol.type
 		};
 	}
-	return {
-		contents: 'expr type: ' + foundExpression?.type,
-	};
 });
 //#endregion hover
 
@@ -170,18 +185,24 @@ connection.listen();
 
 //#region findExpression
 
-function findExpressionInAst(
-	ast: SyntaxTree,
+function findExpressionInParsedFile(
+	parsedFile: ParsedFile,
 	rowIndex: number,
 	columnIndex: number,
+	scopes: SymbolTable[],
 ): PositionedExpression | undefined {
-	return ast.parsed && findExpressionInExpressions(ast.parsed, rowIndex, columnIndex);
+	return parsedFile.expressions && findExpressionInExpressions(
+		parsedFile.expressions,
+		rowIndex,
+		columnIndex,
+		scopes);
 }
 
 function findExpressionInExpressions(
 	expressions: PositionedExpression[],
 	rowIndex: number,
 	columnIndex: number,
+	scopes: SymbolTable[],
 ): PositionedExpression | undefined {
 	const foundOuter = expressions.find(expression => {
 		return isPositionInRange(rowIndex, columnIndex, expression);
@@ -189,7 +210,7 @@ function findExpressionInExpressions(
 	if (!foundOuter) {
 		return undefined;
 	}
-	const foundInner = findExpressionInExpression(foundOuter, rowIndex, columnIndex);
+	const foundInner = findExpressionInExpression(foundOuter, rowIndex, columnIndex, scopes);
 	return foundInner;
 }
 
@@ -197,14 +218,15 @@ function findExpressionInExpression(
 	expression: PositionedExpression,
 	rowIndex: number,
 	columnIndex: number,
+	scopes: SymbolTable[],
 ): PositionedExpression | undefined {
 	switch (expression.type) {
 		case 'branching': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
-				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex);
+				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 				return foundValue;
 			}
-			const foundBranch = findExpressionInExpressions(expression.branches, rowIndex, columnIndex);
+			const foundBranch = findExpressionInExpressions(expression.branches, rowIndex, columnIndex, scopes);
 			return foundBranch;
 		}
 
@@ -212,7 +234,7 @@ function findExpressionInExpression(
 			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
 				return expression.name;
 			}
-			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex);
+			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
 
@@ -221,21 +243,21 @@ function findExpressionInExpression(
 			// if (expression.rest &&  isPositionInRange(rowIndex, columnIndex, expression.rest)) {
 			// 	return expression.rest;
 			// }
-			const foundValue = findExpressionInExpressions(expression.singleNames, rowIndex, columnIndex);
+			const foundValue = findExpressionInExpressions(expression.singleNames, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
 
 		case 'destructuring': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.names)) {
-				const foundName = findExpressionInExpression(expression.names, rowIndex, columnIndex);
+				const foundName = findExpressionInExpression(expression.names, rowIndex, columnIndex, scopes);
 				return foundName;
 			}
-			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex);
+			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
 
 		case 'dictionary': {
-			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex);
+			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
 
@@ -243,10 +265,10 @@ function findExpressionInExpression(
 			// TODO name
 			const typeGuard = expression.typeGuard;
 			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex);
+				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
 				return foundType;
 			}
-			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex);
+			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
 
@@ -257,21 +279,22 @@ function findExpressionInExpression(
 			if (isPositionInRange(rowIndex, columnIndex, expression.functionReference)) {
 				return expression.functionReference;
 			}
-			const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex);
+			const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
 			return foundArguments;
 		}
 
 		case 'functionLiteral': {
+			scopes.push(expression.symbols);
 			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
-				const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex);
+				const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex, scopes);
 				return foundParams;
 			}
-			const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex);
+			const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex, scopes);
 			return foundBody;
 		}
 
 		case 'list': {
-			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex);
+			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
 
@@ -288,8 +311,9 @@ function findExpressionInExpression(
 			return expression;
 
 		case 'string': {
-			const values = expression.values.filter((value): value is ValueExpression => value.type !== 'stringToken');
-			const foundValue = findExpressionInExpressions(values, rowIndex, columnIndex);
+			const values = expression.values.filter((value): value is ValueExpression =>
+				value.type !== 'stringToken');
+			const foundValue = findExpressionInExpressions(values, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
 
@@ -312,5 +336,31 @@ function isPositionInRange(
 }
 
 //#endregion findExpression
+
+function getSymbolDefinition(
+	parsedFile: ParsedFile,
+	rowIndex: number,
+	columnIndex: number,
+): SymbolDefinition | undefined {
+	const scopes: SymbolTable[] = [
+		parsedFile.symbols,
+	];
+	const expression = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex, scopes);
+	if (expression?.type === 'reference') {
+		// TODO nested ref path
+		const name = expression.names[0];
+		const definition = findSymbolInScopes(name, scopes);
+		return definition;
+	}
+}
+
+function findSymbolInScopes(name: string, scopes: SymbolTable[]): SymbolDefinition | undefined {
+	for (const scope of scopes) {
+		const symbol = scope[name];
+		if (symbol) {
+			return symbol;
+		}
+	}
+}
 
 //#endregion helper
