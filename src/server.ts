@@ -16,7 +16,7 @@ import {
 } from 'vscode-languageserver-textdocument';
 
 import { parseCode } from '../../jul-compiler/src/parser';
-import { AbstractSyntaxTree, DefinitionNames, Expression, Positioned, PositionedExpression, ValueExpression } from '../../jul-compiler/src/abstract-syntax-tree';
+import { SyntaxTree, DefinitionNames, Expression, Positioned, PositionedExpression, ValueExpression } from '../../jul-compiler/src/syntax-tree';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -24,7 +24,7 @@ const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-const parsedDocuments: { [documentUri: string]: AbstractSyntaxTree; } = {};
+const parsedDocuments: { [documentUri: string]: SyntaxTree; } = {};
 
 let hasDiagnosticRelatedInformationCapability = false;
 
@@ -171,7 +171,7 @@ connection.listen();
 //#region findExpression
 
 function findExpressionInAst(
-	ast: AbstractSyntaxTree,
+	ast: SyntaxTree,
 	rowIndex: number,
 	columnIndex: number,
 ): PositionedExpression | undefined {
