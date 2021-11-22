@@ -5,7 +5,8 @@
 		"moduleResolution": "node",
 		"outDir": "out",
 		"strict": true,
-		"noUncheckedIndexedAccess": true
+		"noUncheckedIndexedAccess": true,
+		"sourceMap": true
 	},
 	"files": [
 		"src/server.ts"

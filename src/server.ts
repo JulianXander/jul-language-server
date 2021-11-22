@@ -15,6 +15,7 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
+import { builtInSymbols } from '../../jul-compiler/src/checker';
 import { parseCode } from '../../jul-compiler/src/parser';
 import {
 	Positioned,
@@ -22,7 +23,7 @@ import {
 	ValueExpression,
 	SymbolTable,
 	ParsedFile,
-	SymbolDefinition
+	SymbolDefinition,
 } from '../../jul-compiler/src/syntax-tree';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -343,14 +344,40 @@ function getSymbolDefinition(
 	columnIndex: number,
 ): SymbolDefinition | undefined {
 	const scopes: SymbolTable[] = [
+		builtInSymbols,
 		parsedFile.symbols,
 	];
 	const expression = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex, scopes);
-	if (expression?.type === 'reference') {
-		// TODO nested ref path
-		const name = expression.names[0];
-		const definition = findSymbolInScopes(name, scopes);
-		return definition;
+	if (!expression) {
+		return undefined;
+	}
+	switch (expression.type) {
+		case 'reference': {
+			// TODO nested ref path
+			const name = expression.names[0];
+			const definition = findSymbolInScopes(name, scopes);
+			return definition;
+		}
+
+		case 'branching':
+		case 'definition':
+		case 'definitionNames':
+		case 'destructuring':
+		case 'dictionary':
+		case 'dictionaryValue':
+		case 'empty':
+		case 'functionCall':
+		case 'functionLiteral':
+		case 'list':
+		case 'name':
+		case 'number':
+		case 'string':
+			return undefined;
+
+		default: {
+			const assertNever: never = expression;
+			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
+		}
 	}
 }
 
