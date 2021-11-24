@@ -169,7 +169,7 @@ connection.onHover((hoverParams) => {
 	const foundSymbol = getSymbolDefinition(parsed, hoverParams.position.line, hoverParams.position.character);
 	if (foundSymbol) {
 		return {
-			contents: 'type: ' + foundSymbol.type
+			contents: 'type: ' + foundSymbol.type + '\ndescription: ' + foundSymbol.description
 		};
 	}
 });
