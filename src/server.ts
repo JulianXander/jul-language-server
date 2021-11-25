@@ -9,7 +9,8 @@ import {
 	CompletionItemKind,
 	TextDocumentPositionParams,
 	TextDocumentSyncKind,
-	InitializeResult
+	InitializeResult,
+	Range,
 } from 'vscode-languageserver/node';
 import {
 	TextDocument
@@ -17,8 +18,8 @@ import {
 
 import { builtInSymbols } from '../../jul-compiler/src/checker';
 import { parseCode } from '../../jul-compiler/src/parser';
+import { Positioned } from '../../jul-compiler/src/parser-combinator';
 import {
-	Positioned,
 	PositionedExpression,
 	ValueExpression,
 	SymbolTable,
@@ -48,7 +49,8 @@ connection.onInitialize((params: InitializeParams) => {
 			completionProvider: {
 				resolveProvider: true
 			},
-			hoverProvider: true
+			definitionProvider: true,
+			hoverProvider: true,
 		}
 	};
 	return result;
@@ -68,11 +70,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const diagnostics: Diagnostic[] = errors?.map(error => {
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Error,
-			range: {
-				start: { line: error.rowIndex, character: error.columnIndex },
-				// TODO error length/ start+endindex in parserError
-				end: { line: error.rowIndex, character: error.columnIndex + 4 },
-			},
+			range: positionedToRange(error),
 			message: error.message,
 			source: 'jul'
 		};
@@ -108,41 +106,54 @@ connection.onDidChangeWatchedFiles(_change => {
 
 //#region autocomplete
 // This handler provides the initial list of the completion items.
-connection.onCompletion(
-	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-		// The pass parameter contains the position of the text document in
-		// which code complete got requested. For the example we ignore this
-		// info and always provide the same completion items.
-		return [
-			{
-				label: 'TypeScript',
-				kind: CompletionItemKind.Text,
-				data: 1
-			},
-			{
-				label: 'JavaScript',
-				kind: CompletionItemKind.Text,
-				data: 2
-			}
-		];
-	}
-);
+connection.onCompletion((_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
+	// The pass parameter contains the position of the text document in
+	// which code complete got requested. For the example we ignore this
+	// info and always provide the same completion items.
+	return [
+		{
+			label: 'TypeScript',
+			kind: CompletionItemKind.Text,
+			data: 1
+		},
+		{
+			label: 'JavaScript',
+			kind: CompletionItemKind.Text,
+			data: 2
+		}
+	];
+});
 
 // This handler resolves additional information for the item selected in
 // the completion list.
-connection.onCompletionResolve(
-	(item: CompletionItem): CompletionItem => {
-		if (item.data === 1) {
-			item.detail = 'TypeScript details';
-			item.documentation = 'TypeScript documentation';
-		} else if (item.data === 2) {
-			item.detail = 'JavaScript details';
-			item.documentation = 'JavaScript documentation';
-		}
-		return item;
+connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
+	if (item.data === 1) {
+		item.detail = 'TypeScript details';
+		item.documentation = 'TypeScript documentation';
+	} else if (item.data === 2) {
+		item.detail = 'JavaScript details';
+		item.documentation = 'JavaScript documentation';
 	}
-);
+	return item;
+});
 //#endregion autocomplete
+
+//#region go to definition
+connection.onDefinition((definitionParams) => {
+	const documentUri = definitionParams.textDocument.uri;
+	const parsed = parsedDocuments[documentUri];
+	if (!parsed) {
+		return;
+	}
+	const foundSymbol = getSymbolDefinition(parsed, definitionParams.position.line, definitionParams.position.character);
+	if (foundSymbol) {
+		return {
+			uri: documentUri,
+			range: positionedToRange(foundSymbol)
+		};
+	}
+});
+//#endregion go to definition
 
 //#region hover
 connection.onHover((hoverParams) => {
@@ -388,6 +399,19 @@ function findSymbolInScopes(name: string, scopes: SymbolTable[]): SymbolDefiniti
 			return symbol;
 		}
 	}
+}
+
+function positionedToRange(positioned: Positioned): Range {
+	return {
+		start: {
+			line: positioned.startRowIndex,
+			character: positioned.startColumnIndex,
+		},
+		end: {
+			line: positioned.endRowIndex,
+			character: positioned.endColumnIndex,
+		},
+	};
 }
 
 //#endregion helper
