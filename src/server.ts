@@ -250,18 +250,9 @@ function findExpressionInExpression(
 			return foundValue;
 		}
 
-		case 'definitionNames': {
-			// TODO rest
-			// if (expression.rest &&  isPositionInRange(rowIndex, columnIndex, expression.rest)) {
-			// 	return expression.rest;
-			// }
-			const foundValue = findExpressionInExpressions(expression.singleNames, rowIndex, columnIndex, scopes);
-			return foundValue;
-		}
-
 		case 'destructuring': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.names)) {
-				const foundName = findExpressionInExpression(expression.names, rowIndex, columnIndex, scopes);
+			if (isPositionInRange(rowIndex, columnIndex, expression.fields)) {
+				const foundName = findExpressionInExpression(expression.fields, rowIndex, columnIndex, scopes);
 				return foundName;
 			}
 			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
@@ -273,8 +264,20 @@ function findExpressionInExpression(
 			return foundValue;
 		}
 
+		case 'dictionaryType': {
+			// TODO rest
+			// if (expression.rest &&  isPositionInRange(rowIndex, columnIndex, expression.rest)) {
+			// 	return expression.rest;
+			// }
+			const foundValue = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
+			return foundValue;
+		}
+
 		case 'dictionaryValue': {
-			// TODO name
+			const name = expression.name;
+			if (isPositionInRange(rowIndex, columnIndex, name)) {
+				return name;
+			}
 			const typeGuard = expression.typeGuard;
 			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
 				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
@@ -286,6 +289,10 @@ function findExpressionInExpression(
 
 		case 'empty':
 			return undefined;
+
+		case 'field':
+			// TODO check name range, source, typeguard, fallback
+			return expression;
 
 		case 'functionCall': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.functionReference)) {
@@ -305,15 +312,16 @@ function findExpressionInExpression(
 			return foundBody;
 		}
 
+		case 'index':
+			return expression;
+
 		case 'list': {
 			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
 
-		case 'name': {
-			// TODO check name range, source, typeguard, fallback
+		case 'name':
 			return expression;
-		}
 
 		case 'number':
 			return undefined;
@@ -365,20 +373,22 @@ function getSymbolDefinition(
 	switch (expression.type) {
 		case 'reference': {
 			// TODO nested ref path
-			const name = expression.names[0];
+			const name = expression.names[0].name;
 			const definition = findSymbolInScopes(name, scopes);
 			return definition;
 		}
 
 		case 'branching':
 		case 'definition':
-		case 'definitionNames':
 		case 'destructuring':
 		case 'dictionary':
+		case 'dictionaryType':
 		case 'dictionaryValue':
 		case 'empty':
+		case 'field':
 		case 'functionCall':
 		case 'functionLiteral':
+		case 'index':
 		case 'list':
 		case 'name':
 		case 'number':
