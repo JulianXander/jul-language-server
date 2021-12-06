@@ -21,7 +21,7 @@ import { parseCode } from '../../jul-compiler/src/parser';
 import { Positioned } from '../../jul-compiler/src/parser-combinator';
 import {
 	PositionedExpression,
-	ValueExpression,
+	ParseValueExpression,
 	SymbolTable,
 	ParsedFile,
 	SymbolDefinition,
@@ -233,6 +233,11 @@ function findExpressionInExpression(
 	scopes: SymbolTable[],
 ): PositionedExpression | undefined {
 	switch (expression.type) {
+		case 'bracketed': {
+			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
+			return foundField;
+		}
+
 		case 'branching': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
 				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
@@ -260,32 +265,18 @@ function findExpressionInExpression(
 		}
 
 		case 'dictionary': {
-			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
-			return foundValue;
+			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
+			return foundField;
 		}
 
-		case 'dictionaryType': {
-			// TODO rest
-			// if (expression.rest &&  isPositionInRange(rowIndex, columnIndex, expression.rest)) {
-			// 	return expression.rest;
-			// }
-			const foundValue = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
-			return foundValue;
-		}
-
-		case 'dictionaryValue': {
-			const name = expression.name;
-			if (isPositionInRange(rowIndex, columnIndex, name)) {
-				return name;
-			}
-			const typeGuard = expression.typeGuard;
-			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-				return foundType;
-			}
-			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-			return foundValue;
-		}
+		// case 'dictionaryType': {
+		// 	// TODO rest
+		// 	// if (expression.rest &&  isPositionInRange(rowIndex, columnIndex, expression.rest)) {
+		// 	// 	return expression.rest;
+		// 	// }
+		// 	const foundValue = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
+		// 	return foundValue;
+		// }
 
 		case 'empty':
 			return undefined;
@@ -330,8 +321,30 @@ function findExpressionInExpression(
 			// TODO find expression name aus dem array names
 			return expression;
 
+		case 'singleDictionaryField': {
+			const name = expression.name;
+			if (isPositionInRange(rowIndex, columnIndex, name)) {
+				return name;
+			}
+			const typeGuard = expression.typeGuard;
+			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
+				return foundType;
+			}
+			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+			return foundValue;
+		}
+
+		case 'spreadDictionaryField': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
+				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+				return foundValue;
+			}
+			return expression;
+		}
+
 		case 'string': {
-			const values = expression.values.filter((value): value is ValueExpression =>
+			const values = expression.values.filter((value): value is ParseValueExpression =>
 				value.type !== 'stringToken');
 			const foundValue = findExpressionInExpressions(values, rowIndex, columnIndex, scopes);
 			return foundValue;
@@ -378,12 +391,12 @@ function getSymbolDefinition(
 			return definition;
 		}
 
+		case 'bracketed':
 		case 'branching':
 		case 'definition':
 		case 'destructuring':
 		case 'dictionary':
-		case 'dictionaryType':
-		case 'dictionaryValue':
+		// case 'dictionaryType':
 		case 'empty':
 		case 'field':
 		case 'functionCall':
@@ -392,6 +405,8 @@ function getSymbolDefinition(
 		case 'list':
 		case 'name':
 		case 'number':
+		case 'singleDictionaryField':
+		case 'spreadDictionaryField':
 		case 'string':
 			return undefined;
 
