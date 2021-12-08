@@ -226,6 +226,9 @@ function findExpressionInExpressions(
 	return foundInner;
 }
 
+/**
+ * TODO wenn nicht found in inner expression, dann return outer expression?
+ */
 function findExpressionInExpression(
 	expression: PositionedExpression,
 	rowIndex: number,
@@ -269,14 +272,10 @@ function findExpressionInExpression(
 			return foundField;
 		}
 
-		// case 'dictionaryType': {
-		// 	// TODO rest
-		// 	// if (expression.rest &&  isPositionInRange(rowIndex, columnIndex, expression.rest)) {
-		// 	// 	return expression.rest;
-		// 	// }
-		// 	const foundValue = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
-		// 	return foundValue;
-		// }
+		case 'dictionaryType': {
+			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
+			return foundField;
+		}
 
 		case 'empty':
 			return undefined;
@@ -335,7 +334,28 @@ function findExpressionInExpression(
 			return foundValue;
 		}
 
+		case 'singleDictionaryTypeField': {
+			const name = expression.name;
+			if (isPositionInRange(rowIndex, columnIndex, name)) {
+				return name;
+			}
+			const typeGuard = expression.typeGuard;
+			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
+				return foundType;
+			}
+			return expression;
+		}
+
 		case 'spreadDictionaryField': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
+				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+				return foundValue;
+			}
+			return expression;
+		}
+
+		case 'spreadDictionaryTypeField': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
 				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 				return foundValue;
@@ -396,7 +416,7 @@ function getSymbolDefinition(
 		case 'definition':
 		case 'destructuring':
 		case 'dictionary':
-		// case 'dictionaryType':
+		case 'dictionaryType':
 		case 'empty':
 		case 'field':
 		case 'functionCall':
@@ -406,7 +426,9 @@ function getSymbolDefinition(
 		case 'name':
 		case 'number':
 		case 'singleDictionaryField':
+		case 'singleDictionaryTypeField':
 		case 'spreadDictionaryField':
+		case 'spreadDictionaryTypeField':
 		case 'string':
 			return undefined;
 
