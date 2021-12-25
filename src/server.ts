@@ -26,6 +26,7 @@ import {
 	ParsedFile,
 	SymbolDefinition,
 } from '../../jul-compiler/src/syntax-tree';
+import { checkTypes } from '../../jul-compiler/src/type-checker';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -65,9 +66,12 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const text = textDocument.getText();
 	const parsed = parseCode(text);
 	parsedDocuments[textDocument.uri] = parsed;
+	// TODO recursively parse imported files
+	// TODO infertypes, typecheck
+	checkTypes(parsedDocuments);
 	const { errors } = parsed;
 
-	const diagnostics: Diagnostic[] = errors?.map(error => {
+	const diagnostics: Diagnostic[] = errors.map(error => {
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Error,
 			range: positionedToRange(error),
@@ -93,7 +97,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		// 	];
 		// }
 		return diagnostic;
-	}) ?? [];
+	});
 
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
@@ -180,7 +184,7 @@ connection.onHover((hoverParams) => {
 	const foundSymbol = getSymbolDefinition(parsed, hoverParams.position.line, hoverParams.position.character);
 	if (foundSymbol) {
 		return {
-			contents: 'type: ' + foundSymbol.type + '\ndescription: ' + foundSymbol.description
+			contents: 'type: ' + JSON.stringify(foundSymbol.normalizedType) + '\ndescription: ' + foundSymbol.description
 		};
 	}
 });
@@ -390,6 +394,7 @@ function isPositionInRange(
 
 //#endregion findExpression
 
+// TODO got to source file bei import?
 function getSymbolDefinition(
 	parsedFile: ParsedFile,
 	rowIndex: number,
