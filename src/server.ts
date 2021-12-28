@@ -16,7 +16,7 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 
-import { builtInSymbols } from '../../jul-compiler/src/checker';
+// import { builtInSymbols } from '../../jul-compiler/src/checker';
 import { parseCode } from '../../jul-compiler/src/parser';
 import { Positioned } from '../../jul-compiler/src/parser-combinator';
 import {
@@ -26,7 +26,11 @@ import {
 	ParsedFile,
 	SymbolDefinition,
 } from '../../jul-compiler/src/syntax-tree';
-import { checkTypes, dereference } from '../../jul-compiler/src/type-checker';
+import {
+	builtInSymbols,
+	checkTypes,
+	dereference,
+} from '../../jul-compiler/src/type-checker';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
