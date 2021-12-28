@@ -26,7 +26,7 @@ import {
 	ParsedFile,
 	SymbolDefinition,
 } from '../../jul-compiler/src/syntax-tree';
-import { checkTypes } from '../../jul-compiler/src/type-checker';
+import { checkTypes, dereference } from '../../jul-compiler/src/type-checker';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -67,7 +67,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const parsed = parseCode(text);
 	parsedDocuments[textDocument.uri] = parsed;
 	// TODO recursively parse imported files
-	// TODO infertypes, typecheck
+	// TODO invalidate imported inferred types of this file in other files
+	// infertypes, typecheck
 	checkTypes(parsedDocuments);
 	const { errors } = parsed;
 
@@ -410,9 +411,7 @@ function getSymbolDefinition(
 	}
 	switch (expression.type) {
 		case 'reference': {
-			// TODO nested ref path
-			const name = expression.names[0].name;
-			const definition = findSymbolInScopes(name, scopes);
+			const definition = dereference(expression, scopes);
 			return definition;
 		}
 
@@ -440,15 +439,6 @@ function getSymbolDefinition(
 		default: {
 			const assertNever: never = expression;
 			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
-		}
-	}
-}
-
-function findSymbolInScopes(name: string, scopes: SymbolTable[]): SymbolDefinition | undefined {
-	for (const scope of scopes) {
-		const symbol = scope[name];
-		if (symbol) {
-			return symbol;
 		}
 	}
 }
