@@ -1,7 +1,7 @@
 {
 	"name": "jul-lsp-server",
 	"scripts": {
-		"build": "npx tsc && rm -r ../vscode-jul-language-service/out/jul-language-server && rsync -a ../jul-language-server ../vscode-jul-language-service/out --exclude .git"
+		"build": "npx tsc && copyfiles --flat ../jul-compiler/out/core-lib.jul out && rm -r ../vscode-jul-language-service/out/jul-language-server && rsync -a ../jul-language-server ../vscode-jul-language-service/out --exclude .git"
 	},
 	"dependencies": {
 		"vscode-languageserver": "^7.0.0",

@@ -311,6 +311,18 @@ function findExpressionInExpression(
 			return foundBody;
 		}
 
+		case 'functionTypeLiteral': {
+			// TODO
+			// scopes.push(expression.symbols);
+			// if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
+			// 	const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex, scopes);
+			// 	return foundParams;
+			// }
+			// const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex, scopes);
+			// return foundBody;
+			return undefined;
+		}
+
 		case 'index':
 			return expression;
 
@@ -429,6 +441,7 @@ function getSymbolDefinition(
 		case 'field':
 		case 'functionCall':
 		case 'functionLiteral':
+		case 'functionTypeLiteral':
 		case 'index':
 		case 'list':
 		case 'name':
