@@ -27,9 +27,9 @@ import {
 	SymbolDefinition,
 } from '../../jul-compiler/src/syntax-tree';
 import {
-	builtInSymbols,
 	checkTypes,
-	dereference,
+	coreLibPath,
+	dereferenceWithBuiltIns,
 } from '../../jul-compiler/src/type-checker';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -157,8 +157,10 @@ connection.onDefinition((definitionParams) => {
 	const foundSymbol = getSymbolDefinition(parsed, definitionParams.position.line, definitionParams.position.character);
 	if (foundSymbol) {
 		return {
-			uri: documentUri,
-			range: positionedToRange(foundSymbol)
+			uri: foundSymbol.isBuiltIn
+				? coreLibPath
+				: documentUri,
+			range: positionedToRange(foundSymbol.symbol)
 		};
 	}
 });
@@ -189,7 +191,7 @@ connection.onHover((hoverParams) => {
 	const foundSymbol = getSymbolDefinition(parsed, hoverParams.position.line, hoverParams.position.character);
 	if (foundSymbol) {
 		return {
-			contents: 'type: ' + JSON.stringify(foundSymbol.normalizedType) + '\ndescription: ' + foundSymbol.description
+			contents: 'type: ' + JSON.stringify(foundSymbol.symbol.normalizedType) + '\ndescription: ' + foundSymbol.symbol.description
 		};
 	}
 });
@@ -206,6 +208,9 @@ connection.listen();
 
 //#region findExpression
 
+/**
+ * Füllt scopes
+ */
 function findExpressionInParsedFile(
 	parsedFile: ParsedFile,
 	rowIndex: number,
@@ -219,6 +224,9 @@ function findExpressionInParsedFile(
 		scopes);
 }
 
+/**
+ * Füllt scopes
+ */
 function findExpressionInExpressions(
 	expressions: PositionedExpression[],
 	rowIndex: number,
@@ -236,6 +244,7 @@ function findExpressionInExpressions(
 }
 
 /**
+ * Füllt scopes
  * TODO wenn nicht found in inner expression, dann return outer expression?
  */
 function findExpressionInExpression(
@@ -416,9 +425,11 @@ function getSymbolDefinition(
 	parsedFile: ParsedFile,
 	rowIndex: number,
 	columnIndex: number,
-): SymbolDefinition | undefined {
+): {
+	isBuiltIn: boolean;
+	symbol: SymbolDefinition;
+} | undefined {
 	const scopes: SymbolTable[] = [
-		builtInSymbols,
 		parsedFile.symbols,
 	];
 	const expression = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex, scopes);
@@ -427,7 +438,7 @@ function getSymbolDefinition(
 	}
 	switch (expression.type) {
 		case 'reference': {
-			const definition = dereference(expression, scopes);
+			const definition = dereferenceWithBuiltIns(expression, scopes);
 			return definition;
 		}
 
