@@ -25,6 +25,8 @@ import {
 	SymbolTable,
 	ParsedFile,
 	SymbolDefinition,
+	ParseFunctionCall,
+	BracketedExpression,
 } from '../../jul-compiler/src/syntax-tree';
 import {
 	checkTypes,
@@ -442,10 +444,25 @@ function getSymbolDefinition(
 			return definition;
 		}
 
+		case 'definition': {
+			// TODO GoToDefinition: bei import: go to source file symbol?
+			// create dictionary type mit allen definitions?
+			return undefined;
+		}
+
+		case 'destructuring': {
+			// TODO stattdessen bei name case, destrucuring als parent expression?
+			// TODO GoToDefinition: bei import: go to source file symbol
+			// if (isImport(expression.value)) {
+			// 	const importedPath = getPathFromImport(expression.value);
+			// 	const importedFile = parsedDocuments[importedPath + '.jul'];
+			// 	const importedSymbol = importedFile?.symbols[expression.fields];
+			// }
+			return undefined;
+		}
+
 		case 'bracketed':
 		case 'branching':
-		case 'definition':
-		case 'destructuring':
 		case 'dictionary':
 		case 'dictionaryType':
 		case 'empty':
@@ -470,6 +487,51 @@ function getSymbolDefinition(
 		}
 	}
 }
+
+//#region import
+
+function isImport(expression: ParseValueExpression): expression is ParseFunctionCall {
+	if (expression.type !== 'functionCall') {
+		return false;
+	}
+	const functionReferenceNames = expression.functionReference.names;
+	return functionReferenceNames.length === 1
+		&& functionReferenceNames[0].name === 'import';
+}
+
+function getPathFromImport(importExpression: ParseFunctionCall): string | undefined {
+	const pathExpression = getPathExpression(importExpression.arguments);
+	if (pathExpression?.type === 'string'
+		&& pathExpression.values.length === 1
+		&& pathExpression.values[0]!.type === 'stringToken') {
+		const importedPath = pathExpression.values[0].value;
+		return importedPath;
+	}
+	// TODO dynamische imports verbieten???
+	return undefined;
+}
+
+function getPathExpression(importParams: BracketedExpression): ParseValueExpression | undefined {
+	switch (importParams.type) {
+		case 'dictionary':
+			return importParams.fields[0].value;
+
+		case 'bracketed':
+		case 'dictionaryType':
+		case 'empty':
+			return undefined;
+
+		case 'list':
+			return importParams.values[0];
+
+		default: {
+			const assertNever: never = importParams;
+			throw new Error(`Unexpected importParams.type: ${(assertNever as BracketedExpression).type}`);
+		}
+	}
+}
+
+//#endregion import
 
 function positionedToRange(positioned: Positioned): Range {
 	return {
