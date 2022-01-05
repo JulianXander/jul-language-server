@@ -328,8 +328,7 @@ function findExpressionInExpression(
 		}
 
 		case 'functionTypeLiteral': {
-			// TODO symbols
-			// scopes.push(expression.symbols);
+			scopes.push(expression.symbols);
 			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
 				const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex, scopes);
 				return foundParams;
