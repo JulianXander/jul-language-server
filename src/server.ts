@@ -193,7 +193,7 @@ connection.onHover((hoverParams) => {
 	const foundSymbol = getSymbolDefinition(parsed, hoverParams.position.line, hoverParams.position.character);
 	if (foundSymbol) {
 		return {
-			contents: 'type: ' + JSON.stringify(foundSymbol.symbol.normalizedType) + '\ndescription: ' + foundSymbol.symbol.description
+			contents: 'type: ' + JSON.stringify(foundSymbol.symbol.normalizedType, undefined, 4) + '\ndescription: ' + foundSymbol.symbol.description
 		};
 	}
 });
@@ -318,19 +318,27 @@ function findExpressionInExpression(
 				const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex, scopes);
 				return foundParams;
 			}
+			const returnType = expression.returnType;
+			if (returnType && isPositionInRange(rowIndex, columnIndex, returnType)) {
+				const foundParams = findExpressionInExpression(returnType, rowIndex, columnIndex, scopes);
+				return foundParams;
+			}
 			const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex, scopes);
 			return foundBody;
 		}
 
 		case 'functionTypeLiteral': {
-			// TODO
+			// TODO symbols
 			// scopes.push(expression.symbols);
-			// if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
-			// 	const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex, scopes);
-			// 	return foundParams;
-			// }
-			// const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex, scopes);
-			// return foundBody;
+			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
+				const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex, scopes);
+				return foundParams;
+			}
+			const returnType = expression.returnType;
+			if (isPositionInRange(rowIndex, columnIndex, returnType)) {
+				const foundParams = findExpressionInExpression(returnType, rowIndex, columnIndex, scopes);
+				return foundParams;
+			}
 			return undefined;
 		}
 
@@ -347,6 +355,34 @@ function findExpressionInExpression(
 
 		case 'number':
 			return undefined;
+
+		case 'parameter': {
+			const name = expression.name;
+			if (isPositionInRange(rowIndex, columnIndex, name)) {
+				return name;
+			}
+			const typeGuard = expression.typeGuard;
+			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
+				return foundType;
+			}
+			const fallback = expression.fallback;
+			const foundValue = fallback && findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
+			return foundValue;
+		}
+
+		case 'parameters': {
+			const foundField = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
+			if (foundField) {
+				return foundField;
+			}
+			const rest = expression.rest;
+			if (rest && isPositionInRange(rowIndex, columnIndex, rest)) {
+				const foundRest = findExpressionInExpression(rest, rowIndex, columnIndex, scopes);
+				return foundRest;
+			}
+			return undefined;
+		}
 
 		case 'reference':
 			// TODO find expression name aus dem array names
@@ -474,6 +510,8 @@ function getSymbolDefinition(
 		case 'list':
 		case 'name':
 		case 'number':
+		case 'parameter':
+		case 'parameters':
 		case 'singleDictionaryField':
 		case 'singleDictionaryTypeField':
 		case 'spreadDictionaryField':
