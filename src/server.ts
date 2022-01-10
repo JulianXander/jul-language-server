@@ -33,6 +33,8 @@ import {
 	coreLibPath,
 	dereferenceWithBuiltIns,
 } from '../../jul-compiler/src/type-checker';
+import { BuiltInType, BuiltInTypeBase, Type } from '../../jul-compiler/src/runtime';
+import { map } from '../../jul-compiler/src/util';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -192,8 +194,21 @@ connection.onHover((hoverParams) => {
 
 	const foundSymbol = getSymbolDefinition(parsed, hoverParams.position.line, hoverParams.position.character);
 	if (foundSymbol) {
+		const symbol = foundSymbol.symbol;
+		const symbolType = symbol.normalizedType;
+		console.log(symbolType);
+		const typeString = symbolType
+			? `\`\`\`jul
+${typeToString(symbolType)}
+\`\`\`
+`
+			: '';
 		return {
-			contents: 'type: ' + JSON.stringify(foundSymbol.symbol.normalizedType, undefined, 4) + '\ndescription: ' + foundSymbol.symbol.description
+			contents: {
+				kind: 'markdown',
+				value: typeString + (symbol.description ?? ''),
+			}
+			// contents:  ['type: ', { language: 'jul', value: '(test: String) => stream$(12)' }, '\ndescription: ' + foundSymbol.symbol.description]
 		};
 	}
 });
@@ -531,9 +546,9 @@ function isImport(expression: ParseValueExpression): expression is ParseFunction
 	if (expression.type !== 'functionCall') {
 		return false;
 	}
-	const functionReferenceNames = expression.functionReference.names;
-	return functionReferenceNames.length === 1
-		&& functionReferenceNames[0].name === 'import';
+	const functionReferencePath = expression.functionReference.path;
+	return functionReferencePath.length === 1
+		&& functionReferencePath[0].name === 'import';
 }
 
 function getPathFromImport(importExpression: ParseFunctionCall): string | undefined {
@@ -582,5 +597,112 @@ function positionedToRange(positioned: Positioned): Range {
 		},
 	};
 }
+
+//#region ToString
+
+function typeToString(type: Type): string {
+	switch (typeof type) {
+		case 'string':
+			return `§${type.replaceAll('§', '§§')}§`;
+
+		case 'boolean':
+		case 'number':
+			return type.toString();
+
+		case 'object': {
+			if (type === null) {
+				return '()';
+			}
+			if (Array.isArray(type)) {
+				return arrayTypeToString(type);
+			}
+			if (type instanceof BuiltInTypeBase) {
+				const builtInType: BuiltInType = type;
+				switch (builtInType.type) {
+					case 'and':
+						return `And${arrayTypeToString(builtInType.choiceTypes)}`;
+
+					case 'any':
+						return 'Any';
+
+					case 'boolean':
+						return 'Boolean';
+
+					case 'dictionary':
+						return `Dictionary(${typeToString(builtInType.elementType)})`;
+
+					case 'dictionaryLiteral':
+						return dictionaryTypeToString(builtInType.fields);
+
+					case 'error':
+						return 'Error';
+
+					case 'float64':
+						return 'Float64';
+
+					case 'function':
+						return `${typeToString(builtInType.paramsType)} => ${typeToString(builtInType.returnType)}`;
+
+					case 'list':
+						return `List(${typeToString(builtInType.elementType)})`;
+
+					case 'or':
+						return `Or${arrayTypeToString(builtInType.choiceTypes)}`;
+
+					case 'reference':
+						return builtInType.path.join('/');
+
+					case 'stream':
+						return `Stream(${typeToString(builtInType.valueType)})`;
+
+					case 'string':
+						return 'String';
+
+					case 'tuple':
+						return arrayTypeToString(builtInType.elementTypes);
+
+					case 'type':
+						return 'Type';
+
+					case 'typeOf':
+						return `TypeOf(${typeToString(builtInType.value)})`;
+
+					default: {
+						const assertNever: never = builtInType;
+						throw new Error(`Unexpected BuiltInType ${(builtInType as BuiltInType).type}`);
+					}
+				}
+			}
+			// Dictionary
+			return `(${map(
+				type,
+				(element, key) => {
+					return `${key} = ${typeToString(element)}`;
+				}).join('\n')})`;
+		}
+
+
+		default:
+			throw new Error(`Unexpected type ${typeof type}`);
+	}
+}
+
+const maxElementsPerLine = 5;
+function arrayTypeToString(array: Type[]): string {
+	const separator = array.length > maxElementsPerLine
+		? '\n'
+		: ' ';
+	return `(${array.map(typeToString).join(separator)})`;
+}
+
+function dictionaryTypeToString(dictionary: { [key: string]: Type; }): string {
+	return `(${map(
+		dictionary,
+		(element, key) => {
+			return `${key}: ${typeToString(element)}`;
+		}).join('\n')})`;
+}
+
+//#endregion ToString
 
 //#endregion helper
