@@ -632,7 +632,7 @@ function typeToString(type: Type): string {
 						return `Dictionary(${typeToString(builtInType.elementType)})`;
 
 					case 'dictionaryLiteral':
-						return dictionaryTypeToString(builtInType.fields);
+						return dictionaryTypeToString(builtInType.fields, ': ');
 
 					case 'error':
 						return 'Error';
@@ -650,7 +650,9 @@ function typeToString(type: Type): string {
 						return `Or${arrayTypeToString(builtInType.choiceTypes)}`;
 
 					case 'reference':
-						return builtInType.path.join('/');
+						return builtInType.path.map(pathSegment => {
+							return pathSegment.name;
+						}).join('/');
 
 					case 'stream':
 						return `Stream(${typeToString(builtInType.valueType)})`;
@@ -674,11 +676,7 @@ function typeToString(type: Type): string {
 				}
 			}
 			// Dictionary
-			return `(${map(
-				type,
-				(element, key) => {
-					return `${key} = ${typeToString(element)}`;
-				}).join('\n')})`;
+			return dictionaryTypeToString(type, ' = ');
 		}
 
 
@@ -689,18 +687,36 @@ function typeToString(type: Type): string {
 
 const maxElementsPerLine = 5;
 function arrayTypeToString(array: Type[]): string {
-	const separator = array.length > maxElementsPerLine
+	const multiline = array.length > maxElementsPerLine;
+	const indent = multiline
+		? '\t'
+		: '';
+	const bracketSeparator = multiline
+		? '\n'
+		: '';
+	const lineSeparator = multiline
 		? '\n'
 		: ' ';
-	return `(${array.map(typeToString).join(separator)})`;
+	return `(${bracketSeparator}${array.map(element =>
+		indent + typeToString(element)).join(lineSeparator)}${bracketSeparator})`;
 }
 
-function dictionaryTypeToString(dictionary: { [key: string]: Type; }): string {
-	return `(${map(
+function dictionaryTypeToString(
+	dictionary: { [key: string]: Type; },
+	nameSeparator: string,
+): string {
+	const multiline = Object.keys(dictionary).length > 1;
+	const indent = multiline
+		? '\t'
+		: '';
+	const bracketSeparator = multiline
+		? '\n'
+		: '';
+	return `(${bracketSeparator}${map(
 		dictionary,
 		(element, key) => {
-			return `${key}: ${typeToString(element)}`;
-		}).join('\n')})`;
+			return `${indent}${key}${nameSeparator}${typeToString(element)}`;
+		}).join('\n')}${bracketSeparator})`;
 }
 
 //#endregion ToString
