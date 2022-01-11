@@ -199,7 +199,7 @@ connection.onHover((hoverParams) => {
 		console.log(symbolType);
 		const typeString = symbolType
 			? `\`\`\`jul
-${typeToString(symbolType)}
+${typeToString(symbolType, 0)}
 \`\`\`
 `
 			: '';
@@ -600,7 +600,7 @@ function positionedToRange(positioned: Positioned): Range {
 
 //#region ToString
 
-function typeToString(type: Type): string {
+function typeToString(type: Type, indent: number): string {
 	switch (typeof type) {
 		case 'string':
 			return `§${type.replaceAll('§', '§§')}§`;
@@ -614,13 +614,13 @@ function typeToString(type: Type): string {
 				return '()';
 			}
 			if (Array.isArray(type)) {
-				return arrayTypeToString(type);
+				return arrayTypeToString(type, indent);
 			}
 			if (type instanceof BuiltInTypeBase) {
 				const builtInType: BuiltInType = type;
 				switch (builtInType.type) {
 					case 'and':
-						return `And${arrayTypeToString(builtInType.choiceTypes)}`;
+						return `And${arrayTypeToString(builtInType.choiceTypes, indent)}`;
 
 					case 'any':
 						return 'Any';
@@ -629,10 +629,10 @@ function typeToString(type: Type): string {
 						return 'Boolean';
 
 					case 'dictionary':
-						return `Dictionary(${typeToString(builtInType.elementType)})`;
+						return `Dictionary(${typeToString(builtInType.elementType, indent)})`;
 
 					case 'dictionaryLiteral':
-						return dictionaryTypeToString(builtInType.fields, ': ');
+						return dictionaryTypeToString(builtInType.fields, ': ', indent);
 
 					case 'error':
 						return 'Error';
@@ -641,13 +641,13 @@ function typeToString(type: Type): string {
 						return 'Float64';
 
 					case 'function':
-						return `${typeToString(builtInType.paramsType)} => ${typeToString(builtInType.returnType)}`;
+						return `${typeToString(builtInType.paramsType, indent)} => ${typeToString(builtInType.returnType, indent)}`;
 
 					case 'list':
-						return `List(${typeToString(builtInType.elementType)})`;
+						return `List(${typeToString(builtInType.elementType, indent)})`;
 
 					case 'or':
-						return `Or${arrayTypeToString(builtInType.choiceTypes)}`;
+						return `Or${arrayTypeToString(builtInType.choiceTypes, indent)}`;
 
 					case 'reference':
 						return builtInType.path.map(pathSegment => {
@@ -655,19 +655,19 @@ function typeToString(type: Type): string {
 						}).join('/');
 
 					case 'stream':
-						return `Stream(${typeToString(builtInType.valueType)})`;
+						return `Stream(${typeToString(builtInType.valueType, indent)})`;
 
 					case 'string':
 						return 'String';
 
 					case 'tuple':
-						return arrayTypeToString(builtInType.elementTypes);
+						return arrayTypeToString(builtInType.elementTypes, indent);
 
 					case 'type':
 						return 'Type';
 
 					case 'typeOf':
-						return `TypeOf(${typeToString(builtInType.value)})`;
+						return `TypeOf(${typeToString(builtInType.value, indent)})`;
 
 					default: {
 						const assertNever: never = builtInType;
@@ -676,7 +676,7 @@ function typeToString(type: Type): string {
 				}
 			}
 			// Dictionary
-			return dictionaryTypeToString(type, ' = ');
+			return dictionaryTypeToString(type, ' = ', indent);
 		}
 
 
@@ -686,37 +686,58 @@ function typeToString(type: Type): string {
 }
 
 const maxElementsPerLine = 5;
-function arrayTypeToString(array: Type[]): string {
+function arrayTypeToString(
+	array: Type[],
+	indent: number,
+): string {
 	const multiline = array.length > maxElementsPerLine;
-	const indent = multiline
-		? '\t'
-		: '';
-	const bracketSeparator = multiline
-		? '\n'
-		: '';
-	const lineSeparator = multiline
-		? '\n'
-		: ' ';
-	return `(${bracketSeparator}${array.map(element =>
-		indent + typeToString(element)).join(lineSeparator)}${bracketSeparator})`;
+	const newIndent = multiline
+		? indent + 1
+		: indent;
+	return bracketedExpressionToString(
+		array.map(element =>
+			typeToString(element, newIndent)),
+		multiline,
+		newIndent);
 }
 
 function dictionaryTypeToString(
 	dictionary: { [key: string]: Type; },
 	nameSeparator: string,
+	indent: number,
 ): string {
 	const multiline = Object.keys(dictionary).length > 1;
-	const indent = multiline
-		? '\t'
-		: '';
+	const newIndent = multiline
+		? indent + 1
+		: indent;
+	return bracketedExpressionToString(
+		map(
+			dictionary,
+			(element, key) => {
+				return `${key}${nameSeparator}${typeToString(element, newIndent)}`;
+			}),
+		multiline,
+		newIndent);
+}
+
+function bracketedExpressionToString(
+	elements: string[],
+	multiline: boolean,
+	indent: number,
+): string {
+	const indentString = '\t'.repeat(indent);
+	const elementsWithIndent = multiline
+		? elements.map(element => {
+			return `${indentString}${element}`;
+		})
+		: elements;
 	const bracketSeparator = multiline
 		? '\n'
 		: '';
-	return `(${bracketSeparator}${map(
-		dictionary,
-		(element, key) => {
-			return `${indent}${key}${nameSeparator}${typeToString(element)}`;
-		}).join('\n')}${bracketSeparator})`;
+	const elementSeparator = multiline
+		? '\n'
+		: ' ';
+	return `(${bracketSeparator}${elementsWithIndent.join(elementSeparator)}${bracketSeparator})`;
 }
 
 //#endregion ToString
