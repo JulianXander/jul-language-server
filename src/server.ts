@@ -490,7 +490,7 @@ function getSymbolDefinition(
 	}
 	switch (expression.type) {
 		case 'reference': {
-			const definition = dereferenceWithBuiltIns(expression, scopes);
+			const definition = dereferenceWithBuiltIns(expression.path, scopes);
 			return definition;
 		}
 
@@ -511,6 +511,12 @@ function getSymbolDefinition(
 			return undefined;
 		}
 
+		case 'name': {
+			// TODO Dictionary, DictionaryType berücksichtigen
+			const definition = dereferenceWithBuiltIns([expression], scopes);
+			return definition;
+		}
+
 		case 'bracketed':
 		case 'branching':
 		case 'dictionary':
@@ -522,7 +528,6 @@ function getSymbolDefinition(
 		case 'functionTypeLiteral':
 		case 'index':
 		case 'list':
-		case 'name':
 		case 'number':
 		case 'parameter':
 		case 'parameters':
