@@ -15,8 +15,6 @@ import {
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
-
-// import { builtInSymbols } from '../../jul-compiler/src/checker';
 import { parseCode } from '../../jul-compiler/src/parser';
 import { Positioned } from '../../jul-compiler/src/parser-combinator';
 import {
@@ -29,6 +27,7 @@ import {
 	BracketedExpression,
 } from '../../jul-compiler/src/syntax-tree';
 import {
+	builtInSymbols,
 	checkTypes,
 	coreLibPath,
 	dereferenceWithBuiltIns,
@@ -119,22 +118,46 @@ connection.onDidChangeWatchedFiles(_change => {
 
 //#region autocomplete
 // This handler provides the initial list of the completion items.
-connection.onCompletion((_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-	// The pass parameter contains the position of the text document in
-	// which code complete got requested. For the example we ignore this
-	// info and always provide the same completion items.
-	return [
+connection.onCompletion(completionParams => {
+	const documentUri = completionParams.textDocument.uri;
+	const parsed = parsedDocuments[documentUri];
+	if (!parsed) {
+		return;
+	}
+	// TODO get scopes from position
+	// todo . (infix function call)
+	// todo / (nested field)
+	// const foundSymbol = getSymbolDefinition(parsed, completionParams.position.line, completionParams.position.character);
+	// if (!foundSymbol) {
+	// 	return;
+	// }
+	return map(
 		{
-			label: 'TypeScript',
-			kind: CompletionItemKind.Text,
-			data: 1
+			...parsed.symbols,
+			...builtInSymbols,
 		},
-		{
-			label: 'JavaScript',
-			kind: CompletionItemKind.Text,
-			data: 2
-		}
-	];
+		(symbol, name) => {
+			return {
+				label: name,
+				kind: CompletionItemKind.Constant,
+				detail: symbol.normalizedType === undefined
+					? undefined
+					: typeToString(symbol.normalizedType, 0),
+				documentation: symbol.description,
+			};
+		});
+	// return [
+	// 	{
+	// 		label: 'TypeScript',
+	// 		kind: CompletionItemKind.Text,
+	// 		data: 1
+	// 	},
+	// 	{
+	// 		label: 'JavaScript',
+	// 		kind: CompletionItemKind.Text,
+	// 		data: 2
+	// 	}
+	// ];
 });
 
 // This handler resolves additional information for the item selected in
@@ -197,12 +220,12 @@ connection.onHover((hoverParams) => {
 		const symbol = foundSymbol.symbol;
 		const symbolType = symbol.normalizedType;
 		console.log(symbolType);
-		const typeString = symbolType
-			? `\`\`\`jul
+		const typeString = symbolType === undefined
+			? ''
+			: `\`\`\`jul
 ${typeToString(symbolType, 0)}
 \`\`\`
-`
-			: '';
+`;
 		return {
 			contents: {
 				kind: 'markdown',
