@@ -1,16 +1,16 @@
+import { Uri } from 'vscode';
 import {
-	createConnection,
-	TextDocuments,
-	Diagnostic,
-	DiagnosticSeverity,
-	ProposedFeatures,
-	InitializeParams,
 	CompletionItem,
 	CompletionItemKind,
-	TextDocumentPositionParams,
-	TextDocumentSyncKind,
+	createConnection,
+	Diagnostic,
+	DiagnosticSeverity,
+	InitializeParams,
 	InitializeResult,
+	ProposedFeatures,
 	Range,
+	TextDocuments,
+	TextDocumentSyncKind,
 } from 'vscode-languageserver/node';
 import {
 	TextDocument
@@ -124,6 +124,7 @@ connection.onCompletion(completionParams => {
 	if (!parsed) {
 		return;
 	}
+	// TODO sortierung type/nicht-type, bei normaler stelle erst nicht-types, bei type erst types/nur types?
 	// TODO get scopes from position
 	// todo . (infix function call)
 	// todo / (nested field)
@@ -175,6 +176,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 //#endregion autocomplete
 
 //#region go to definition
+const coreLibUri = Uri.file(coreLibPath).path;
 connection.onDefinition((definitionParams) => {
 	const documentUri = definitionParams.textDocument.uri;
 	const parsed = parsedDocuments[documentUri];
@@ -185,7 +187,7 @@ connection.onDefinition((definitionParams) => {
 	if (foundSymbol) {
 		return {
 			uri: foundSymbol.isBuiltIn
-				? coreLibPath
+				? coreLibUri
 				: documentUri,
 			range: positionedToRange(foundSymbol.symbol)
 		};
