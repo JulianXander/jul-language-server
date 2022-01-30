@@ -1,4 +1,3 @@
-import { Uri } from 'vscode';
 import {
 	CompletionItem,
 	CompletionItemKind,
@@ -15,6 +14,7 @@ import {
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 import { parseCode } from '../../jul-compiler/src/parser';
 import { Positioned } from '../../jul-compiler/src/parser-combinator';
 import {
@@ -176,7 +176,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 //#endregion autocomplete
 
 //#region go to definition
-const coreLibUri = Uri.file(coreLibPath).path;
+const coreLibUri = URI.file(coreLibPath).path;
 connection.onDefinition((definitionParams) => {
 	const documentUri = definitionParams.textDocument.uri;
 	const parsed = parsedDocuments[documentUri];
