@@ -11,10 +11,13 @@ import {
 	TextDocuments,
 	TextDocumentSyncKind,
 } from 'vscode-languageserver/node';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
+import { getImportedPaths } from '../../jul-compiler/src/compiler'
 import { parseCode } from '../../jul-compiler/src/parser';
 import { Positioned } from '../../jul-compiler/src/parser-combinator';
 import {
@@ -23,14 +26,13 @@ import {
 	SymbolTable,
 	ParsedFile,
 	SymbolDefinition,
-	ParseFunctionCall,
-	BracketedExpression,
 } from '../../jul-compiler/src/syntax-tree';
 import {
 	builtInSymbols,
 	checkTypes,
 	coreLibPath,
 	dereferenceWithBuiltIns,
+	ParsedDocuments,
 } from '../../jul-compiler/src/type-checker';
 import { BuiltInType, BuiltInTypeBase, Type } from '../../jul-compiler/src/runtime';
 import { map } from '../../jul-compiler/src/util';
@@ -41,7 +43,7 @@ const connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-const parsedDocuments: { [documentUri: string]: ParsedFile; } = {};
+const parsedDocuments: ParsedDocuments = {};
 
 let hasDiagnosticRelatedInformationCapability = false;
 
@@ -71,12 +73,7 @@ documents.onDidChangeContent(change => {
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const text = textDocument.getText();
-	const parsed = parseCode(text);
-	parsedDocuments[textDocument.uri] = parsed;
-	// TODO recursively parse imported files
-	// TODO invalidate imported inferred types of this file in other files
-	// infertypes, typecheck
-	checkTypes(parsedDocuments);
+	const parsed = parseDocument(text, textDocument.uri);
 	const { errors } = parsed;
 
 	const diagnostics: Diagnostic[] = errors.map(error => {
@@ -111,9 +108,37 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 
+/**
+ * TODO check cyclic imports
+ * füllt parsedDocuments
+ * verarbeitet auch importe
+ * checks types
+ */
+function parseDocument(text: string, uri: string) {
+	const parsed = parseCode(text);
+	parsedDocuments[uri] = parsed;
+	// recursively parse imported files
+	const sourceFolder = dirname(uri);
+	const importedPaths = getImportedPaths(parsed);
+	importedPaths.forEach(path => {
+		if (parsedDocuments[path]) {
+			return;
+		}
+		// TODO relative path (vgl compiler)
+		const fullPath = join(sourceFolder, path);
+		const file = readFileSync(fullPath);
+		const code = file.toString();
+		parseDocument(code, fullPath);
+	});
+	// TODO invalidate imported inferred types of this file in other files (that reference this file)
+	// infertypes, typecheck
+	checkTypes(parsed, parsedDocuments, sourceFolder);
+	return parsed;
+}
+
 connection.onDidChangeWatchedFiles(_change => {
 	// Monitored files have change in VSCode
-	connection.console.log('We received an file change event');
+	connection.console.log('We received a file change event');
 });
 
 //#region autocomplete
@@ -569,51 +594,6 @@ function getSymbolDefinition(
 		}
 	}
 }
-
-//#region import
-
-function isImport(expression: ParseValueExpression): expression is ParseFunctionCall {
-	if (expression.type !== 'functionCall') {
-		return false;
-	}
-	const functionReferencePath = expression.functionReference.path;
-	return functionReferencePath.length === 1
-		&& functionReferencePath[0].name === 'import';
-}
-
-function getPathFromImport(importExpression: ParseFunctionCall): string | undefined {
-	const pathExpression = getPathExpression(importExpression.arguments);
-	if (pathExpression?.type === 'string'
-		&& pathExpression.values.length === 1
-		&& pathExpression.values[0]!.type === 'stringToken') {
-		const importedPath = pathExpression.values[0].value;
-		return importedPath;
-	}
-	// TODO dynamische imports verbieten???
-	return undefined;
-}
-
-function getPathExpression(importParams: BracketedExpression): ParseValueExpression | undefined {
-	switch (importParams.type) {
-		case 'dictionary':
-			return importParams.fields[0].value;
-
-		case 'bracketed':
-		case 'dictionaryType':
-		case 'empty':
-			return undefined;
-
-		case 'list':
-			return importParams.values[0];
-
-		default: {
-			const assertNever: never = importParams;
-			throw new Error(`Unexpected importParams.type: ${(assertNever as BracketedExpression).type}`);
-		}
-	}
-}
-
-//#endregion import
 
 function positionedToRange(positioned: Positioned): Range {
 	return {
