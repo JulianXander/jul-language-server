@@ -118,17 +118,18 @@ function parseDocument(text: string, uri: string) {
 	const parsed = parseCode(text);
 	parsedDocuments[uri] = parsed;
 	// recursively parse imported files
-	const sourceFolder = dirname(uri);
+	const path = URI.parse(uri).fsPath;
+	const sourceFolder = dirname(path);
 	const importedPaths = getImportedPaths(parsed);
-	importedPaths.forEach(path => {
-		if (parsedDocuments[path]) {
+	importedPaths.forEach(importedPath => {
+		const fullPath = join(sourceFolder, importedPath);
+		const importedUri = URI.file(fullPath).path;
+		if (parsedDocuments[importedUri]) {
 			return;
 		}
-		// TODO relative path (vgl compiler)
-		const fullPath = join(sourceFolder, path);
 		const file = readFileSync(fullPath);
 		const code = file.toString();
-		parseDocument(code, fullPath);
+		parseDocument(code, importedUri);
 	});
 	// TODO invalidate imported inferred types of this file in other files (that reference this file)
 	// infertypes, typecheck
