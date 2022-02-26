@@ -118,12 +118,12 @@ function parseDocument(text: string, uri: string) {
 	const parsed = parseCode(text);
 	parsedDocuments[uri] = parsed;
 	// recursively parse imported files
-	const path = URI.parse(uri).fsPath;
+	const path = uriToPath(uri);
 	const sourceFolder = dirname(path);
 	const importedPaths = getImportedPaths(parsed);
 	importedPaths.forEach(importedPath => {
 		const fullPath = join(sourceFolder, importedPath);
-		const importedUri = URI.file(fullPath).path;
+		const importedUri = pathToUri(fullPath);
 		if (parsedDocuments[importedUri]) {
 			return;
 		}
@@ -202,7 +202,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 //#endregion autocomplete
 
 //#region go to definition
-const coreLibUri = URI.file(coreLibPath).path;
+const coreLibUri = pathToUri(coreLibPath);
 connection.onDefinition((definitionParams) => {
 	const documentUri = definitionParams.textDocument.uri;
 	const parsed = parsedDocuments[documentUri];
@@ -752,5 +752,17 @@ function bracketedExpressionToString(
 }
 
 //#endregion ToString
+
+//#region uri
+
+function pathToUri(path: string): string {
+	return URI.file(path).toString()
+}
+
+function uriToPath(uri: string): string {
+	return URI.parse(uri).fsPath;
+}
+
+//#endregion uri
 
 //#endregion helper
