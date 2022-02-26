@@ -73,7 +73,8 @@ documents.onDidChangeContent(change => {
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const text = textDocument.getText();
-	const parsed = parseDocument(text, textDocument.uri);
+	const path = uriToPath(textDocument.uri);
+	const parsed = parseDocument(text, path);
 	const { errors } = parsed;
 
 	const diagnostics: Diagnostic[] = errors.map(error => {
@@ -114,22 +115,20 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
  * verarbeitet auch importe
  * checks types
  */
-function parseDocument(text: string, uri: string) {
+function parseDocument(text: string, path: string) {
 	const parsed = parseCode(text);
-	parsedDocuments[uri] = parsed;
+	parsedDocuments[path] = parsed;
 	// recursively parse imported files
-	const path = uriToPath(uri);
 	const sourceFolder = dirname(path);
 	const importedPaths = getImportedPaths(parsed);
 	importedPaths.forEach(importedPath => {
 		const fullPath = join(sourceFolder, importedPath);
-		const importedUri = pathToUri(fullPath);
-		if (parsedDocuments[importedUri]) {
+		if (parsedDocuments[fullPath]) {
 			return;
 		}
 		const file = readFileSync(fullPath);
 		const code = file.toString();
-		parseDocument(code, importedUri);
+		parseDocument(code, fullPath);
 	});
 	// TODO invalidate imported inferred types of this file in other files (that reference this file)
 	// infertypes, typecheck
@@ -223,7 +222,8 @@ connection.onDefinition((definitionParams) => {
 
 //#region hover
 connection.onHover((hoverParams) => {
-	const parsed = parsedDocuments[hoverParams.textDocument.uri];
+	const path = uriToPath(hoverParams.textDocument.uri);
+	const parsed = parsedDocuments[path];
 	if (!parsed) {
 		return;
 	}
@@ -556,7 +556,7 @@ function getSymbolDefinition(
 			// TODO GoToDefinition: bei import: go to source file symbol
 			// if (isImport(expression.value)) {
 			// 	const importedPath = getPathFromImport(expression.value);
-			// 	const importedFile = parsedDocuments[importedPath + '.jul'];
+			// 	const importedFile = parsedDocuments[importedPath];
 			// 	const importedSymbol = importedFile?.symbols[expression.fields];
 			// }
 			return undefined;
