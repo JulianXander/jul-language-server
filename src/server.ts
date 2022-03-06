@@ -33,8 +33,8 @@ import {
 	coreLibPath,
 	dereferenceWithBuiltIns,
 	ParsedDocuments,
+	typeToString,
 } from '../../jul-compiler/src/type-checker';
-import { BuiltInType, BuiltInTypeBase, Type } from '../../jul-compiler/src/runtime';
 import { map } from '../../jul-compiler/src/util';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -145,7 +145,7 @@ connection.onDidChangeWatchedFiles(_change => {
 // This handler provides the initial list of the completion items.
 connection.onCompletion(completionParams => {
 	const documentUri = completionParams.textDocument.uri;
-	const parsed = parsedDocuments[documentUri];
+	const parsed = getParsedFileByUri(documentUri);
 	if (!parsed) {
 		return;
 	}
@@ -204,7 +204,8 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 const coreLibUri = pathToUri(coreLibPath);
 connection.onDefinition((definitionParams) => {
 	const documentUri = definitionParams.textDocument.uri;
-	const parsed = parsedDocuments[documentUri];
+	const path = uriToPath(documentUri);
+	const parsed = parsedDocuments[path];
 	if (!parsed) {
 		return;
 	}
@@ -222,8 +223,7 @@ connection.onDefinition((definitionParams) => {
 
 //#region hover
 connection.onHover((hoverParams) => {
-	const path = uriToPath(hoverParams.textDocument.uri);
-	const parsed = parsedDocuments[path];
+	const parsed = getParsedFileByUri(hoverParams.textDocument.uri);
 	if (!parsed) {
 		return;
 	}
@@ -609,150 +609,6 @@ function positionedToRange(positioned: Positioned): Range {
 	};
 }
 
-//#region ToString
-
-function typeToString(type: Type, indent: number): string {
-	switch (typeof type) {
-		case 'string':
-			return `§${type.replaceAll('§', '§§')}§`;
-
-		case 'boolean':
-		case 'number':
-			return type.toString();
-
-		case 'object': {
-			if (type === null) {
-				return '()';
-			}
-			if (Array.isArray(type)) {
-				return arrayTypeToString(type, indent);
-			}
-			if (type instanceof BuiltInTypeBase) {
-				const builtInType: BuiltInType = type;
-				switch (builtInType.type) {
-					case 'and':
-						return `And${arrayTypeToString(builtInType.choiceTypes, indent)}`;
-
-					case 'any':
-						return 'Any';
-
-					case 'boolean':
-						return 'Boolean';
-
-					case 'dictionary':
-						return `Dictionary(${typeToString(builtInType.elementType, indent)})`;
-
-					case 'dictionaryLiteral':
-						return dictionaryTypeToString(builtInType.fields, ': ', indent);
-
-					case 'error':
-						return 'Error';
-
-					case 'float64':
-						return 'Float64';
-
-					case 'function':
-						return `${typeToString(builtInType.paramsType, indent)} => ${typeToString(builtInType.returnType, indent)}`;
-
-					case 'list':
-						return `List(${typeToString(builtInType.elementType, indent)})`;
-
-					case 'or':
-						return `Or${arrayTypeToString(builtInType.choiceTypes, indent)}`;
-
-					case 'reference':
-						return builtInType.path.map(pathSegment => {
-							return pathSegment.name;
-						}).join('/');
-
-					case 'stream':
-						return `Stream(${typeToString(builtInType.valueType, indent)})`;
-
-					case 'string':
-						return 'String';
-
-					case 'tuple':
-						return arrayTypeToString(builtInType.elementTypes, indent);
-
-					case 'type':
-						return 'Type';
-
-					case 'typeOf':
-						return `TypeOf(${typeToString(builtInType.value, indent)})`;
-
-					default: {
-						const assertNever: never = builtInType;
-						throw new Error(`Unexpected BuiltInType ${(builtInType as BuiltInType).type}`);
-					}
-				}
-			}
-			// Dictionary
-			return dictionaryTypeToString(type, ' = ', indent);
-		}
-
-
-		default:
-			throw new Error(`Unexpected type ${typeof type}`);
-	}
-}
-
-const maxElementsPerLine = 5;
-function arrayTypeToString(
-	array: Type[],
-	indent: number,
-): string {
-	const multiline = array.length > maxElementsPerLine;
-	const newIndent = multiline
-		? indent + 1
-		: indent;
-	return bracketedExpressionToString(
-		array.map(element =>
-			typeToString(element, newIndent)),
-		multiline,
-		newIndent);
-}
-
-function dictionaryTypeToString(
-	dictionary: { [key: string]: Type; },
-	nameSeparator: string,
-	indent: number,
-): string {
-	const multiline = Object.keys(dictionary).length > 1;
-	const newIndent = multiline
-		? indent + 1
-		: indent;
-	return bracketedExpressionToString(
-		map(
-			dictionary,
-			(element, key) => {
-				return `${key}${nameSeparator}${typeToString(element, newIndent)}`;
-			}),
-		multiline,
-		newIndent);
-}
-
-function bracketedExpressionToString(
-	elements: string[],
-	multiline: boolean,
-	indent: number,
-): string {
-	const indentString = '\t'.repeat(indent);
-	const elementsWithIndent = multiline
-		? elements.map(element => {
-			return `${indentString}${element}`;
-		})
-		: elements;
-	const bracketSeparator = multiline
-		? '\n'
-		: '';
-	const elementSeparator = multiline
-		? '\n'
-		: ' ';
-	return `(${bracketSeparator}${elementsWithIndent.join(elementSeparator)}${bracketSeparator})`;
-}
-
-//#endregion ToString
-
 //#region uri
 
 function pathToUri(path: string): string {
@@ -761,6 +617,12 @@ function pathToUri(path: string): string {
 
 function uriToPath(uri: string): string {
 	return URI.parse(uri).fsPath;
+}
+
+function getParsedFileByUri(uri: string): ParsedFile | undefined {
+	const path = uriToPath(uri);
+	const parsed = parsedDocuments[path];
+	return parsed
 }
 
 //#endregion uri
