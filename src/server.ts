@@ -367,8 +367,14 @@ function findExpressionInExpression(
 			return undefined;
 
 		case 'field':
-			// TODO check name range, source, typeguard, fallback
+			// TODO check name range, source, typeGuard, fallback
 			return expression;
+
+		case 'float':
+			return undefined;
+
+		case 'fraction':
+			return undefined;
 
 		case 'functionCall': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.functionReference)) {
@@ -410,6 +416,9 @@ function findExpressionInExpression(
 		case 'index':
 			return expression;
 
+		case 'integer':
+			return undefined;
+
 		case 'list': {
 			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
 			return foundValue;
@@ -417,9 +426,6 @@ function findExpressionInExpression(
 
 		case 'name':
 			return expression;
-
-		case 'number':
-			return undefined;
 
 		case 'parameter': {
 			const name = expression.name;
@@ -574,12 +580,14 @@ function getSymbolDefinition(
 		case 'dictionaryType':
 		case 'empty':
 		case 'field':
+		case 'float':
+		case 'fraction':
 		case 'functionCall':
 		case 'functionLiteral':
 		case 'functionTypeLiteral':
 		case 'index':
+		case 'integer':
 		case 'list':
-		case 'number':
 		case 'parameter':
 		case 'parameters':
 		case 'singleDictionaryField':
