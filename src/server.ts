@@ -61,11 +61,15 @@ connection.onInitialize((params: InitializeParams) => {
 			},
 			definitionProvider: true,
 			hoverProvider: true,
+			renameProvider: {
+				prepareProvider: true,
+			},
 		}
 	};
 	return result;
 });
 
+//#region validate
 // This event is emitted when the text document first opened or when its content has changed.
 documents.onDidChangeContent(change => {
 	validateTextDocument(change.document);
@@ -135,6 +139,7 @@ function parseDocument(text: string, path: string) {
 	checkTypes(parsed, parsedDocuments, sourceFolder);
 	return parsed;
 }
+//#endregion validate
 
 connection.onDidChangeWatchedFiles(_change => {
 	// Monitored files have change in VSCode
@@ -260,6 +265,46 @@ ${typeToString(symbolType, 0)}
 	}
 });
 //#endregion hover
+
+//#region rename
+connection.onPrepareRename(prepareRenameParams => {
+	const documentUri = prepareRenameParams.textDocument.uri;
+	const parsed = getParsedFileByUri(documentUri);
+	if (!parsed) {
+		return;
+	}
+
+	const foundSymbol = getSymbolDefinition(parsed, prepareRenameParams.position.line, prepareRenameParams.position.character);
+	if (!foundSymbol || foundSymbol.isBuiltIn) {
+		return;
+	}
+	return positionedToRange(foundSymbol.symbol);
+});
+connection.onRenameRequest(renameParams => {
+	const documentUri = renameParams.textDocument.uri;
+	const parsed = getParsedFileByUri(documentUri);
+	if (!parsed) {
+		return;
+	}
+
+	// TODO rename across multiple files
+	const foundSymbol = getSymbolDefinition(parsed, renameParams.position.line, renameParams.position.character);
+	if (!foundSymbol || foundSymbol.isBuiltIn) {
+		return;
+	}
+	// TODO find all occurences	of symbol
+	return {
+		changes: {
+			[documentUri]: [
+				{
+					range: positionedToRange(foundSymbol.symbol),
+					newText: renameParams.newName,
+				}
+			]
+		}
+	};
+});
+//#endregion rename
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events
