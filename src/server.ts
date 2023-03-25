@@ -145,45 +145,41 @@ connection.onDidChangeWatchedFiles(_change => {
 // This handler provides the initial list of the completion items.
 connection.onCompletion(completionParams => {
 	const documentUri = completionParams.textDocument.uri;
-	const parsed = getParsedFileByUri(documentUri);
-	if (!parsed) {
+	const parsedFile = getParsedFileByUri(documentUri);
+	if (!parsedFile) {
 		return;
 	}
+	const rowIndex = completionParams.position.line;
+	const columnIndex = completionParams.position.character;
 	// TODO sortierung type/nicht-type, bei normaler stelle erst nicht-types, bei type erst types/nur types?
-	// TODO get scopes from position
 	// todo . (infix function call)
 	// todo / (nested field)
-	// const foundSymbol = getSymbolDefinition(parsed, completionParams.position.line, completionParams.position.character);
+	// const foundSymbol = getSymbolDefinition(parsed, rowIndex, columnIndex);
 	// if (!foundSymbol) {
 	// 	return;
 	// }
-	return map(
-		{
-			...parsed.symbols,
-			...builtInSymbols,
-		},
-		(symbol, name) => {
-			return {
-				label: name,
-				kind: CompletionItemKind.Constant,
-				detail: symbol.normalizedType === undefined
-					? undefined
-					: typeToString(symbol.normalizedType, 0),
-				documentation: symbol.description,
-			};
-		});
-	// return [
-	// 	{
-	// 		label: 'TypeScript',
-	// 		kind: CompletionItemKind.Text,
-	// 		data: 1
-	// 	},
-	// 	{
-	// 		label: 'JavaScript',
-	// 		kind: CompletionItemKind.Text,
-	// 		data: 2
-	// 	}
-	// ];
+
+	// Get symbols from containing scopes
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
+
+	// TODO?
+	// if (expression) {
+	// }
+
+	return [...scopes, builtInSymbols].flatMap(symbols => {
+		return map(
+			symbols,
+			(symbol, name) => {
+				return {
+					label: name,
+					kind: CompletionItemKind.Constant,
+					detail: symbol.normalizedType === undefined
+						? undefined
+						: typeToString(symbol.normalizedType, 0),
+					documentation: symbol.description,
+				};
+			});
+	});
 });
 
 // This handler resolves additional information for the item selected in
@@ -277,19 +273,28 @@ connection.listen();
 //#region findExpression
 
 /**
- * Füllt scopes
+ * Liefert auch scopes
  */
 function findExpressionInParsedFile(
 	parsedFile: ParsedFile,
 	rowIndex: number,
 	columnIndex: number,
-	scopes: SymbolTable[],
-): PositionedExpression | undefined {
-	return parsedFile.expressions && findExpressionInExpressions(
+): {
+	expression: PositionedExpression | undefined;
+	scopes: SymbolTable[];
+} {
+	const scopes: SymbolTable[] = [
+		parsedFile.symbols,
+	];
+	const expression = parsedFile.expressions && findExpressionInExpressions(
 		parsedFile.expressions,
 		rowIndex,
 		columnIndex,
 		scopes);
+	return {
+		expression: expression,
+		scopes: scopes,
+	};
 }
 
 /**
@@ -529,7 +534,7 @@ function isPositionInRange(
 
 //#endregion findExpression
 
-// TODO got to source file bei import?
+// TODO go to source file bei import?
 function getSymbolDefinition(
 	parsedFile: ParsedFile,
 	rowIndex: number,
@@ -538,10 +543,7 @@ function getSymbolDefinition(
 	isBuiltIn: boolean;
 	symbol: SymbolDefinition;
 } | undefined {
-	const scopes: SymbolTable[] = [
-		parsedFile.symbols,
-	];
-	const expression = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex, scopes);
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 	if (!expression) {
 		return undefined;
 	}
