@@ -803,13 +803,11 @@ function getSymbolDefinition(
 				expression: expression,
 			};
 		}
-
 		case 'definition': {
 			// TODO GoToDefinition: bei import: go to source file symbol?
 			// create dictionary type mit allen definitions?
 			return undefined;
 		}
-
 		case 'destructuring': {
 			// TODO stattdessen bei name case, destrucuring als parent expression?
 			// TODO GoToDefinition: bei import: go to source file symbol
@@ -820,7 +818,6 @@ function getSymbolDefinition(
 			// }
 			return undefined;
 		}
-
 		case 'name': {
 			// TODO Dictionary, DictionaryType berücksichtigen
 			const definition = dereferenceWithBuiltIns([expression], scopes);
@@ -829,7 +826,6 @@ function getSymbolDefinition(
 				expression: expression,
 			};
 		}
-
 		case 'bracketed':
 		case 'branching':
 		case 'dictionary':
@@ -852,7 +848,6 @@ function getSymbolDefinition(
 		case 'spreadDictionaryTypeField':
 		case 'string':
 			return undefined;
-
 		default: {
 			const assertNever: never = expression;
 			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
