@@ -26,6 +26,8 @@ import {
 	SymbolTable,
 	ParsedFile,
 	SymbolDefinition,
+	Reference,
+	Name,
 } from '../../jul-compiler/src/syntax-tree';
 import {
 	builtInSymbols,
@@ -269,38 +271,39 @@ ${typeToString(symbolType, 0)}
 //#region rename
 connection.onPrepareRename(prepareRenameParams => {
 	const documentUri = prepareRenameParams.textDocument.uri;
-	const parsed = getParsedFileByUri(documentUri);
-	if (!parsed) {
+	const parsedFile = getParsedFileByUri(documentUri);
+	if (!parsedFile) {
 		return;
 	}
 
-	const foundSymbol = getSymbolDefinition(parsed, prepareRenameParams.position.line, prepareRenameParams.position.character);
+	const foundSymbol = getSymbolDefinition(parsedFile, prepareRenameParams.position.line, prepareRenameParams.position.character);
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
-	return positionedToRange(foundSymbol.symbol);
+
+	return positionedToRange(foundSymbol.expression);
 });
 connection.onRenameRequest(renameParams => {
 	const documentUri = renameParams.textDocument.uri;
-	const parsed = getParsedFileByUri(documentUri);
-	if (!parsed) {
+	const parsedFile = getParsedFileByUri(documentUri);
+	if (!parsedFile) {
 		return;
 	}
 
 	// TODO rename across multiple files
-	const foundSymbol = getSymbolDefinition(parsed, renameParams.position.line, renameParams.position.character);
+	const foundSymbol = getSymbolDefinition(parsedFile, renameParams.position.line, renameParams.position.character);
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
-	// TODO find all occurences	of symbol
+	const occurences = findAllOccurrencesInParsedFile(parsedFile, foundSymbol.expression);
 	return {
 		changes: {
-			[documentUri]: [
-				{
-					range: positionedToRange(foundSymbol.symbol),
+			[documentUri]: occurences.map(expression => {
+				return {
+					range: positionedToRange(expression),
 					newText: renameParams.newName,
-				}
-			]
+				};
+			})
 		}
 	};
 });
@@ -376,7 +379,6 @@ function findExpressionInExpression(
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
 			return foundField;
 		}
-
 		case 'branching': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
 				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
@@ -385,15 +387,23 @@ function findExpressionInExpression(
 			const foundBranch = findExpressionInExpressions(expression.branches, rowIndex, columnIndex, scopes);
 			return foundBranch;
 		}
-
 		case 'definition': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
 				return expression.name;
 			}
+			const typeGuard = expression.typeGuard;
+			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
+				return foundType;
+			}
+			const fallback = expression.fallback;
+			if (fallback && isPositionInRange(rowIndex, columnIndex, fallback)) {
+				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
+				return foundFallBack;
+			}
 			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
-
 		case 'destructuring': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.fields)) {
 				const foundName = findExpressionInExpression(expression.fields, rowIndex, columnIndex, scopes);
@@ -402,30 +412,23 @@ function findExpressionInExpression(
 			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
-
 		case 'dictionary': {
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
 			return foundField;
 		}
-
 		case 'dictionaryType': {
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
 			return foundField;
 		}
-
 		case 'empty':
 			return undefined;
-
 		case 'field':
 			// TODO check name range, source, typeGuard, fallback
 			return expression;
-
 		case 'float':
 			return undefined;
-
 		case 'fraction':
 			return undefined;
-
 		case 'functionCall': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.functionReference)) {
 				return expression.functionReference;
@@ -433,7 +436,6 @@ function findExpressionInExpression(
 			const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
 			return foundArguments;
 		}
-
 		case 'functionLiteral': {
 			scopes.push(expression.symbols);
 			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
@@ -442,13 +444,12 @@ function findExpressionInExpression(
 			}
 			const returnType = expression.returnType;
 			if (returnType && isPositionInRange(rowIndex, columnIndex, returnType)) {
-				const foundParams = findExpressionInExpression(returnType, rowIndex, columnIndex, scopes);
-				return foundParams;
+				const foundReturnType = findExpressionInExpression(returnType, rowIndex, columnIndex, scopes);
+				return foundReturnType;
 			}
 			const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex, scopes);
 			return foundBody;
 		}
-
 		case 'functionTypeLiteral': {
 			scopes.push(expression.symbols);
 			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
@@ -462,21 +463,16 @@ function findExpressionInExpression(
 			}
 			return undefined;
 		}
-
 		case 'index':
 			return expression;
-
 		case 'integer':
 			return undefined;
-
 		case 'list': {
 			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
-
 		case 'name':
 			return expression;
-
 		case 'parameter': {
 			const name = expression.name;
 			if (isPositionInRange(rowIndex, columnIndex, name)) {
@@ -491,7 +487,6 @@ function findExpressionInExpression(
 			const foundValue = fallback && findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
-
 		case 'parameters': {
 			const foundField = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
 			if (foundField) {
@@ -504,11 +499,9 @@ function findExpressionInExpression(
 			}
 			return undefined;
 		}
-
 		case 'reference':
 			// TODO find expression name aus dem array names
 			return expression;
-
 		case 'singleDictionaryField': {
 			const name = expression.name;
 			if (isPositionInRange(rowIndex, columnIndex, name)) {
@@ -519,10 +512,14 @@ function findExpressionInExpression(
 				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
 				return foundType;
 			}
+			const fallback = expression.fallback;
+			if (fallback && isPositionInRange(rowIndex, columnIndex, fallback)) {
+				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
+				return foundFallBack;
+			}
 			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
-
 		case 'singleDictionaryTypeField': {
 			const name = expression.name;
 			if (isPositionInRange(rowIndex, columnIndex, name)) {
@@ -535,7 +532,6 @@ function findExpressionInExpression(
 			}
 			return expression;
 		}
-
 		case 'spreadDictionaryField': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
 				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
@@ -543,7 +539,6 @@ function findExpressionInExpression(
 			}
 			return expression;
 		}
-
 		case 'spreadDictionaryTypeField': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
 				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
@@ -551,14 +546,12 @@ function findExpressionInExpression(
 			}
 			return expression;
 		}
-
 		case 'string': {
 			const values = expression.values.filter((value): value is ParseValueExpression =>
 				value.type !== 'stringToken');
 			const foundValue = findExpressionInExpressions(values, rowIndex, columnIndex, scopes);
 			return foundValue;
 		}
-
 		default: {
 			const assertNever: never = expression;
 			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
@@ -579,6 +572,212 @@ function isPositionInRange(
 
 //#endregion findExpression
 
+//#region findAllOccurrences
+
+// TODO scope berücksichtigen
+function findAllOccurrencesInParsedFile(
+	parsedFile: ParsedFile,
+	searchTerm: Reference | Name,
+): PositionedExpression[] {
+	return parsedFile.expressions
+		? findAllOccurrencesInExpressions(parsedFile.expressions, searchTerm)
+		: [];
+}
+
+function findAllOccurrencesInExpressions(
+	expressions: PositionedExpression[],
+	searchTerm: Reference | Name,
+): PositionedExpression[] {
+	return expressions.flatMap(expression => {
+		return findAllOccurrencesInExpression(expression, searchTerm);
+	});
+}
+
+function findAllOccurrencesInExpression(
+	expression: PositionedExpression | undefined,
+	searchTerm: Reference | Name,
+): PositionedExpression[] {
+	if (!expression) {
+		return [];
+	}
+	switch (expression.type) {
+		case 'bracketed':
+			// return findAllOccurrencesInExpression(expression.fields, name);
+			return [];
+		case 'branching': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.value, searchTerm),
+				...findAllOccurrencesInExpressions(expression.branches, searchTerm),
+			];
+			return occurences;
+		}
+		case 'definition': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.name, searchTerm),
+				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
+				...findAllOccurrencesInExpression(expression.value, searchTerm),
+				...findAllOccurrencesInExpression(expression.fallback, searchTerm),
+			];
+			return occurences;
+		}
+		case 'destructuring': {
+			// if (isPositionInRange(rowIndex, columnIndex, expression.fields)) {
+			// 	const foundName = findExpressionInExpression(expression.fields, rowIndex, columnIndex, scopes);
+			// 	return foundName;
+			// }
+			// const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+			// return foundValue;
+			return [];
+		}
+		case 'dictionary': {
+			// const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
+			// return foundField;
+			return [];
+		}
+		case 'dictionaryType': {
+			// const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
+			// return foundField;
+			return [];
+		}
+		case 'empty':
+			return [];
+		case 'field':
+			// TODO check name range, source, typeGuard, fallback
+			// return expression;
+			return [];
+		case 'float':
+			return [];
+		case 'fraction':
+			return [];
+		case 'functionCall': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.functionReference, searchTerm),
+				...findAllOccurrencesInExpression(expression.arguments, searchTerm),
+			];
+			return occurences;
+		}
+		case 'functionLiteral': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.params, searchTerm),
+				...findAllOccurrencesInExpression(expression.returnType, searchTerm),
+				...findAllOccurrencesInExpressions(expression.body, searchTerm),
+			];
+			return occurences;
+		}
+		case 'functionTypeLiteral': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.params, searchTerm),
+				...findAllOccurrencesInExpression(expression.returnType, searchTerm),
+			];
+			return occurences;
+		}
+		case 'index':
+			return [];
+		case 'integer':
+			return [];
+		case 'list':
+			return findAllOccurrencesInExpressions(expression.values, searchTerm);
+		case 'name':
+			return expression.name === getSearchName(searchTerm)
+				? [expression]
+				: [];
+		case 'parameter': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.name, searchTerm),
+				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
+				...findAllOccurrencesInExpression(expression.fallback, searchTerm),
+			];
+			return occurences;
+		}
+		case 'parameters': {
+			// const foundField = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
+			// if (foundField) {
+			// 	return foundField;
+			// }
+			// const rest = expression.rest;
+			// if (rest && isPositionInRange(rowIndex, columnIndex, rest)) {
+			// 	const foundRest = findExpressionInExpression(rest, rowIndex, columnIndex, scopes);
+			// 	return foundRest;
+			// }
+			// return undefined;
+			return [];
+		}
+		case 'reference':
+			// TODO nested path
+			return expression.path[0].name === getSearchName(searchTerm)
+				? [expression.path[0]]
+				: [];
+		case 'singleDictionaryField': {
+			// const name = expression.name;
+			// if (isPositionInRange(rowIndex, columnIndex, name)) {
+			// 	return name;
+			// }
+			// const typeGuard = expression.typeGuard;
+			// if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+			// 	const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
+			// 	return foundType;
+			// }
+			// const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+			// return foundValue;
+			return [];
+		}
+		case 'singleDictionaryTypeField': {
+			// const name = expression.name;
+			// if (isPositionInRange(rowIndex, columnIndex, name)) {
+			// 	return name;
+			// }
+			// const typeGuard = expression.typeGuard;
+			// if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+			// 	const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
+			// 	return foundType;
+			// }
+			// return expression;
+			return [];
+		}
+		case 'spreadDictionaryField': {
+			// if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
+			// 	const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+			// 	return foundValue;
+			// }
+			// return expression;
+			return [];
+		}
+		case 'spreadDictionaryTypeField': {
+			// if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
+			// 	const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+			// 	return foundValue;
+			// }
+			// return expression;
+			return [];
+		}
+		case 'string': {
+			const values = expression.values.filter((value): value is ParseValueExpression =>
+				value.type !== 'stringToken');
+			return findAllOccurrencesInExpressions(values, searchTerm);
+		}
+		default: {
+			const assertNever: never = expression;
+			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
+		}
+	}
+}
+
+function getSearchName(searchTerm: Reference | Name): string {
+	switch (searchTerm.type) {
+		case 'name':
+			return searchTerm.name;
+		case 'reference':
+			// TODO nested paths
+			return searchTerm.path[0].name;
+		default: {
+			const assertNever: never = searchTerm;
+			throw new Error(`Unexpected searchTerm.type: ${(assertNever as Reference | Name).type}`);
+		}
+	}
+}
+
+//#endregion findAllOccurrences
+
 // TODO go to source file bei import?
 function getSymbolDefinition(
 	parsedFile: ParsedFile,
@@ -587,6 +786,10 @@ function getSymbolDefinition(
 ): {
 	isBuiltIn: boolean;
 	symbol: SymbolDefinition;
+	/**
+	 * Die expression, die an der Position (rowIndex, columnIndex) gefunden wurde.
+	 */
+	expression: Reference | Name;
 } | undefined {
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 	if (!expression) {
@@ -595,7 +798,10 @@ function getSymbolDefinition(
 	switch (expression.type) {
 		case 'reference': {
 			const definition = dereferenceWithBuiltIns(expression.path, scopes);
-			return definition;
+			return definition && {
+				...definition,
+				expression: expression,
+			};
 		}
 
 		case 'definition': {
@@ -618,7 +824,10 @@ function getSymbolDefinition(
 		case 'name': {
 			// TODO Dictionary, DictionaryType berücksichtigen
 			const definition = dereferenceWithBuiltIns([expression], scopes);
-			return definition;
+			return definition && {
+				...definition,
+				expression: expression,
+			};
 		}
 
 		case 'bracketed':
