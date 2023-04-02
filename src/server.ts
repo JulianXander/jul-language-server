@@ -621,23 +621,20 @@ function findAllOccurrencesInExpression(
 			return occurences;
 		}
 		case 'destructuring': {
-			// if (isPositionInRange(rowIndex, columnIndex, expression.fields)) {
-			// 	const foundName = findExpressionInExpression(expression.fields, rowIndex, columnIndex, scopes);
-			// 	return foundName;
-			// }
-			// const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-			// return foundValue;
-			return [];
+			const occurences = [
+				// TODO
+				// ...findAllOccurrencesInExpressions(expression.fields, searchTerm),
+				...findAllOccurrencesInExpression(expression.value, searchTerm),
+			];
+			return occurences;
 		}
 		case 'dictionary': {
-			// const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
-			// return foundField;
-			return [];
+			const occurences = findAllOccurrencesInExpressions(expression.fields, searchTerm);
+			return occurences;
 		}
 		case 'dictionaryType': {
-			// const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
-			// return foundField;
-			return [];
+			const occurences = findAllOccurrencesInExpressions(expression.fields, searchTerm);
+			return occurences;
 		}
 		case 'empty':
 			return [];
@@ -690,17 +687,11 @@ function findAllOccurrencesInExpression(
 			return occurences;
 		}
 		case 'parameters': {
-			// const foundField = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
-			// if (foundField) {
-			// 	return foundField;
-			// }
-			// const rest = expression.rest;
-			// if (rest && isPositionInRange(rowIndex, columnIndex, rest)) {
-			// 	const foundRest = findExpressionInExpression(rest, rowIndex, columnIndex, scopes);
-			// 	return foundRest;
-			// }
-			// return undefined;
-			return [];
+			const occurences = [
+				...findAllOccurrencesInExpressions(expression.singleFields, searchTerm),
+				...findAllOccurrencesInExpression(expression.rest, searchTerm),
+			];
+			return occurences;
 		}
 		case 'reference':
 			// TODO nested path
@@ -708,47 +699,28 @@ function findAllOccurrencesInExpression(
 				? [expression.path[0]]
 				: [];
 		case 'singleDictionaryField': {
-			// const name = expression.name;
-			// if (isPositionInRange(rowIndex, columnIndex, name)) {
-			// 	return name;
-			// }
-			// const typeGuard = expression.typeGuard;
-			// if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-			// 	const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-			// 	return foundType;
-			// }
-			// const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-			// return foundValue;
-			return [];
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.name, searchTerm),
+				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
+				...findAllOccurrencesInExpression(expression.value, searchTerm),
+				...findAllOccurrencesInExpression(expression.fallback, searchTerm),
+			];
+			return occurences;
 		}
 		case 'singleDictionaryTypeField': {
-			// const name = expression.name;
-			// if (isPositionInRange(rowIndex, columnIndex, name)) {
-			// 	return name;
-			// }
-			// const typeGuard = expression.typeGuard;
-			// if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-			// 	const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-			// 	return foundType;
-			// }
-			// return expression;
-			return [];
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.name, searchTerm),
+				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
+			];
+			return occurences;
 		}
 		case 'spreadDictionaryField': {
-			// if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
-			// 	const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-			// 	return foundValue;
-			// }
-			// return expression;
-			return [];
+			const occurences = findAllOccurrencesInExpression(expression.value, searchTerm);
+			return occurences;
 		}
 		case 'spreadDictionaryTypeField': {
-			// if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
-			// 	const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-			// 	return foundValue;
-			// }
-			// return expression;
-			return [];
+			const occurences = findAllOccurrencesInExpression(expression.value, searchTerm);
+			return occurences;
 		}
 		case 'string': {
 			const values = expression.values.filter((value): value is ParseValueExpression =>
