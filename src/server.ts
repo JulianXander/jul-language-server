@@ -11,7 +11,6 @@ import {
 	TextDocuments,
 	TextDocumentSyncKind,
 } from 'vscode-languageserver/node';
-import { readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import {
 	TextDocument
@@ -37,7 +36,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from '../../jul-compiler/src/type-checker';
-import { map } from '../../jul-compiler/src/util';
+import { map, readTextFile } from '../../jul-compiler/src/util';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -132,8 +131,10 @@ function parseDocument(text: string, path: string) {
 		if (parsedDocuments[fullPath]) {
 			return;
 		}
-		const file = readFileSync(fullPath);
-		const code = file.toString();
+		const code = readTextFile(fullPath);
+		if (code === undefined) {
+			return;
+		}
 		parseDocument(code, fullPath);
 	});
 	// TODO invalidate imported inferred types of this file in other files (that reference this file)
