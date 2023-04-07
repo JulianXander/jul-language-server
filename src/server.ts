@@ -36,7 +36,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from '../../jul-compiler/src/type-checker';
-import { map, readTextFile } from '../../jul-compiler/src/util';
+import { map, tryReadTextFile } from '../../jul-compiler/src/util';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -131,7 +131,7 @@ function parseDocument(text: string, path: string) {
 		if (parsedDocuments[fullPath]) {
 			return;
 		}
-		const code = readTextFile(fullPath);
+		const code = tryReadTextFile(fullPath);
 		if (code === undefined) {
 			return;
 		}
