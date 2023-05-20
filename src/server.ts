@@ -474,6 +474,10 @@ function findExpressionInExpression(
 		}
 		case 'name':
 			return expression;
+		case 'object': {
+			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
+			return foundValue;
+		}
 		case 'parameter': {
 			const name = expression.name;
 			if (isPositionInRange(rowIndex, columnIndex, name)) {
@@ -533,14 +537,7 @@ function findExpressionInExpression(
 			}
 			return expression;
 		}
-		case 'spreadDictionaryField': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
-				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-				return foundValue;
-			}
-			return expression;
-		}
-		case 'spreadDictionaryTypeField': {
+		case 'spread': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
 				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
 				return foundValue;
@@ -679,6 +676,8 @@ function findAllOccurrencesInExpression(
 			return expression.name === getSearchName(searchTerm)
 				? [expression]
 				: [];
+		case 'object':
+			return findAllOccurrencesInExpressions(expression.values, searchTerm);
 		case 'parameter': {
 			const occurences = [
 				...findAllOccurrencesInExpression(expression.name, searchTerm),
@@ -715,11 +714,7 @@ function findAllOccurrencesInExpression(
 			];
 			return occurences;
 		}
-		case 'spreadDictionaryField': {
-			const occurences = findAllOccurrencesInExpression(expression.value, searchTerm);
-			return occurences;
-		}
-		case 'spreadDictionaryTypeField': {
+		case 'spread': {
 			const occurences = findAllOccurrencesInExpression(expression.value, searchTerm);
 			return occurences;
 		}
@@ -813,12 +808,12 @@ function getSymbolDefinition(
 		case 'index':
 		case 'integer':
 		case 'list':
+		case 'object':
 		case 'parameter':
 		case 'parameters':
 		case 'singleDictionaryField':
 		case 'singleDictionaryTypeField':
-		case 'spreadDictionaryField':
-		case 'spreadDictionaryTypeField':
+		case 'spread':
 		case 'string':
 			return undefined;
 		default: {
