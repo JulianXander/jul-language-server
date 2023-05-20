@@ -423,9 +423,27 @@ function findExpressionInExpression(
 		}
 		case 'empty':
 			return undefined;
-		case 'field':
-			// TODO check name range, source, typeGuard, fallback
+		case 'field': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
+				return expression.name;
+			}
+			const typeGuard = expression.typeGuard;
+			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
+				return foundType;
+			}
+			const assignedValue = expression.assignedValue;
+			if (assignedValue && isPositionInRange(rowIndex, columnIndex, assignedValue)) {
+				const foundAssignedValue = findExpressionInExpression(assignedValue, rowIndex, columnIndex, scopes);
+				return foundAssignedValue;
+			}
+			const fallback = expression.fallback;
+			if (fallback && isPositionInRange(rowIndex, columnIndex, fallback)) {
+				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
+				return foundFallBack;
+			}
 			return expression;
+		}
 		case 'float':
 			return undefined;
 		case 'fraction':
