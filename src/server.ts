@@ -11,7 +11,7 @@ import {
 	TextDocuments,
 	TextDocumentSyncKind,
 } from 'vscode-languageserver/node';
-import { dirname, join } from 'path';
+import { dirname, extname, join } from 'path';
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
@@ -36,7 +36,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from '../../jul-compiler/src/type-checker';
-import { map, tryReadTextFile } from '../../jul-compiler/src/util';
+import { Extension, map, tryReadTextFile } from '../../jul-compiler/src/util';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -121,7 +121,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
  * checks types
  */
 function parseDocument(text: string, path: string) {
-	const parsed = parseCode(text);
+	const parsed = parseCode(text, extname(path) as Extension);
 	parsedDocuments[path] = parsed;
 	// recursively parse imported files
 	const sourceFolder = dirname(path);
