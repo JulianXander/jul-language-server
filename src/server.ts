@@ -16,7 +16,7 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { getImportedPaths } from 'jul-compiler/src/compiler'
+import { getImportedPaths } from 'jul-compiler/src/compiler';
 import { parseCode } from 'jul-compiler/src/parser';
 import { Positioned } from 'jul-compiler/src/parser-combinator';
 import {
