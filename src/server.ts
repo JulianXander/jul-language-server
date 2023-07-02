@@ -10,15 +10,16 @@ import {
 	Range,
 	TextDocuments,
 	TextDocumentSyncKind,
-} from 'vscode-languageserver/node';
+} from 'vscode-languageserver';
 import { dirname, extname, join } from 'path';
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
-import { URI } from 'vscode-uri';
-import { getImportedPaths } from 'jul-compiler/out/compiler';
-import { parseCode } from 'jul-compiler/out/parser';
-import { Positioned } from 'jul-compiler/out/parser-combinator';
+import vscodeUri from 'vscode-uri';
+const { URI } = vscodeUri;
+import { getImportedPaths } from 'jul-compiler/out/compiler.js';
+import { parseCode } from 'jul-compiler/out/parser.js';
+import { Positioned } from 'jul-compiler/out/parser-combinator.js';
 import {
 	PositionedExpression,
 	ParseValueExpression,
@@ -27,7 +28,7 @@ import {
 	SymbolDefinition,
 	Reference,
 	Name,
-} from 'jul-compiler/out/syntax-tree';
+} from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
 	checkTypes,
@@ -35,12 +36,12 @@ import {
 	dereferenceWithBuiltIns,
 	ParsedDocuments,
 	typeToString,
-} from 'jul-compiler/out/type-checker';
-import { Extension, map, tryReadTextFile } from 'jul-compiler/out/util';
+} from 'jul-compiler/out/type-checker.js';
+import { Extension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
-const connection = createConnection(ProposedFeatures.all);
+const connection = createConnection(ProposedFeatures.all as any, undefined as any);
 
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);

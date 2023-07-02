@@ -1,5 +1,6 @@
 {
 	"name": "jul-lsp-server",
+	"type": "module",
 	"scripts": {
 		"build": "npx tsc && copyfiles --flat ../jul-compiler/out/core-lib.jul out/jul-compiler/src"
 	},
