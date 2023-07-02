@@ -16,9 +16,9 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { getImportedPaths } from 'jul-compiler/src/compiler';
-import { parseCode } from 'jul-compiler/src/parser';
-import { Positioned } from 'jul-compiler/src/parser-combinator';
+import { getImportedPaths } from 'jul-compiler/out/compiler';
+import { parseCode } from 'jul-compiler/out/parser';
+import { Positioned } from 'jul-compiler/out/parser-combinator';
 import {
 	PositionedExpression,
 	ParseValueExpression,
@@ -27,7 +27,7 @@ import {
 	SymbolDefinition,
 	Reference,
 	Name,
-} from 'jul-compiler/src/syntax-tree';
+} from 'jul-compiler/out/syntax-tree';
 import {
 	builtInSymbols,
 	checkTypes,
@@ -35,8 +35,8 @@ import {
 	dereferenceWithBuiltIns,
 	ParsedDocuments,
 	typeToString,
-} from 'jul-compiler/src/type-checker';
-import { Extension, map, tryReadTextFile } from 'jul-compiler/src/util';
+} from 'jul-compiler/out/type-checker';
+import { Extension, map, tryReadTextFile } from 'jul-compiler/out/util';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
