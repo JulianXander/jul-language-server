@@ -18,8 +18,8 @@ import {
 import vscodeUri from 'vscode-uri';
 const { URI } = vscodeUri;
 import { getImportedPaths } from 'jul-compiler/out/compiler.js';
-import { parseCode } from 'jul-compiler/out/parser.js';
-import { Positioned } from 'jul-compiler/out/parser-combinator.js';
+import { parseCode } from 'jul-compiler/out/parser/parser.js';
+import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
 import {
 	PositionedExpression,
 	ParseValueExpression,
