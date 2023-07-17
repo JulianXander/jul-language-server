@@ -33,7 +33,7 @@ import {
 	builtInSymbols,
 	checkTypes,
 	coreLibPath,
-	dereferenceWithBuiltIns,
+	findSymbolInScopesWithBuiltIns,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/type-checker.js';
@@ -445,13 +445,20 @@ function findExpressionInExpression(
 			}
 			return expression;
 		}
+		case 'fieldReference': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.field)) {
+				return expression.field;
+			}
+			const foundSource = findExpressionInExpression(expression.source, rowIndex, columnIndex, scopes);
+			return foundSource;
+		}
 		case 'float':
 			return undefined;
 		case 'fraction':
 			return undefined;
 		case 'functionCall': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.functionReference)) {
-				return expression.functionReference;
+			if (isPositionInRange(rowIndex, columnIndex, expression.functionExpression)) {
+				return expression.functionExpression;
 			}
 			const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
 			return foundArguments;
@@ -485,6 +492,13 @@ function findExpressionInExpression(
 		}
 		case 'index':
 			return expression;
+		case 'indexReference': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.index)) {
+				return expression.index;
+			}
+			const foundSource = findExpressionInExpression(expression.source, rowIndex, columnIndex, scopes);
+			return foundSource;
+		}
 		case 'integer':
 			return undefined;
 		case 'list': {
@@ -524,7 +538,6 @@ function findExpressionInExpression(
 			return undefined;
 		}
 		case 'reference':
-			// TODO find expression name aus dem array names
 			return expression;
 		case 'singleDictionaryField': {
 			const name = expression.name;
@@ -659,13 +672,20 @@ function findAllOccurrencesInExpression(
 			// TODO check name range, source, typeGuard, fallback
 			// return expression;
 			return [];
+		case 'fieldReference': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.source, searchTerm),
+				...findAllOccurrencesInExpression(expression.field, searchTerm),
+			];
+			return occurences;
+		}
 		case 'float':
 			return [];
 		case 'fraction':
 			return [];
 		case 'functionCall': {
 			const occurences = [
-				...findAllOccurrencesInExpression(expression.functionReference, searchTerm),
+				...findAllOccurrencesInExpression(expression.functionExpression, searchTerm),
 				...findAllOccurrencesInExpression(expression.arguments, searchTerm),
 			];
 			return occurences;
@@ -687,6 +707,13 @@ function findAllOccurrencesInExpression(
 		}
 		case 'index':
 			return [];
+		case 'indexReference': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.source, searchTerm),
+				...findAllOccurrencesInExpression(expression.index, searchTerm),
+			];
+			return occurences;
+		}
 		case 'integer':
 			return [];
 		case 'list':
@@ -712,11 +739,12 @@ function findAllOccurrencesInExpression(
 			];
 			return occurences;
 		}
-		case 'reference':
-			// TODO nested path
-			return expression.path[0].name === getSearchName(searchTerm)
-				? [expression.path[0]]
+		case 'reference': {
+			const referenceName = expression.name;
+			return referenceName.name === getSearchName(searchTerm)
+				? [referenceName]
 				: [];
+		}
 		case 'singleDictionaryField': {
 			const occurences = [
 				...findAllOccurrencesInExpression(expression.name, searchTerm),
@@ -754,8 +782,7 @@ function getSearchName(searchTerm: Reference | Name): string {
 		case 'name':
 			return searchTerm.name;
 		case 'reference':
-			// TODO nested paths
-			return searchTerm.path[0].name;
+			return searchTerm.name.name;
 		default: {
 			const assertNever: never = searchTerm;
 			throw new Error(`Unexpected searchTerm.type: ${(assertNever as Reference | Name).type}`);
@@ -784,7 +811,7 @@ function getSymbolDefinition(
 	}
 	switch (expression.type) {
 		case 'reference': {
-			const definition = dereferenceWithBuiltIns(expression.path, scopes);
+			const definition = findSymbolInScopesWithBuiltIns(expression.name.name, scopes);
 			return definition && {
 				...definition,
 				expression: expression,
@@ -807,7 +834,7 @@ function getSymbolDefinition(
 		}
 		case 'name': {
 			// TODO Dictionary, DictionaryType berücksichtigen
-			const definition = dereferenceWithBuiltIns([expression], scopes);
+			const definition = findSymbolInScopesWithBuiltIns(expression.name, scopes);
 			return definition && {
 				...definition,
 				expression: expression,
@@ -819,12 +846,14 @@ function getSymbolDefinition(
 		case 'dictionaryType':
 		case 'empty':
 		case 'field':
+		case 'fieldReference':
 		case 'float':
 		case 'fraction':
 		case 'functionCall':
 		case 'functionLiteral':
 		case 'functionTypeLiteral':
 		case 'index':
+		case 'indexReference':
 		case 'integer':
 		case 'list':
 		case 'object':
