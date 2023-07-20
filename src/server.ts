@@ -458,7 +458,8 @@ function findExpressionInExpression(
 			return undefined;
 		case 'functionCall': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.functionExpression)) {
-				return expression.functionExpression;
+				const foundFunction = findExpressionInExpression(expression.functionExpression, rowIndex, columnIndex, scopes);
+				return foundFunction;
 			}
 			const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
 			return foundArguments;
