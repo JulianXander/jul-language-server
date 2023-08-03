@@ -126,7 +126,7 @@ function parseDocument(text: string, path: string) {
 	parsedDocuments[path] = parsed;
 	// recursively parse imported files
 	const sourceFolder = dirname(path);
-	const importedPaths = getImportedPaths(parsed);
+	const importedPaths = getImportedPaths(parsed, sourceFolder);
 	importedPaths.paths.forEach(importedPath => {
 		const fullPath = join(sourceFolder, importedPath);
 		if (parsedDocuments[fullPath]) {
