@@ -457,11 +457,11 @@ function findExpressionInExpression(
 		case 'fraction':
 			return undefined;
 		case 'functionCall': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.functionExpression)) {
+			if (expression.functionExpression && isPositionInRange(rowIndex, columnIndex, expression.functionExpression)) {
 				const foundFunction = findExpressionInExpression(expression.functionExpression, rowIndex, columnIndex, scopes);
 				return foundFunction;
 			}
-			const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
+			const foundArguments = expression.arguments && findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
 			return foundArguments;
 		}
 		case 'functionLiteral': {
