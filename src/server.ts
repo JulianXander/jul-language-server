@@ -34,10 +34,12 @@ import {
 	checkTypes,
 	coreLibPath,
 	findSymbolInScopesWithBuiltIns,
+	getTypeError,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/type-checker.js';
-import { Extension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { Extension, isDefined, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { FunctionType, ParametersType } from 'jul-compiler/out/runtime.js';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -161,7 +163,6 @@ connection.onCompletion(completionParams => {
 	const rowIndex = completionParams.position.line;
 	const columnIndex = completionParams.position.character;
 	// TODO sortierung type/nicht-type, bei normaler stelle erst nicht-types, bei type erst types/nur types?
-	// todo . (infix function call)
 	// todo / (nested field)
 	// const foundSymbol = getSymbolDefinition(parsed, rowIndex, columnIndex);
 	// if (!foundSymbol) {
@@ -171,14 +172,39 @@ connection.onCompletion(completionParams => {
 	// Get symbols from containing scopes
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 
-	// TODO?
-	// if (expression) {
-	// }
+	let symbolFilter: (symbol: SymbolDefinition) => boolean | undefined;
+	if (expression && expression.type === 'functionCall' && expression.prefixArgument) {
+		// infix function call
+		const prefixArgumentType = expression.prefixArgument.inferredType;
+		symbolFilter = symbol => {
+			if (prefixArgumentType === undefined) {
+				return false;
+			}
+			const symbolType = symbol.normalizedType
+			if (symbolType instanceof FunctionType) {
+				const paramsType = symbolType.paramsType;
+				if (paramsType instanceof ParametersType) {
+					const firstParameterType = paramsType.singleNames[0]?.type;
+					// TODO check rest
+					if (firstParameterType === undefined) {
+						return false;
+					}
+					const typeError = getTypeError(undefined, prefixArgumentType, firstParameterType);
+					return !typeError;
+				}
+			}
+			return false;
+		};
+	}
 
 	return [...scopes, builtInSymbols].flatMap(symbols => {
 		return map(
 			symbols,
 			(symbol, name) => {
+				const showSymbol = symbolFilter?.(symbol) ?? true;
+				if (!showSymbol) {
+					return undefined;
+				}
 				return {
 					label: name,
 					kind: CompletionItemKind.Constant,
@@ -187,7 +213,7 @@ connection.onCompletion(completionParams => {
 						: typeToString(symbol.normalizedType, 0),
 					documentation: symbol.description,
 				};
-			});
+			}).filter(isDefined);
 	});
 });
 
@@ -457,12 +483,19 @@ function findExpressionInExpression(
 		case 'fraction':
 			return undefined;
 		case 'functionCall': {
+			if (expression.prefixArgument && isPositionInRange(rowIndex, columnIndex, expression.prefixArgument)) {
+				const foundPrefix = findExpressionInExpression(expression.prefixArgument, rowIndex, columnIndex, scopes);
+				return foundPrefix;
+			}
 			if (expression.functionExpression && isPositionInRange(rowIndex, columnIndex, expression.functionExpression)) {
 				const foundFunction = findExpressionInExpression(expression.functionExpression, rowIndex, columnIndex, scopes);
 				return foundFunction;
 			}
-			const foundArguments = expression.arguments && findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
-			return foundArguments;
+			if (expression.arguments) {
+				const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
+				return foundArguments;
+			}
+			return expression;
 		}
 		case 'functionLiteral': {
 			scopes.push(expression.symbols);
