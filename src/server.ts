@@ -39,7 +39,7 @@ import {
 	typeToString,
 } from 'jul-compiler/out/type-checker.js';
 import { Extension, isDefined, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { FunctionType, ParametersType } from 'jul-compiler/out/runtime.js';
+import { FunctionType, ListType, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -184,8 +184,19 @@ connection.onCompletion(completionParams => {
 			if (symbolType instanceof FunctionType) {
 				const paramsType = symbolType.paramsType;
 				if (paramsType instanceof ParametersType) {
-					const firstParameterType = paramsType.singleNames[0]?.type;
-					// TODO check rest
+					let firstParameterType: RuntimeType | undefined;
+					if (paramsType.singleNames.length) {
+						firstParameterType = paramsType.singleNames[0]?.type;
+					}
+					else if (paramsType.rest) {
+						const restType = paramsType.rest?.type;
+						if (restType instanceof ListType) {
+							firstParameterType = restType.elementType;
+						}
+						else if (restType instanceof TupleType) {
+							firstParameterType = restType.elementTypes[0];
+						}
+					}
 					if (firstParameterType === undefined) {
 						return false;
 					}
