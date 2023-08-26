@@ -17,7 +17,7 @@ import {
 } from 'vscode-languageserver-textdocument';
 import vscodeUri from 'vscode-uri';
 const { URI } = vscodeUri;
-import { getImportedPaths } from 'jul-compiler/out/compiler.js';
+import { getImportedPaths, isImport } from 'jul-compiler/out/compiler.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
 import {
@@ -41,6 +41,7 @@ import {
 } from 'jul-compiler/out/type-checker.js';
 import { Extension, isDefined, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { FunctionType, ListType, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
+import { readdirSync } from 'fs';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -63,7 +64,7 @@ connection.onInitialize((params: InitializeParams) => {
 			// Tell the client that this server supports code completion.
 			completionProvider: {
 				resolveProvider: true,
-				triggerCharacters: ['.'],
+				triggerCharacters: ['.', '/'],
 			},
 			definitionProvider: true,
 			hoverProvider: true,
@@ -173,6 +174,42 @@ connection.onCompletion(completionParams => {
 
 	// Get symbols from containing scopes
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
+
+	//#region import path
+	if (expression
+		&& expression.type === 'string'
+		&& expression.parent?.type === 'list'
+		&& expression.parent.parent
+		&& isImport(expression.parent.parent)) {
+		const documentPath = uriToPath(documentUri);
+		const folderPath = dirname(documentPath);
+		const rawImportedPath = expression.values[0]?.type === 'stringToken'
+			? expression.values[0].value
+			: undefined;
+		let entries;
+		if (rawImportedPath) {
+			const path = join(folderPath, rawImportedPath);
+			try {
+				entries = readdirSync(path, { withFileTypes: true });
+			} catch (error) {
+				console.error(error);
+			}
+		}
+		if (!entries) {
+			entries = readdirSync(folderPath, { withFileTypes: true });
+		}
+		return entries.map(entry => {
+			return {
+				label: entry.name,
+				kind: entry.isDirectory()
+					? CompletionItemKind.Folder
+					: CompletionItemKind.File,
+				detail: undefined,
+				documentation: undefined,
+			};
+		});
+	}
+	//#endregion import path
 
 	let symbolFilter: (symbol: SymbolDefinition) => boolean | undefined;
 	//#region infix function call (bei infix function reference)
@@ -646,7 +683,7 @@ function findExpressionInExpression(
 			const values = expression.values.filter((value): value is ParseValueExpression =>
 				value.type !== 'stringToken');
 			const foundValue = findExpressionInExpressions(values, rowIndex, columnIndex, scopes);
-			return foundValue;
+			return foundValue ?? expression;
 		}
 		default: {
 			const assertNever: never = expression;
