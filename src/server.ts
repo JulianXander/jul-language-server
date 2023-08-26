@@ -28,6 +28,7 @@ import {
 	SymbolDefinition,
 	Reference,
 	Name,
+	ParseFunctionCall,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -61,7 +62,8 @@ connection.onInitialize((params: InitializeParams) => {
 			textDocumentSync: TextDocumentSyncKind.Incremental,
 			// Tell the client that this server supports code completion.
 			completionProvider: {
-				resolveProvider: true
+				resolveProvider: true,
+				triggerCharacters: ['.'],
 			},
 			definitionProvider: true,
 			hoverProvider: true,
@@ -173,9 +175,27 @@ connection.onCompletion(completionParams => {
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 
 	let symbolFilter: (symbol: SymbolDefinition) => boolean | undefined;
-	if (expression && expression.type === 'functionCall' && expression.prefixArgument) {
-		// infix function call
-		const prefixArgumentType = expression.prefixArgument.inferredType;
+	//#region infix function call (bei infix function reference)
+	function getInfixFunctionCall(expression: PositionedExpression | undefined): ParseFunctionCall | undefined {
+		if (!expression) {
+			return undefined;
+		}
+		if (expression.type === 'functionCall'
+			&& expression.prefixArgument) {
+			return expression;
+		}
+		if (
+			expression.type === 'reference'
+			&& expression.parent?.type === 'functionCall'
+			&& expression.parent.prefixArgument
+			&& expression === expression.parent.functionExpression) {
+			return expression.parent;
+		}
+		return undefined;
+	}
+	const infixFunctionCall = getInfixFunctionCall(expression);
+	if (infixFunctionCall) {
+		const prefixArgumentType = infixFunctionCall.prefixArgument!.inferredType;
 		symbolFilter = symbol => {
 			if (prefixArgumentType === undefined) {
 				return false;
@@ -207,6 +227,7 @@ connection.onCompletion(completionParams => {
 			return false;
 		};
 	}
+	//#endregion infix function call (bei infix function reference)
 
 	return [...scopes, builtInSymbols].flatMap(symbols => {
 		return map(
