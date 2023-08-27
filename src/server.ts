@@ -6,6 +6,7 @@ import {
 	DiagnosticSeverity,
 	InitializeParams,
 	InitializeResult,
+	Location,
 	ProposedFeatures,
 	Range,
 	TextDocuments,
@@ -29,12 +30,14 @@ import {
 	Reference,
 	Name,
 	ParseFunctionCall,
+	ParseStringLiteral,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
 	checkTypes,
 	coreLibPath,
 	findSymbolInScopesWithBuiltIns,
+	getPathFromImport,
 	getTypeError,
 	ParsedDocuments,
 	typeToString,
@@ -159,7 +162,8 @@ connection.onDidChangeWatchedFiles(_change => {
 // This handler provides the initial list of the completion items.
 connection.onCompletion(completionParams => {
 	const documentUri = completionParams.textDocument.uri;
-	const parsedFile = getParsedFileByUri(documentUri);
+	const documentPath = uriToPath(documentUri);
+	const parsedFile = parsedDocuments[documentPath];
 	if (!parsedFile) {
 		return;
 	}
@@ -176,12 +180,7 @@ connection.onCompletion(completionParams => {
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 
 	//#region import path
-	if (expression
-		&& expression.type === 'string'
-		&& expression.parent?.type === 'list'
-		&& expression.parent.parent
-		&& isImport(expression.parent.parent)) {
-		const documentPath = uriToPath(documentUri);
+	if (isImportPath(expression)) {
 		const folderPath = dirname(documentPath);
 		const rawImportedPath = expression.values[0]?.type === 'stringToken'
 			? expression.values[0].value
@@ -330,19 +329,45 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 const coreLibUri = pathToUri(coreLibPath);
 connection.onDefinition((definitionParams) => {
 	const documentUri = definitionParams.textDocument.uri;
-	const path = uriToPath(documentUri);
-	const parsed = parsedDocuments[path];
-	if (!parsed) {
+	const documentPath = uriToPath(documentUri);
+	const parsedFile = parsedDocuments[documentPath];
+	if (!parsedFile) {
 		return;
 	}
-	const foundSymbol = getSymbolDefinition(parsed, definitionParams.position.line, definitionParams.position.character);
+	const rowIndex = definitionParams.position.line;
+	const columnIndex = definitionParams.position.character;
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
+	//#region go to imported file
+	if (isImportPath(expression)) {
+		const folderPath = dirname(documentPath);
+		const { fullPath, error } = getPathFromImport(expression.parent!.parent as ParseFunctionCall, folderPath);
+		if (error) {
+			console.log(error);
+			return;
+		}
+		if (!fullPath) {
+			return;
+		}
+		const location: Location = {
+			uri: pathToUri(fullPath),
+			range: {
+				start: { character: 0, line: 0 },
+				end: { character: 0, line: 0 },
+			},
+		};
+		return location;
+	}
+	//#endregion
+
+	const foundSymbol = getSymbolDefinition(parsedFile, rowIndex, columnIndex);
 	if (foundSymbol) {
-		return {
+		const location: Location = {
 			uri: foundSymbol.isBuiltIn
 				? coreLibUri
 				: documentUri,
 			range: positionedToRange(foundSymbol.symbol)
 		};
+		return location;
 	}
 });
 //#endregion go to definition
@@ -998,6 +1023,17 @@ function getSymbolDefinition(
 			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
 		}
 	}
+}
+
+function isImportPath(expression: PositionedExpression | undefined): expression is ParseStringLiteral {
+	if (expression
+		&& expression.type === 'string'
+		&& expression.parent?.type === 'list'
+		&& expression.parent.parent
+		&& isImport(expression.parent.parent)) {
+		return true;
+	}
+	return false;
 }
 
 function positionedToRange(positioned: Positioned): Range {
