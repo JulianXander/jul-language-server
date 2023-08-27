@@ -40,7 +40,7 @@ import {
 	typeToString,
 } from 'jul-compiler/out/type-checker.js';
 import { Extension, isDefined, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { FunctionType, ListType, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
+import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -232,7 +232,16 @@ connection.onCompletion(completionParams => {
 	}
 	const infixFunctionCall = getInfixFunctionCall(expression);
 	if (infixFunctionCall) {
-		const prefixArgumentType = infixFunctionCall.prefixArgument!.inferredType;
+		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.inferredType;
+		let prefixArgumentType: RuntimeType | undefined;
+		if (prefixArgumentTypeRaw instanceof ParameterReference) {
+			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
+			prefixArgumentType = dereferenced?.symbol.normalizedType;
+		}
+		else {
+			prefixArgumentType = prefixArgumentTypeRaw;
+		}
+
 		symbolFilter = symbol => {
 			if (prefixArgumentType === undefined) {
 				return false;
