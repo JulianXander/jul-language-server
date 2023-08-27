@@ -39,7 +39,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/type-checker.js';
-import { Extension, isDefined, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { Extension, isDefined, isValidExtension, map, removeExtension, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
@@ -199,15 +199,31 @@ connection.onCompletion(completionParams => {
 			entries = readdirSync(folderPath, { withFileTypes: true });
 		}
 		return entries.map(entry => {
-			return {
-				label: entry.name,
-				kind: entry.isDirectory()
+			const entryName = entry.name;
+			const isDirectory = entry.isDirectory();
+			// nur Dateien mit importierbarer extension vorschlagen
+			// TODO nur Ordner, die importierbare Dateien enthalten vorschlagen
+			const extension = extname(entryName);
+			if (!isDirectory) {
+				if (!isValidExtension(extension)) {
+					return undefined
+				}
+			}
+			const completionItem: CompletionItem = {
+				label: entryName,
+				insertText: (rawImportedPath
+					? ''
+					: './') + (extension === Extension.jul
+						? removeExtension(entryName)
+						: entryName),
+				kind: isDirectory
 					? CompletionItemKind.Folder
 					: CompletionItemKind.File,
 				detail: undefined,
 				documentation: undefined,
 			};
-		});
+			return completionItem;
+		}).filter(isDefined);
 	}
 	//#endregion import path
 
@@ -283,7 +299,7 @@ connection.onCompletion(completionParams => {
 				if (!showSymbol) {
 					return undefined;
 				}
-				return {
+				const completionItem: CompletionItem = {
 					label: name,
 					kind: CompletionItemKind.Constant,
 					detail: symbol.normalizedType === undefined
@@ -291,6 +307,7 @@ connection.onCompletion(completionParams => {
 						: typeToString(symbol.normalizedType, 0),
 					documentation: symbol.description,
 				};
+				return completionItem;
 			}).filter(isDefined);
 	});
 });
