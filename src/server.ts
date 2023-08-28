@@ -185,21 +185,30 @@ connection.onCompletion(completionParams => {
 		const rawImportedPath = expression.values[0]?.type === 'stringToken'
 			? expression.values[0].value
 			: undefined;
+		let entryFolderPath = folderPath;
 		let entries;
 		if (rawImportedPath) {
-			const path = join(folderPath, rawImportedPath);
+			entryFolderPath = join(folderPath, rawImportedPath);
 			try {
-				entries = readdirSync(path, { withFileTypes: true });
+				entries = readdirSync(entryFolderPath, { withFileTypes: true });
 			} catch (error) {
 				console.error(error);
 			}
 		}
 		if (!entries) {
-			entries = readdirSync(folderPath, { withFileTypes: true });
+			entryFolderPath = folderPath;
+			entries = readdirSync(entryFolderPath, { withFileTypes: true });
 		}
 		return entries.map(entry => {
 			const entryName = entry.name;
 			const isDirectory = entry.isDirectory();
+			// selbst import nicht vorschlagen
+			if (!isDirectory) {
+				const entryFilePath = join(entryFolderPath, entryName)
+				if (entryFilePath === documentPath) {
+					return undefined;
+				}
+			}
 			// nur Dateien mit importierbarer extension vorschlagen
 			// TODO nur Ordner, die importierbare Dateien enthalten vorschlagen
 			const extension = extname(entryName);
