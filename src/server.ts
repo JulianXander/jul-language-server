@@ -221,9 +221,7 @@ connection.onCompletion(completionParams => {
 				label: entryName,
 				insertText: (rawImportedPath
 					? ''
-					: './') + (extension === Extension.jul
-						? removeExtension(entryName)
-						: entryName),
+					: './') + entryName,
 				kind: isDirectory
 					? CompletionItemKind.Folder
 					: CompletionItemKind.File,
