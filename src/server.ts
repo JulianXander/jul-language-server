@@ -30,7 +30,7 @@ import {
 	Reference,
 	Name,
 	ParseFunctionCall,
-	ParseStringLiteral,
+	ParseTextLiteral,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -182,7 +182,7 @@ connection.onCompletion(completionParams => {
 	//#region import path
 	if (isImportPath(expression)) {
 		const folderPath = dirname(documentPath);
-		const rawImportedPath = expression.values[0]?.type === 'stringToken'
+		const rawImportedPath = expression.values[0]?.type === 'textToken'
 			? expression.values[0].value
 			: undefined;
 		let entryFolderPath = folderPath;
@@ -737,9 +737,9 @@ function findExpressionInExpression(
 			}
 			return expression;
 		}
-		case 'string': {
+		case 'text': {
 			const values = expression.values.filter((value): value is ParseValueExpression =>
-				value.type !== 'stringToken');
+				value.type !== 'textToken');
 			const foundValue = findExpressionInExpressions(values, rowIndex, columnIndex, scopes);
 			return foundValue ?? expression;
 		}
@@ -926,9 +926,9 @@ function findAllOccurrencesInExpression(
 			const occurences = findAllOccurrencesInExpression(expression.value, searchTerm);
 			return occurences;
 		}
-		case 'string': {
+		case 'text': {
 			const values = expression.values.filter((value): value is ParseValueExpression =>
-				value.type !== 'stringToken');
+				value.type !== 'textToken');
 			return findAllOccurrencesInExpressions(values, searchTerm);
 		}
 		default: {
@@ -1023,7 +1023,7 @@ function getSymbolDefinition(
 		case 'singleDictionaryField':
 		case 'singleDictionaryTypeField':
 		case 'spread':
-		case 'string':
+		case 'text':
 			return undefined;
 		default: {
 			const assertNever: never = expression;
@@ -1032,9 +1032,9 @@ function getSymbolDefinition(
 	}
 }
 
-function isImportPath(expression: PositionedExpression | undefined): expression is ParseStringLiteral {
+function isImportPath(expression: PositionedExpression | undefined): expression is ParseTextLiteral {
 	if (expression
-		&& expression.type === 'string'
+		&& expression.type === 'text'
 		&& expression.parent?.type === 'list'
 		&& expression.parent.parent
 		&& isImport(expression.parent.parent)) {
