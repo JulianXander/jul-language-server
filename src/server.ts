@@ -18,7 +18,8 @@ import {
 } from 'vscode-languageserver-textdocument';
 import vscodeUri from 'vscode-uri';
 const { URI } = vscodeUri;
-import { getImportedPaths, isImport } from 'jul-compiler/out/compiler.js';
+import { getImportedPaths } from 'jul-compiler/out/compiler.js';
+import { isImportFunctionCall } from 'jul-compiler/out/emitter.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
 import {
@@ -42,7 +43,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/type-checker.js';
-import { Extension, isDefined, isValidExtension, map, removeExtension, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { Extension, isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
@@ -1037,7 +1038,7 @@ function isImportPath(expression: PositionedExpression | undefined): expression 
 		&& expression.type === 'text'
 		&& expression.parent?.type === 'list'
 		&& expression.parent.parent
-		&& isImport(expression.parent.parent)) {
+		&& isImportFunctionCall(expression.parent.parent)) {
 		return true;
 	}
 	return false;
