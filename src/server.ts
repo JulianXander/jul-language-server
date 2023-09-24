@@ -137,15 +137,14 @@ function parseDocument(text: string, path: string) {
 	const sourceFolder = dirname(path);
 	const importedPaths = getImportedPaths(parsed, sourceFolder);
 	importedPaths.paths.forEach(importedPath => {
-		const fullPath = join(sourceFolder, importedPath);
-		if (parsedDocuments[fullPath]) {
+		if (parsedDocuments[importedPath]) {
 			return;
 		}
-		const code = tryReadTextFile(fullPath);
+		const code = tryReadTextFile(importedPath);
 		if (code === undefined) {
 			return;
 		}
-		parseDocument(code, fullPath);
+		parseDocument(code, importedPath);
 	});
 	// TODO invalidate imported inferred types of this file in other files (that reference this file)
 	// infertypes, typecheck
