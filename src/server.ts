@@ -42,7 +42,7 @@ import {
 	getTypeError,
 	ParsedDocuments,
 	typeToString,
-} from 'jul-compiler/out/type-checker.js';
+} from 'jul-compiler/out/checker.js';
 import { Extension, isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
