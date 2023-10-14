@@ -17,9 +17,7 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { getImportedPaths } from 'jul-compiler/out/compiler.js';
-import { isImportFunctionCall } from 'jul-compiler/out/emitter.js';
-import { parseCode } from 'jul-compiler/out/parser/parser.js';
+import { getPathFromImport, isImportFunctionCall, parseCode } from 'jul-compiler/out/parser/parser.js';
 import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
 import {
 	PositionedExpression,
@@ -37,12 +35,11 @@ import {
 	checkTypes,
 	coreLibPath,
 	findSymbolInScopesWithBuiltIns,
-	getPathFromImport,
 	getTypeError,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker.js';
-import { Extension, isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { Extension, forEach, isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
@@ -130,12 +127,11 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
  * checks types
  */
 function parseDocument(text: string, path: string) {
-	const parsed = parseCode(text, extname(path) as Extension);
+	const sourceFolder = dirname(path);
+	const parsed = parseCode(text, extname(path) as Extension, sourceFolder);
 	parsedDocuments[path] = parsed;
 	// recursively parse imported files
-	const sourceFolder = dirname(path);
-	const importedPaths = getImportedPaths(parsed, sourceFolder);
-	importedPaths.paths.forEach(importedPath => {
+	parsed.dependencies?.forEach(importedPath => {
 		if (parsedDocuments[importedPath]) {
 			return;
 		}
@@ -152,8 +148,22 @@ function parseDocument(text: string, path: string) {
 }
 //#endregion validate
 
-connection.onDidChangeWatchedFiles(_change => {
+connection.onDidChangeWatchedFiles(changeParams => {
 	// Monitored files have change in VSCode
+	// TODO update dependendent files
+	// for each file in parsedDocuments:
+	// if depenency has changed (ie: file.dependencies contains a file in changeParams):
+	// then recalculate types (checkTypes) ?clear inferredTypes (evtl inferredTypes trennen von parseTree) oder neu parsen?
+	// TODO uri to path?
+	const changedFiles = changeParams.changes.map(fileChange => uriToPath(fileChange.uri));
+	forEach(
+		parsedDocuments,
+		parsedDocument => {
+			const dependencyChanged = parsedDocument.dependencies?.some(dependency => changedFiles.includes(dependency));
+			if (dependencyChanged) {
+				// TODO ???
+			}
+		});
 	connection.console.log('We received a file change event');
 });
 
