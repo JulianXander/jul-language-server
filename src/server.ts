@@ -16,8 +16,7 @@ import { dirname, extname, join } from 'path';
 import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
-import vscodeUri from 'vscode-uri';
-const { URI } = vscodeUri;
+import { URI } from 'vscode-uri';
 import { getImportedPaths } from 'jul-compiler/out/compiler.js';
 import { isImportFunctionCall } from 'jul-compiler/out/emitter.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
@@ -75,7 +74,7 @@ connection.onInitialize((params: InitializeParams) => {
 			renameProvider: {
 				prepareProvider: true,
 			},
-		}
+		},
 	};
 	return result;
 });
