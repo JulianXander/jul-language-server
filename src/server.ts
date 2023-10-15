@@ -85,8 +85,8 @@ documents.onDidChangeContent(change => {
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const text = textDocument.getText();
 	const path = uriToPath(textDocument.uri);
-	const parsed = parseDocument(text, path);
-	const { errors } = parsed;
+	const parsed = parseDocumentByCode(text, path);
+	const { errors } = parsed.checked!;
 
 	const diagnostics: Diagnostic[] = errors.map(error => {
 		const diagnostic: Diagnostic = {
@@ -126,45 +126,77 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
  * verarbeitet auch importe
  * checks types
  */
-function parseDocument(text: string, path: string) {
-	const sourceFolder = dirname(path);
-	const parsed = parseCode(text, extname(path) as Extension, sourceFolder);
+function parseDocumentByCode(text: string, path: string): ParsedFile {
+	const parsed = parseCode(text, path);
 	parsedDocuments[path] = parsed;
 	// recursively parse imported files
 	parsed.dependencies?.forEach(importedPath => {
-		if (parsedDocuments[importedPath]) {
-			return;
-		}
-		const code = tryReadTextFile(importedPath);
-		if (code === undefined) {
-			return;
-		}
-		parseDocument(code, importedPath);
+		parseDocumentByPath(importedPath);
 	});
-	// TODO invalidate imported inferred types of this file in other files (that reference this file)
+	// TODO invalidate imported inferred types of this file in other files (that reference this file)?
+	// oder nur in onDidChangeWatchedFiles bei file save?
 	// infertypes, typecheck
-	checkTypes(parsed, parsedDocuments, sourceFolder);
+	checkTypes(parsed, parsedDocuments);
 	return parsed;
+}
+
+function parseDocumentByPath(path: string): void {
+	const oldParsed = parsedDocuments[path];
+	if (oldParsed) {
+		if (oldParsed.checked) {
+			return;
+		}
+		checkTypes(oldParsed, parsedDocuments);
+		return;
+	}
+	const code = tryReadTextFile(path);
+	if (code === undefined) {
+		return;
+	}
+	parseDocumentByCode(code, path);
 }
 //#endregion validate
 
 connection.onDidChangeWatchedFiles(changeParams => {
 	// Monitored files have change in VSCode
-	// TODO update dependendent files
-	// for each file in parsedDocuments:
-	// if depenency has changed (ie: file.dependencies contains a file in changeParams):
-	// then recalculate types (checkTypes) ?clear inferredTypes (evtl inferredTypes trennen von parseTree) oder neu parsen?
-	// TODO uri to path?
-	const changedFiles = changeParams.changes.map(fileChange => uriToPath(fileChange.uri));
-	forEach(
-		parsedDocuments,
-		parsedDocument => {
-			const dependencyChanged = parsedDocument.dependencies?.some(dependency => changedFiles.includes(dependency));
-			if (dependencyChanged) {
-				// TODO ???
-			}
+	// connection.console.log('We received a file change event');
+
+	// reparse changedFiles
+	const changedFilePaths = changeParams.changes
+		.map(fileChange => uriToPath(fileChange.uri))
+		.filter(path => {
+			return !!parsedDocuments[path];
 		});
-	connection.console.log('We received a file change event');
+	// update dependendent files
+	// for each file in parsedDocuments:
+	// if depenency has changed (ie: file.dependencies contains a file in changeParams)
+	// then recalculate types (checkTypes)
+	const invalidatedFiles = map(
+		parsedDocuments,
+		(parsedDocument, path) => {
+			const fileChanged = changedFilePaths.includes(path);
+			if (fileChanged) {
+				return undefined;
+			}
+			const dependencyChanged = parsedDocument.dependencies?.some(dependency => changedFilePaths.includes(dependency));
+			if (dependencyChanged) {
+				return parsedDocument;
+			}
+		}).filter(isDefined);
+	// clean invalidated data
+	invalidatedFiles.forEach((parsedDocument) => {
+		parsedDocument.checked = undefined;
+	});
+	changedFilePaths.forEach((path) => {
+		delete parsedDocuments[path];
+	});
+	// recalculate data
+	changedFilePaths.forEach((path) => {
+		parseDocumentByPath(path);
+	});
+	invalidatedFiles.forEach((parsedDocument) => {
+		checkTypes(parsedDocument, parsedDocuments);
+	});
 });
 
 //#region autocomplete
@@ -394,7 +426,7 @@ connection.onHover((hoverParams) => {
 	if (!parsed) {
 		return;
 	}
-	// TODO find funciontLiteral, show param + return type
+	// TODO find functiontLiteral, show param + return type
 	// const foundExpression = findExpressionInParsedFile(parsed, hoverParams.position.line, hoverParams.position.character);
 	// // TODO functionCall, definition berücksichtigen?
 	// if (foundExpression?.type === 'reference') {
@@ -495,11 +527,13 @@ function findExpressionInParsedFile(
 	expression: PositionedExpression | undefined;
 	scopes: SymbolTable[];
 } {
+	const parsed2 = parsedFile.checked!;
 	const scopes: SymbolTable[] = [
-		parsedFile.symbols,
+		parsed2.symbols,
 	];
-	const expression = parsedFile.expressions && findExpressionInExpressions(
-		parsedFile.expressions,
+	const expressions = parsed2.expressions;
+	const expression = expressions && findExpressionInExpressions(
+		expressions,
 		rowIndex,
 		columnIndex,
 		scopes);
@@ -779,8 +813,9 @@ function findAllOccurrencesInParsedFile(
 	parsedFile: ParsedFile,
 	searchTerm: Reference | Name,
 ): PositionedExpression[] {
-	return parsedFile.expressions
-		? findAllOccurrencesInExpressions(parsedFile.expressions, searchTerm)
+	const expressions = parsedFile.checked?.expressions;
+	return expressions
+		? findAllOccurrencesInExpressions(expressions, searchTerm)
 		: [];
 }
 
@@ -1078,7 +1113,7 @@ function uriToPath(uri: string): string {
 function getParsedFileByUri(uri: string): ParsedFile | undefined {
 	const path = uriToPath(uri);
 	const parsed = parsedDocuments[path];
-	return parsed
+	return parsed;
 }
 
 //#endregion uri
