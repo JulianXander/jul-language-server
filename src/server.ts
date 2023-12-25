@@ -12,6 +12,10 @@ import {
 	TextDocuments,
 	TextDocumentSyncKind,
 } from 'vscode-languageserver';
+import {
+	LanguageService,
+	getLanguageService as getHtmlLanguageService,
+} from 'vscode-html-languageservice';
 import { dirname, extname, join } from 'path';
 import {
 	TextDocument
@@ -52,8 +56,11 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 const parsedDocuments: ParsedDocuments = {};
 
 let hasDiagnosticRelatedInformationCapability = false;
+let htmlLanguageService: LanguageService;
 
 connection.onInitialize((params: InitializeParams) => {
+	htmlLanguageService = getHtmlLanguageService();
+
 	const capabilities = params.capabilities;
 
 	hasDiagnosticRelatedInformationCapability = !!capabilities.textDocument?.publishDiagnostics?.relatedInformation;
@@ -208,8 +215,9 @@ connection.onCompletion(completionParams => {
 	if (!parsedFile) {
 		return;
 	}
-	const rowIndex = completionParams.position.line;
-	const columnIndex = completionParams.position.character;
+	const position = completionParams.position;
+	const rowIndex = position.line;
+	const columnIndex = position.character;
 	// TODO sortierung type/nicht-type, bei normaler stelle erst nicht-types, bei type erst types/nur types?
 	// todo / (nested field)
 	// const foundSymbol = getSymbolDefinition(parsed, rowIndex, columnIndex);
@@ -219,6 +227,29 @@ connection.onCompletion(completionParams => {
 
 	// Get symbols from containing scopes
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
+
+	//#region embbeded language
+	const embeddedLanguage = expression?.type === 'text' && expression.language;
+	switch (embeddedLanguage) {
+		case 'html':
+			const textDocument = documents.get(documentUri)
+			if (!textDocument) {
+				break;
+			}
+			// TODO
+			// Get virtual html document, with all non-html code replaced with whitespace
+			// const embedded = documentRegions.get(document).getEmbeddedDocument('html');
+			const embedded = textDocument;
+			// Compute a response with vscode-html-languageservice
+			const parsedHtml = htmlLanguageService.parseHTMLDocument(textDocument);
+			return htmlLanguageService.doComplete(embedded, position, parsedHtml);
+		case 'js':
+			// TODO
+			break;
+		default:
+			break;
+	}
+	//#endregion embbeded language
 
 	//#region import path
 	if (isImportPath(expression)) {
@@ -513,10 +544,6 @@ documents.listen(connection);
 connection.listen();
 
 //#region helper
-
-export function getEmbeddedLanguage(): string | undefined {
-	return 'html';
-}
 
 //#region findExpression
 
