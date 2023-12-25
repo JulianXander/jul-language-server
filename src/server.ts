@@ -39,7 +39,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker.js';
-import { Extension, forEach, isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
@@ -513,6 +513,10 @@ documents.listen(connection);
 connection.listen();
 
 //#region helper
+
+export function getEmbeddedLanguage(): string | undefined {
+	return 'html';
+}
 
 //#region findExpression
 
