@@ -21,7 +21,7 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { getPathFromImport, isImportFunctionCall, parseCode } from 'jul-compiler/out/parser/parser.js';
+import { coreLibPath, getPathFromImport, isImportFunctionCall, parseCode } from 'jul-compiler/out/parser/parser.js';
 import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
 import {
 	PositionedExpression,
@@ -37,7 +37,6 @@ import {
 import {
 	builtInSymbols,
 	checkTypes,
-	coreLibPath,
 	findSymbolInScopesWithBuiltIns,
 	getTypeError,
 	ParsedDocuments,
