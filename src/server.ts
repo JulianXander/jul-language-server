@@ -89,8 +89,13 @@ documents.onDidChangeContent(change => {
 });
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+	const uri = textDocument.uri;
+	if (coreLibUri === uri) {
+		// errors in core-lib ignorieren
+		return;
+	}
 	const text = textDocument.getText();
-	const path = uriToPath(textDocument.uri);
+	const path = uriToPath(uri);
 	const parsed = parseDocumentByCode(text, path);
 	const { errors } = parsed.checked!;
 
