@@ -43,7 +43,7 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
+import { DictionaryLiteralType, FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -375,9 +375,19 @@ connection.onCompletion(completionParams => {
 	//#endregion infix function call (bei infix function reference)
 
 	//#region / field reference
-	// TODO
-	if (true) {
-		console.log('TODO /', expression);
+	if (expression?.type === 'nestedReference') {
+		// TODO
+		const sourceType = expression.source.inferredType;
+		if (sourceType && sourceType instanceof DictionaryLiteralType) {
+			return map(sourceType.fields, (fieldValue, fieldName) => {
+				const completionItem: CompletionItem = {
+					label: fieldName,
+					kind: CompletionItemKind.Constant,
+					detail: typeToString(fieldValue, 0),
+				};
+				return completionItem;
+			});
+		}
 	}
 	//#endregion / field reference
 
@@ -752,8 +762,12 @@ function findExpressionInExpression(
 			if (nestedKey && isPositionInRange(rowIndex, columnIndex, nestedKey)) {
 				return nestedKey;
 			}
-			const foundSource = findExpressionInExpression(expression.source, rowIndex, columnIndex, scopes);
-			return foundSource;
+			const source = expression.source;
+			if (isPositionInRange(rowIndex, columnIndex, source)) {
+				const foundSource = findExpressionInExpression(source, rowIndex, columnIndex, scopes);
+				return foundSource;
+			}
+			return expression;
 		}
 		case 'object': {
 			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
