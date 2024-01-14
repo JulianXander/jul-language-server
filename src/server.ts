@@ -90,15 +90,14 @@ documents.onDidChangeContent(change => {
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	const uri = textDocument.uri;
+	const text = textDocument.getText();
+	const path = uriToPath(uri);
+	const parsed = parseDocumentByCode(text, path);
 	if (coreLibUri === uri) {
 		// errors in core-lib ignorieren
 		return;
 	}
-	const text = textDocument.getText();
-	const path = uriToPath(uri);
-	const parsed = parseDocumentByCode(text, path);
 	const { errors } = parsed.checked!;
-
 	const diagnostics: Diagnostic[] = errors.map(error => {
 		const diagnostic: Diagnostic = {
 			severity: DiagnosticSeverity.Error,
@@ -126,7 +125,6 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 		// }
 		return diagnostic;
 	});
-
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
@@ -309,6 +307,7 @@ connection.onCompletion(completionParams => {
 	}
 	//#endregion import path
 
+	const allScopes = [...scopes, builtInSymbols];
 	let symbolFilter: (symbol: SymbolDefinition) => boolean | undefined;
 	//#region infix function call (bei infix function reference)
 	function getInfixFunctionCall(expression: PositionedExpression | undefined): ParseFunctionCall | undefined {
@@ -370,10 +369,26 @@ connection.onCompletion(completionParams => {
 			}
 			return false;
 		};
+
+		return symbolsToCompletionItems(allScopes, symbolFilter);
 	}
 	//#endregion infix function call (bei infix function reference)
 
-	return [...scopes, builtInSymbols].flatMap(symbols => {
+	//#region / field reference
+	// TODO
+	if (true) {
+		console.log('TODO /', expression);
+	}
+	//#endregion / field reference
+
+	return symbolsToCompletionItems(allScopes);
+});
+
+function symbolsToCompletionItems(
+	allScopes: SymbolTable[],
+	symbolFilter?: (symbol: SymbolDefinition) => boolean | undefined,
+): CompletionItem[] {
+	return allScopes.flatMap(symbols => {
 		return map(
 			symbols,
 			(symbol, name) => {
@@ -392,7 +407,7 @@ connection.onCompletion(completionParams => {
 				return completionItem;
 			}).filter(isDefined);
 	});
-});
+}
 
 // This handler resolves additional information for the item selected in
 // the completion list.
@@ -676,13 +691,6 @@ function findExpressionInExpression(
 			}
 			return expression;
 		}
-		case 'fieldReference': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.field)) {
-				return expression.field;
-			}
-			const foundSource = findExpressionInExpression(expression.source, rowIndex, columnIndex, scopes);
-			return foundSource;
-		}
 		case 'float':
 			return undefined;
 		case 'fraction':
@@ -731,13 +739,6 @@ function findExpressionInExpression(
 		}
 		case 'index':
 			return expression;
-		case 'indexReference': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.index)) {
-				return expression.index;
-			}
-			const foundSource = findExpressionInExpression(expression.source, rowIndex, columnIndex, scopes);
-			return foundSource;
-		}
 		case 'integer':
 			return undefined;
 		case 'list': {
@@ -746,6 +747,14 @@ function findExpressionInExpression(
 		}
 		case 'name':
 			return expression;
+		case 'nestedReference': {
+			const nestedKey = expression.nestedKey;
+			if (nestedKey && isPositionInRange(rowIndex, columnIndex, nestedKey)) {
+				return nestedKey;
+			}
+			const foundSource = findExpressionInExpression(expression.source, rowIndex, columnIndex, scopes);
+			return foundSource;
+		}
 		case 'object': {
 			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
 			return foundValue;
@@ -912,13 +921,6 @@ function findAllOccurrencesInExpression(
 			// TODO check name range, source, typeGuard, fallback
 			// return expression;
 			return [];
-		case 'fieldReference': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.source, searchTerm),
-				...findAllOccurrencesInExpression(expression.field, searchTerm),
-			];
-			return occurences;
-		}
 		case 'float':
 			return [];
 		case 'fraction':
@@ -947,13 +949,6 @@ function findAllOccurrencesInExpression(
 		}
 		case 'index':
 			return [];
-		case 'indexReference': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.source, searchTerm),
-				...findAllOccurrencesInExpression(expression.index, searchTerm),
-			];
-			return occurences;
-		}
 		case 'integer':
 			return [];
 		case 'list':
@@ -962,6 +957,16 @@ function findAllOccurrencesInExpression(
 			return expression.name === getSearchName(searchTerm)
 				? [expression]
 				: [];
+		case 'nestedReference': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.source, searchTerm),
+			];
+			const nestedKey = expression.nestedKey;
+			if (nestedKey) {
+				occurences.push(...findAllOccurrencesInExpression(nestedKey, searchTerm))
+			}
+			return occurences;
+		}
 		case 'object':
 			return findAllOccurrencesInExpressions(expression.values, searchTerm);
 		case 'parameter': {
@@ -1086,16 +1091,15 @@ function getSymbolDefinition(
 		case 'dictionaryType':
 		case 'empty':
 		case 'field':
-		case 'fieldReference':
 		case 'float':
 		case 'fraction':
 		case 'functionCall':
 		case 'functionLiteral':
 		case 'functionTypeLiteral':
 		case 'index':
-		case 'indexReference':
 		case 'integer':
 		case 'list':
+		case 'nestedReference':
 		case 'object':
 		case 'parameter':
 		case 'parameters':
