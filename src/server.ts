@@ -37,13 +37,14 @@ import {
 import {
 	builtInSymbols,
 	checkTypes,
+	dereferenceParameter,
 	findSymbolInScopesWithBuiltIns,
 	getTypeError,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { DictionaryLiteralType, FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
+import { BuiltInTypeBase, FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -376,18 +377,8 @@ connection.onCompletion(completionParams => {
 
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
-		// TODO
 		const sourceType = expression.source.inferredType;
-		if (sourceType && sourceType instanceof DictionaryLiteralType) {
-			return map(sourceType.fields, (fieldValue, fieldName) => {
-				const completionItem: CompletionItem = {
-					label: fieldName,
-					kind: CompletionItemKind.Constant,
-					detail: typeToString(fieldValue, 0),
-				};
-				return completionItem;
-			});
-		}
+		return getDictionaryFieldCompletionItems(sourceType);
 	}
 	//#endregion / field reference
 
@@ -417,6 +408,29 @@ function symbolsToCompletionItems(
 				return completionItem;
 			}).filter(isDefined);
 	});
+}
+
+function getDictionaryFieldCompletionItems(sourceType: RuntimeType | undefined): CompletionItem[] {
+	if (!sourceType || !(sourceType instanceof BuiltInTypeBase)) {
+		return [];
+	}
+	switch (sourceType.type) {
+		case 'dictionaryLiteral':
+			return map(sourceType.fields, (fieldValue, fieldName) => {
+				const completionItem: CompletionItem = {
+					label: fieldName,
+					kind: CompletionItemKind.Constant,
+					detail: typeToString(fieldValue, 0),
+				};
+				return completionItem;
+			});
+		case 'reference': {
+			const dereferenced = dereferenceParameter(sourceType);
+			return getDictionaryFieldCompletionItems(dereferenced);
+		}
+		default:
+			return [];
+	}
 }
 
 // This handler resolves additional information for the item selected in
