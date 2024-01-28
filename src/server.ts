@@ -4,6 +4,7 @@ import {
 	createConnection,
 	Diagnostic,
 	DiagnosticSeverity,
+	Hover,
 	InitializeParams,
 	InitializeResult,
 	Location,
@@ -37,7 +38,8 @@ import {
 import {
 	builtInSymbols,
 	checkTypes,
-	dereferenceParameter,
+	dereferenceInferredType,
+	dereferenceNameFromObject,
 	findSymbolInScopesWithBuiltIns,
 	getTypeError,
 	ParsedDocuments,
@@ -378,7 +380,23 @@ connection.onCompletion(completionParams => {
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
 		const sourceType = expression.source.inferredType;
-		return getDictionaryFieldCompletionItems(sourceType);
+		const dereferenced = dereferenceInferredType(sourceType, scopes);
+		if (!dereferenced || !(dereferenced instanceof BuiltInTypeBase)) {
+			return [];
+		}
+		switch (dereferenced.type) {
+			case 'dictionaryLiteral':
+				return map(dereferenced.fields, (fieldValue, fieldName) => {
+					const completionItem: CompletionItem = {
+						label: fieldName,
+						kind: CompletionItemKind.Constant,
+						detail: typeToString(fieldValue, 0),
+					};
+					return completionItem;
+				});
+			default:
+				return [];
+		}
 	}
 	//#endregion / field reference
 
@@ -408,29 +426,6 @@ function symbolsToCompletionItems(
 				return completionItem;
 			}).filter(isDefined);
 	});
-}
-
-function getDictionaryFieldCompletionItems(sourceType: RuntimeType | undefined): CompletionItem[] {
-	if (!sourceType || !(sourceType instanceof BuiltInTypeBase)) {
-		return [];
-	}
-	switch (sourceType.type) {
-		case 'dictionaryLiteral':
-			return map(sourceType.fields, (fieldValue, fieldName) => {
-				const completionItem: CompletionItem = {
-					label: fieldName,
-					kind: CompletionItemKind.Constant,
-					detail: typeToString(fieldValue, 0),
-				};
-				return completionItem;
-			});
-		case 'reference': {
-			const dereferenced = dereferenceParameter(sourceType);
-			return getDictionaryFieldCompletionItems(dereferenced);
-		}
-		default:
-			return [];
-	}
 }
 
 // This handler resolves additional information for the item selected in
@@ -519,23 +514,36 @@ connection.onHover((hoverParams) => {
 	const foundSymbol = getSymbolDefinition(expression, scopes);
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
-		const symbolType = symbol.normalizedType;
-		console.log(symbolType);
-		const typeString = symbolType === undefined
-			? ''
-			: `\`\`\`jul
-${typeToString(symbolType, 0)}
-\`\`\`
-`;
-		return {
-			contents: {
-				kind: 'markdown',
-				value: typeString + (symbol.description ?? ''),
-			}
-			// contents:  ['type: ', { language: 'jul', value: '(test: String) => stream$(12)' }, '\ndescription: ' + foundSymbol.symbol.description]
-		};
+		return getHoverInfo(symbol.normalizedType, symbol.description);
+	}
+
+	if (expression?.type === 'name'
+		&& expression.parent?.type === 'nestedReference') {
+		// TODO stattdessen in getSymbolDefinition symbol aus dictionary field erzeugen?
+		const dereferencedSource = dereferenceInferredType(expression.parent.source.inferredType, scopes);
+		const dereferencedName = dereferenceNameFromObject(expression.name, dereferencedSource);
+		return getHoverInfo(dereferencedName, undefined);
 	}
 });
+
+function getHoverInfo(
+	type: RuntimeType | undefined,
+	description: string | undefined,
+): Hover {
+	console.log(type);
+	const typeString = type === undefined
+		? ''
+		: `\`\`\`jul
+${typeToString(type, 0)}
+\`\`\`
+`;
+	return {
+		contents: {
+			kind: 'markdown',
+			value: typeString + (description ?? ''),
+		}
+	};
+}
 //#endregion hover
 
 //#region rename
