@@ -481,7 +481,7 @@ connection.onDefinition((definitionParams) => {
 	}
 	//#endregion
 
-	const foundSymbol = getSymbolDefinition(parsedFile, rowIndex, columnIndex);
+	const foundSymbol = getSymbolDefinition(expression, scopes);
 	if (foundSymbol) {
 		const location: Location = {
 			uri: foundSymbol.isBuiltIn
@@ -501,22 +501,22 @@ connection.onHover((hoverParams) => {
 		return;
 	}
 	// TODO find functiontLiteral, show param + return type
-	// const foundExpression = findExpressionInParsedFile(parsed, hoverParams.position.line, hoverParams.position.character);
+	const { expression, scopes } = findExpressionInParsedFile(parsed, hoverParams.position.line, hoverParams.position.character);
 	// // TODO functionCall, definition berücksichtigen?
-	// if (foundExpression?.type === 'reference') {
+	// if (expression?.type === 'reference') {
 	// 	// hoverParams.position.
 	// 	// TODO find expression by position row/column
 	// 	// parsed.parsed
 	// 	// TODO check for ref, provide Type information, doc comments
 	// 	return {
-	// 		contents: 'test: ' + foundExpression.names[0],
+	// 		contents: 'test: ' + expression.names[0],
 	// 	};
 	// }
 	// return {
-	// 	contents: 'expr type: ' + foundExpression?.type,
+	// 	contents: 'expr type: ' + expression?.type,
 	// };
 
-	const foundSymbol = getSymbolDefinition(parsed, hoverParams.position.line, hoverParams.position.character);
+	const foundSymbol = getSymbolDefinition(expression, scopes);
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
 		const symbolType = symbol.normalizedType;
@@ -546,7 +546,8 @@ connection.onPrepareRename(prepareRenameParams => {
 		return;
 	}
 
-	const foundSymbol = getSymbolDefinition(parsedFile, prepareRenameParams.position.line, prepareRenameParams.position.character);
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, prepareRenameParams.position.line, prepareRenameParams.position.character);
+	const foundSymbol = getSymbolDefinition(expression, scopes);
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
@@ -561,7 +562,8 @@ connection.onRenameRequest(renameParams => {
 	}
 
 	// TODO rename across multiple files
-	const foundSymbol = getSymbolDefinition(parsedFile, renameParams.position.line, renameParams.position.character);
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, renameParams.position.line, renameParams.position.character);
+	const foundSymbol = getSymbolDefinition(expression, scopes);
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
@@ -1067,9 +1069,8 @@ function getSearchName(searchTerm: Reference | Name): string {
 
 // TODO go to source file bei import?
 function getSymbolDefinition(
-	parsedFile: ParsedFile,
-	rowIndex: number,
-	columnIndex: number,
+	expression: PositionedExpression | undefined,
+	scopes: SymbolTable[],
 ): {
 	isBuiltIn: boolean;
 	symbol: SymbolDefinition;
@@ -1078,7 +1079,6 @@ function getSymbolDefinition(
 	 */
 	expression: Reference | Name;
 } | undefined {
-	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 	if (!expression) {
 		return undefined;
 	}
