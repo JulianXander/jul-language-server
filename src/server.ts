@@ -1114,12 +1114,28 @@ function getSymbolDefinition(
 			return undefined;
 		}
 		case 'name': {
-			// TODO Dictionary, DictionaryType berücksichtigen
-			const definition = findSymbolInScopesWithBuiltIns(expression.name, scopes);
-			return definition && {
-				...definition,
-				expression: expression,
-			};
+			const parent = expression.parent;
+			switch (parent?.type) {
+				case 'nestedReference': {
+					// TODO find type definition, get symbol from dictionaryTypeLiteral
+					// const dereferencedSource = dereferenceInferredType(parent.source.inferredType, scopes);
+					// const dereferencedName = dereferenceNameFromObject(expression.name, dereferencedSource);
+					return undefined;
+				}
+				case 'singleDictionaryField':
+					// TODO
+					return undefined;
+				case 'singleDictionaryTypeField':
+					// TODO
+					return undefined;
+				default: {
+					const definition = findSymbolInScopesWithBuiltIns(expression.name, scopes);
+					return definition && {
+						...definition,
+						expression: expression,
+					};
+				}
+			}
 		}
 		case 'bracketed':
 		case 'branching':
