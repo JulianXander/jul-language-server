@@ -690,8 +690,9 @@ function findExpressionInExpression(
 				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
 				return foundFallBack;
 			}
-			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
-				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+			const value = expression.value;
+			if (value && isPositionInRange(rowIndex, columnIndex, value)) {
+				const foundValue = findExpressionInExpression(value, rowIndex, columnIndex, scopes);
 				return foundValue;
 			}
 			return expression;
@@ -701,8 +702,9 @@ function findExpressionInExpression(
 				const foundName = findExpressionInExpression(expression.fields, rowIndex, columnIndex, scopes);
 				return foundName;
 			}
-			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
-				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+			const value = expression.value;
+			if (value && isPositionInRange(rowIndex, columnIndex, value)) {
+				const foundValue = findExpressionInExpression(value, rowIndex, columnIndex, scopes);
 				return foundValue;
 			}
 			return expression;
@@ -848,13 +850,17 @@ function findExpressionInExpression(
 				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
 				return foundType;
 			}
+			const value = expression.value;
+			if (value && isPositionInRange(rowIndex, columnIndex, value)) {
+				const foundValue = findExpressionInExpression(value, rowIndex, columnIndex, scopes);
+				return foundValue;
+			}
 			const fallback = expression.fallback;
 			if (fallback && isPositionInRange(rowIndex, columnIndex, fallback)) {
 				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
 				return foundFallBack;
 			}
-			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-			return foundValue;
+			return expression;
 		}
 		case 'singleDictionaryTypeField': {
 			const name = expression.name;
@@ -1211,7 +1217,7 @@ function dereferenceTypeExpression(
 			}
 			const dereferencedType = dereferenced.symbol.typeExpression;
 			// TODO fix scopes?
-			return dereferenceTypeExpression(dereferencedType, scopes);
+			return dereferencedType && dereferenceTypeExpression(dereferencedType, scopes);
 		default:
 			return sourceExpression;
 	}
