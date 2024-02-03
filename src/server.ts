@@ -38,15 +38,13 @@ import {
 import {
 	builtInSymbols,
 	checkTypes,
-	dereferenceInferredType,
-	dereferenceNameFromObject,
 	findSymbolInScopesWithBuiltIns,
 	getTypeError,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { BuiltInTypeBase, FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
+import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -379,21 +377,11 @@ connection.onCompletion(completionParams => {
 
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
-		const sourceType = expression.source.inferredType;
-		const dereferenced = dereferenceInferredType(sourceType, scopes);
-		if (!dereferenced || !(dereferenced instanceof BuiltInTypeBase)) {
-			return [];
-		}
-		switch (dereferenced.type) {
-			case 'dictionaryLiteral':
-				return map(dereferenced.fields, (fieldValue, fieldName) => {
-					const completionItem: CompletionItem = {
-						label: fieldName,
-						kind: CompletionItemKind.Constant,
-						detail: typeToString(fieldValue, 0),
-					};
-					return completionItem;
-				});
+		const dereferenced = dereferenceTypeExpression(expression.source, scopes);
+		switch (dereferenced?.type) {
+			case 'dictionary':
+			case 'dictionaryType':
+				return symbolsToCompletionItems([dereferenced.symbols]);
 			default:
 				return [];
 		}
@@ -404,10 +392,10 @@ connection.onCompletion(completionParams => {
 });
 
 function symbolsToCompletionItems(
-	allScopes: SymbolTable[],
+	scopes: SymbolTable[],
 	symbolFilter?: (symbol: SymbolDefinition) => boolean | undefined,
 ): CompletionItem[] {
-	return allScopes.flatMap(symbols => {
+	return scopes.flatMap(symbols => {
 		return map(
 			symbols,
 			(symbol, name) => {
@@ -515,14 +503,6 @@ connection.onHover((hoverParams) => {
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
 		return getHoverInfo(symbol.normalizedType, symbol.description);
-	}
-
-	if (expression?.type === 'name'
-		&& expression.parent?.type === 'nestedReference') {
-		// TODO stattdessen in getSymbolDefinition symbol aus dictionary field erzeugen?
-		const dereferencedSource = dereferenceInferredType(expression.parent.source.inferredType, scopes);
-		const dereferencedName = dereferenceNameFromObject(expression.name, dereferencedSource);
-		return getHoverInfo(dereferencedName, undefined);
 	}
 });
 
@@ -1115,21 +1095,28 @@ function getSymbolDefinition(
 		}
 		case 'name': {
 			const parent = expression.parent;
+			const name = expression.name;
 			switch (parent?.type) {
 				case 'nestedReference': {
-					// TODO find type definition, get symbol from dictionaryTypeLiteral
-					// const dereferencedSource = dereferenceInferredType(parent.source.inferredType, scopes);
-					// const dereferencedName = dereferenceNameFromObject(expression.name, dereferencedSource);
-					return undefined;
+					const dereferencedSource = dereferenceTypeExpression(parent.source, scopes);
+					const foundSymbol = getSymbolFromDictionary(dereferencedSource, name);
+					return foundSymbol && {
+						expression: expression,
+						isBuiltIn: false,
+						symbol: foundSymbol,
+					};
 				}
 				case 'singleDictionaryField':
-					// TODO
-					return undefined;
-				case 'singleDictionaryTypeField':
-					// TODO
-					return undefined;
+				case 'singleDictionaryTypeField': {
+					const foundSymbol = getSymbolFromDictionary(parent.parent, name);
+					return foundSymbol && {
+						expression: expression,
+						isBuiltIn: false,
+						symbol: foundSymbol,
+					};
+				}
 				default: {
-					const definition = findSymbolInScopesWithBuiltIns(expression.name, scopes);
+					const definition = findSymbolInScopesWithBuiltIns(name, scopes);
 					return definition && {
 						...definition,
 						expression: expression,
@@ -1164,6 +1151,36 @@ function getSymbolDefinition(
 			const assertNever: never = expression;
 			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
 		}
+	}
+}
+
+function getSymbolFromDictionary(dictionary: PositionedExpression | undefined, name: string) {
+	switch (dictionary?.type) {
+		case 'dictionaryType':
+		case 'dictionary': {
+			const foundSymbol = dictionary.symbols[name];
+			return foundSymbol;
+		}
+		default:
+			return undefined;
+	}
+}
+
+function dereferenceTypeExpression(
+	sourceExpression: PositionedExpression,
+	scopes: SymbolTable[],
+): PositionedExpression | undefined {
+	switch (sourceExpression.type) {
+		case 'reference':
+			const dereferenced = findSymbolInScopesWithBuiltIns(sourceExpression.name.name, scopes);
+			if (!dereferenced) {
+				return undefined;
+			}
+			const dereferencedType = dereferenced.symbol.typeExpression;
+			// TODO fix scopes?
+			return dereferenceTypeExpression(dereferencedType, scopes);
+		default:
+			return sourceExpression;
 	}
 }
 
