@@ -309,7 +309,7 @@ connection.onCompletion(completionParams => {
 	//#endregion import path
 
 	const allScopes = [...scopes, builtInSymbols];
-	let symbolFilter: (symbol: SymbolDefinition) => boolean | undefined;
+	let symbolFilter: ((symbol: SymbolDefinition, name: string) => boolean) | undefined = undefined;
 	//#region infix function call (bei infix function reference)
 	function getInfixFunctionCall(expression: PositionedExpression | undefined): ParseFunctionCall | undefined {
 		if (!expression) {
@@ -388,18 +388,45 @@ connection.onCompletion(completionParams => {
 	}
 	//#endregion / field reference
 
+	//#region dictionary literal field
+	if (expression?.type === 'empty'
+		|| expression?.type === 'dictionary') {
+		console.log('dictionary literal field');
+		console.log(expression.type);
+		if (expression.type === 'dictionary') {
+			// bei dictionary literal schon definierte Felder ausschließen
+			symbolFilter = (symbol, name) => {
+				return !expression.symbols[name];
+			};
+		}
+		if (expression.parent?.type === 'definition'
+			&& expression.parent.value === expression
+			&& expression.parent.typeGuard) {
+			const dereferenced = dereferenceTypeExpression(expression.parent.typeGuard, scopes);
+			switch (dereferenced?.type) {
+				case 'dictionary':
+				case 'dictionaryType':
+					return symbolsToCompletionItems([dereferenced.symbols], symbolFilter);
+				default:
+					return [];
+			}
+		}
+		// TODO function call arg
+	}
+	//#endregion dictionary literal field
+
 	return symbolsToCompletionItems(allScopes);
 });
 
 function symbolsToCompletionItems(
 	scopes: SymbolTable[],
-	symbolFilter?: (symbol: SymbolDefinition) => boolean | undefined,
+	symbolFilter?: (symbol: SymbolDefinition, name: string) => boolean,
 ): CompletionItem[] {
 	return scopes.flatMap(symbols => {
 		return map(
 			symbols,
 			(symbol, name) => {
-				const showSymbol = symbolFilter?.(symbol) ?? true;
+				const showSymbol = symbolFilter?.(symbol, name) ?? true;
 				if (!showSymbol) {
 					return undefined;
 				}
@@ -628,18 +655,18 @@ function findExpressionInExpressions(
 
 /**
  * Füllt scopes
- * TODO wenn nicht found in inner expression, dann return outer expression?
+ * Gibt die gegebene expression zurück, falls keine passende innere expression gefunden wurde.
  */
 function findExpressionInExpression(
 	expression: PositionedExpression,
 	rowIndex: number,
 	columnIndex: number,
 	scopes: SymbolTable[],
-): PositionedExpression | undefined {
+): PositionedExpression {
 	switch (expression.type) {
 		case 'bracketed': {
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
-			return foundField;
+			return foundField ?? expression;
 		}
 		case 'branching': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
@@ -647,7 +674,7 @@ function findExpressionInExpression(
 				return foundValue;
 			}
 			const foundBranch = findExpressionInExpressions(expression.branches, rowIndex, columnIndex, scopes);
-			return foundBranch;
+			return foundBranch ?? expression;
 		}
 		case 'definition': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
@@ -663,27 +690,33 @@ function findExpressionInExpression(
 				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
 				return foundFallBack;
 			}
-			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-			return foundValue;
+			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
+				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+				return foundValue;
+			}
+			return expression;
 		}
 		case 'destructuring': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.fields)) {
 				const foundName = findExpressionInExpression(expression.fields, rowIndex, columnIndex, scopes);
 				return foundName;
 			}
-			const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-			return foundValue;
+			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
+				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+				return foundValue;
+			}
+			return expression;
 		}
 		case 'dictionary': {
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
-			return foundField;
+			return foundField ?? expression;
 		}
 		case 'dictionaryType': {
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
-			return foundField;
+			return foundField ?? expression;
 		}
 		case 'empty':
-			return undefined;
+			return expression;
 		case 'field': {
 			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
 				return expression.name;
@@ -706,9 +739,9 @@ function findExpressionInExpression(
 			return expression;
 		}
 		case 'float':
-			return undefined;
+			return expression;
 		case 'fraction':
-			return undefined;
+			return expression;
 		case 'functionCall': {
 			if (expression.prefixArgument && isPositionInRange(rowIndex, columnIndex, expression.prefixArgument)) {
 				const foundPrefix = findExpressionInExpression(expression.prefixArgument, rowIndex, columnIndex, scopes);
@@ -736,7 +769,7 @@ function findExpressionInExpression(
 				return foundReturnType;
 			}
 			const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex, scopes);
-			return foundBody;
+			return foundBody ?? expression;
 		}
 		case 'functionTypeLiteral': {
 			scopes.push(expression.symbols);
@@ -749,15 +782,15 @@ function findExpressionInExpression(
 				const foundParams = findExpressionInExpression(returnType, rowIndex, columnIndex, scopes);
 				return foundParams;
 			}
-			return undefined;
+			return expression;
 		}
 		case 'index':
 			return expression;
 		case 'integer':
-			return undefined;
+			return expression;
 		case 'list': {
 			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
-			return foundValue;
+			return foundValue ?? expression;
 		}
 		case 'name':
 			return expression;
@@ -775,7 +808,7 @@ function findExpressionInExpression(
 		}
 		case 'object': {
 			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
-			return foundValue;
+			return foundValue ?? expression;
 		}
 		case 'parameter': {
 			const name = expression.name;
@@ -789,7 +822,7 @@ function findExpressionInExpression(
 			}
 			const fallback = expression.fallback;
 			const foundValue = fallback && findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
-			return foundValue;
+			return foundValue ?? expression;
 		}
 		case 'parameters': {
 			const foundField = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
@@ -801,7 +834,7 @@ function findExpressionInExpression(
 				const foundRest = findExpressionInExpression(rest, rowIndex, columnIndex, scopes);
 				return foundRest;
 			}
-			return undefined;
+			return expression;
 		}
 		case 'reference':
 			return expression;
