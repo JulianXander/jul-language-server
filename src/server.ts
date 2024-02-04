@@ -411,7 +411,49 @@ connection.onCompletion(completionParams => {
 					return [];
 			}
 		}
-		// TODO function call arg
+		//#region function call arg
+		// TODO handle prefix arg
+		if (expression.parent?.type === 'functionCall') {
+			const functionExpression = expression.parent.functionExpression;
+			if (!functionExpression) {
+				return [];
+			}
+			const dereferenced = dereferenceTypeExpression(functionExpression, scopes);
+			if (dereferenced?.type === 'functionLiteral') {
+				if (dereferenced.params.type === 'parameters') {
+					return symbolsToCompletionItems([dereferenced.params.symbols], symbolFilter);
+				}
+			}
+			return [];
+		}
+		if (expression.parent?.type === 'list'
+			&& expression.parent.parent?.type === 'functionCall') {
+			const argIndex = expression.parent.values.indexOf(expression);
+			const functionExpression = expression.parent.parent.functionExpression;
+			if (!functionExpression) {
+				return [];
+			}
+			const dereferencedFunction = dereferenceTypeExpression(functionExpression, scopes);
+			if (dereferencedFunction?.type === 'functionLiteral') {
+				if (dereferencedFunction.params.type === 'parameters') {
+					// TODO rest
+					const matchedParam = dereferencedFunction.params.singleFields[argIndex];
+					if (matchedParam?.typeGuard) {
+						const dereferencedParamType = dereferenceTypeExpression(matchedParam.typeGuard, scopes);
+						switch (dereferencedParamType?.type) {
+							case 'dictionary':
+							case 'dictionaryType':
+								return symbolsToCompletionItems([dereferencedParamType.symbols], symbolFilter);
+							default:
+								return [];
+						}
+					}
+				}
+			}
+			return [];
+		}
+		// TODO function call dictionary arg
+		//#endregion function call arg
 	}
 	//#endregion dictionary literal field
 
