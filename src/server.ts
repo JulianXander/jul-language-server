@@ -8,8 +8,11 @@ import {
 	InitializeParams,
 	InitializeResult,
 	Location,
+	MarkupContent,
+	ParameterInformation,
 	ProposedFeatures,
 	Range,
+	SignatureHelp,
 	TextDocuments,
 	TextDocumentSyncKind,
 } from 'vscode-languageserver';
@@ -67,7 +70,6 @@ connection.onInitialize((params: InitializeParams) => {
 
 	const result: InitializeResult = {
 		capabilities: {
-			textDocumentSync: TextDocumentSyncKind.Incremental,
 			// Tell the client that this server supports code completion.
 			completionProvider: {
 				resolveProvider: true,
@@ -78,6 +80,10 @@ connection.onInitialize((params: InitializeParams) => {
 			renameProvider: {
 				prepareProvider: true,
 			},
+			signatureHelpProvider: {
+				triggerCharacters: ['(', ' ', '\n'],
+			},
+			textDocumentSync: TextDocumentSyncKind.Incremental,
 		},
 	};
 	return result;
@@ -499,6 +505,58 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 });
 //#endregion autocomplete
 
+//#region function signature help
+connection.onSignatureHelp(signatureParams => {
+	const parsed = getParsedFileByUri(signatureParams.textDocument.uri);
+	if (!parsed) {
+		return;
+	}
+	// TODO find functiontLiteral, show param + return type
+	const { expression, scopes } = findExpressionInParsedFile(parsed, signatureParams.position.line, signatureParams.position.character);
+	if (expression?.parent?.type === 'functionCall') {
+		const functionExpression = expression.parent.functionExpression;
+		if (functionExpression?.type === 'reference') {
+			const functionName = functionExpression.name.name;
+			const functionSymbol = findSymbolInScopesWithBuiltIns(functionName, scopes);
+			if (functionSymbol) {
+				const functionType = functionSymbol.symbol.normalizedType;
+				const parameterResults: ParameterInformation[] = [];
+				if (functionType instanceof FunctionType) {
+					const paramsType = functionType.paramsType
+					if (paramsType instanceof ParametersType) {
+						paramsType.singleNames.forEach(singleName => {
+							parameterResults.push({
+								label: singleName.name,
+								documentation: getTypeMarkdown(singleName.type, undefined),
+							});
+						});
+						const rest = paramsType.rest;
+						if (rest) {
+							parameterResults.push({
+								label: rest.name,
+								documentation: getTypeMarkdown(rest.type, undefined),
+							});
+						}
+					}
+				}
+				const signatureResult: SignatureHelp = {
+					signatures: [{
+						label: functionName,
+						documentation: functionSymbol.symbol.description,
+						parameters: parameterResults,
+					}],
+					// TODO calculate activeParameter index
+					activeParameter: 0,
+					activeSignature: 0,
+				};
+				return signatureResult;
+			}
+		}
+	}
+	return undefined;
+});
+//#endregion function signature help
+
 //#region go to definition
 const coreLibUri = pathToUri(coreLibPath);
 connection.onDefinition((definitionParams) => {
@@ -571,28 +629,11 @@ connection.onHover((hoverParams) => {
 	const foundSymbol = getSymbolDefinition(expression, scopes);
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
-		return getHoverInfo(symbol.normalizedType, symbol.description);
+		return {
+			contents: getTypeMarkdown(symbol.normalizedType, symbol.description),
+		};
 	}
 });
-
-function getHoverInfo(
-	type: RuntimeType | undefined,
-	description: string | undefined,
-): Hover {
-	console.log(type);
-	const typeString = type === undefined
-		? ''
-		: `\`\`\`jul
-${typeToString(type, 0)}
-\`\`\`
-`;
-	return {
-		contents: {
-			kind: 'markdown',
-			value: typeString + (description ?? ''),
-		}
-	};
-}
 //#endregion hover
 
 //#region rename
@@ -1306,5 +1347,22 @@ function getParsedFileByUri(uri: string): ParsedFile | undefined {
 }
 
 //#endregion uri
+
+function getTypeMarkdown(
+	type: RuntimeType | undefined,
+	description: string | undefined,
+): MarkupContent {
+	console.log(type);
+	const typeString = type === undefined
+		? ''
+		: `\`\`\`jul
+${typeToString(type, 0)}
+\`\`\`
+`;
+	return {
+		kind: 'markdown',
+		value: typeString + (description ?? ''),
+	};
+}
 
 //#endregion helper
