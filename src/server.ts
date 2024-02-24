@@ -555,9 +555,12 @@ connection.onSignatureHelp(signatureParams => {
 					});
 				}
 				// TODO parameter index ermitteln bei function call mit dictionary Argument
+				const normalizedFunctionType = functionSymbol.symbol.normalizedType;
 				const signatureResult: SignatureHelp = {
 					signatures: [{
-						label: functionName,
+						label: normalizedFunctionType === undefined
+							? functionName
+							: typeToString(normalizedFunctionType, 0),
 						documentation: functionSymbol.symbol.description,
 						parameters: parameterResults,
 					}],
