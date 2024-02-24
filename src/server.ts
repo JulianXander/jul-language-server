@@ -512,41 +512,56 @@ connection.onSignatureHelp(signatureParams => {
 		return;
 	}
 	// TODO find functiontLiteral, show param + return type
-	const { expression, scopes } = findExpressionInParsedFile(parsed, signatureParams.position.line, signatureParams.position.character);
+	const rowIndex = signatureParams.position.line;
+	const columnIndex = signatureParams.position.character;
+	const { expression, scopes } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
 	if (expression?.parent?.type === 'functionCall') {
 		const functionExpression = expression.parent.functionExpression;
 		if (functionExpression?.type === 'reference') {
 			const functionName = functionExpression.name.name;
 			const functionSymbol = findSymbolInScopesWithBuiltIns(functionName, scopes);
 			if (functionSymbol) {
-				const functionType = functionSymbol.symbol.normalizedType;
+				const functionType = functionSymbol.symbol.typeExpression;
 				const parameterResults: ParameterInformation[] = [];
-				if (functionType instanceof FunctionType) {
-					const paramsType = functionType.paramsType
-					if (paramsType instanceof ParametersType) {
-						paramsType.singleNames.forEach(singleName => {
+				if (functionType?.type === 'functionLiteral') {
+					const paramsType = functionType.params;
+					if (paramsType.type === 'parameters') {
+						paramsType.singleFields.forEach(singleField => {
 							parameterResults.push({
-								label: singleName.name,
-								documentation: getTypeMarkdown(singleName.type, undefined),
+								label: singleField.name.name,
+								documentation: getTypeMarkdown(singleField.inferredType, singleField.description),
 							});
 						});
 						const rest = paramsType.rest;
 						if (rest) {
 							parameterResults.push({
-								label: rest.name,
-								documentation: getTypeMarkdown(rest.type, undefined),
+								label: rest.name.name,
+								documentation: getTypeMarkdown(rest.inferredType, rest.description),
 							});
 						}
 					}
 				}
+				let parameterIndex = 0;
+				if (expression.type === 'list') {
+					expression.values.forEach(value => {
+						// values vor der aktuellen Position zählen
+						if ((value.endRowIndex < rowIndex ||
+							(value.endRowIndex === rowIndex && value.endColumnIndex < columnIndex))
+							// TODO was wenn mehr values als Parameter (ohne Rest Parameter)?
+							&& parameterIndex < parameterResults.length - 1
+						) {
+							parameterIndex++;
+						}
+					});
+				}
+				// TODO parameter index ermitteln bei function call mit dictionary Argument
 				const signatureResult: SignatureHelp = {
 					signatures: [{
 						label: functionName,
 						documentation: functionSymbol.symbol.description,
 						parameters: parameterResults,
 					}],
-					// TODO calculate activeParameter index
-					activeParameter: 0,
+					activeParameter: parameterIndex,
 					activeSignature: 0,
 				};
 				return signatureResult;
