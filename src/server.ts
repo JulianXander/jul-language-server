@@ -4,7 +4,6 @@ import {
 	createConnection,
 	Diagnostic,
 	DiagnosticSeverity,
-	Hover,
 	InitializeParams,
 	InitializeResult,
 	Location,
