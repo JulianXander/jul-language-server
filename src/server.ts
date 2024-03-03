@@ -388,6 +388,32 @@ connection.onCompletion(completionParams => {
 			case 'dictionary':
 			case 'dictionaryType':
 				return symbolsToCompletionItems([dereferenced.symbols]);
+			case 'functionLiteral':
+				// TODO ParamsType, ReturnType stattdessen als symbols?
+				const functionType = dereferenced.inferredType;
+				let paramsType: RuntimeType | undefined;
+				let returnType: RuntimeType | undefined;
+				if (functionType instanceof FunctionType) {
+					returnType = functionType.ReturnType;
+					paramsType = functionType.ParamsType;
+				}
+				return [
+					{
+						label: 'ParamsType',
+						kind: CompletionItemKind.Constant,
+						detail: paramsType === undefined
+							? undefined
+							: typeToString(paramsType, 0),
+					},
+					{
+						label: 'ReturnType',
+						kind: CompletionItemKind.Constant,
+						detail: returnType === undefined
+							? undefined
+							: typeToString(returnType, 0),
+					},
+				];
+			// TODO Stream/ValueType
 			default:
 				return [];
 		}
