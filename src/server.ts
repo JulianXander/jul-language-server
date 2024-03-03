@@ -352,7 +352,7 @@ connection.onCompletion(completionParams => {
 			}
 			const symbolType = symbol.normalizedType
 			if (symbolType instanceof FunctionType) {
-				const paramsType = symbolType.paramsType;
+				const paramsType = symbolType.ParamsType;
 				if (paramsType instanceof ParametersType) {
 					let firstParameterType: RuntimeType | undefined;
 					if (paramsType.singleNames.length) {
@@ -361,10 +361,10 @@ connection.onCompletion(completionParams => {
 					else if (paramsType.rest) {
 						const restType = paramsType.rest?.type;
 						if (restType instanceof ListType) {
-							firstParameterType = restType.elementType;
+							firstParameterType = restType.ElementType;
 						}
 						else if (restType instanceof TupleType) {
-							firstParameterType = restType.elementTypes[0];
+							firstParameterType = restType.ElementTypes[0];
 						}
 					}
 					if (firstParameterType === undefined) {
