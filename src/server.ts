@@ -742,8 +742,7 @@ connection.onDocumentSymbol(documentSymbolParams => {
 				// TODO functions? etc
 				kind: SymbolKind.Constant,
 				name: name,
-				// TODO range der gesamten definition, definitionExpression in SymbolDefinition
-				range: positionedToRange(symbol),
+				range: positionedToRange(symbol.definition ?? symbol),
 				selectionRange: positionedToRange(symbol),
 				// TODO get nested symbols from definition/value expression
 				// children: 
