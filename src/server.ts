@@ -4,6 +4,7 @@ import {
 	createConnection,
 	Diagnostic,
 	DiagnosticSeverity,
+	DocumentSymbol,
 	InitializeParams,
 	InitializeResult,
 	Location,
@@ -12,6 +13,7 @@ import {
 	ProposedFeatures,
 	Range,
 	SignatureHelp,
+	SymbolKind,
 	TextDocuments,
 	TextDocumentSyncKind,
 } from 'vscode-languageserver';
@@ -75,6 +77,7 @@ connection.onInitialize((params: InitializeParams) => {
 				triggerCharacters: ['.', '/'],
 			},
 			definitionProvider: true,
+			documentSymbolProvider: true,
 			hoverProvider: true,
 			renameProvider: {
 				prepareProvider: true,
@@ -88,13 +91,11 @@ connection.onInitialize((params: InitializeParams) => {
 	return result;
 });
 
-//#region validate
+//#region diagnostics
 // This event is emitted when the text document first opened or when its content has changed.
+// parse document, fill parsedDocuments and sendDiagnostics
 documents.onDidChangeContent(change => {
-	validateTextDocument(change.document);
-});
-
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+	const textDocument = change.document;
 	const uri = textDocument.uri;
 	const text = textDocument.getText();
 	const path = uriToPath(uri);
@@ -133,7 +134,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	});
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
+});
 
 /**
  * TODO check cyclic imports
@@ -170,7 +171,7 @@ function parseDocumentByPath(path: string): void {
 	}
 	parseDocumentByCode(code, path);
 }
-//#endregion validate
+//#endregion diagnostics
 
 connection.onDidChangeWatchedFiles(changeParams => {
 	// Monitored files have change in VSCode
@@ -240,7 +241,7 @@ connection.onCompletion(completionParams => {
 	const embeddedLanguage = expression?.type === 'text' && expression.language;
 	switch (embeddedLanguage) {
 		case 'html':
-			const textDocument = documents.get(documentUri)
+			const textDocument = documents.get(documentUri);
 			if (!textDocument) {
 				break;
 			}
@@ -284,7 +285,7 @@ connection.onCompletion(completionParams => {
 			const isDirectory = entry.isDirectory();
 			// selbst import nicht vorschlagen
 			if (!isDirectory) {
-				const entryFilePath = join(entryFolderPath, entryName)
+				const entryFilePath = join(entryFolderPath, entryName);
 				if (entryFilePath === documentPath) {
 					return undefined;
 				}
@@ -294,7 +295,7 @@ connection.onCompletion(completionParams => {
 			const extension = extname(entryName);
 			if (!isDirectory) {
 				if (!isValidExtension(extension)) {
-					return undefined
+					return undefined;
 				}
 			}
 			const completionItem: CompletionItem = {
@@ -349,7 +350,7 @@ connection.onCompletion(completionParams => {
 			if (prefixArgumentType === undefined) {
 				return false;
 			}
-			const symbolType = symbol.normalizedType
+			const symbolType = symbol.normalizedType;
 			if (symbolType instanceof FunctionType) {
 				const paramsType = symbolType.ParamsType;
 				if (paramsType instanceof ParametersType) {
@@ -721,6 +722,36 @@ connection.onRenameRequest(renameParams => {
 	};
 });
 //#endregion rename
+
+//#region document symbols
+connection.onDocumentSymbol(documentSymbolParams => {
+	const documentUri = documentSymbolParams.textDocument.uri;
+	const documentPath = uriToPath(documentUri);
+	const parsedFile = parsedDocuments[documentPath];
+	if (!parsedFile) {
+		return;
+	}
+	const parsed2 = parsedFile.checked;
+	if (!parsed2) {
+		return;
+	}
+	return map(
+		parsed2.symbols,
+		(symbol, name) => {
+			const documentSymbol: DocumentSymbol = {
+				// TODO functions? etc
+				kind: SymbolKind.Constant,
+				name: name,
+				// TODO range der gesamten definition, definitionExpression in SymbolDefinition
+				range: positionedToRange(symbol),
+				selectionRange: positionedToRange(symbol),
+				// TODO get nested symbols from definition/value expression
+				// children: 
+			};
+			return documentSymbol;
+		});
+});
+//#endregion document symbols
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events
@@ -1146,7 +1177,7 @@ function findAllOccurrencesInExpression(
 			];
 			const nestedKey = expression.nestedKey;
 			if (nestedKey) {
-				occurences.push(...findAllOccurrencesInExpression(nestedKey, searchTerm))
+				occurences.push(...findAllOccurrencesInExpression(nestedKey, searchTerm));
 			}
 			return occurences;
 		}
@@ -1376,7 +1407,7 @@ function positionedToRange(positioned: Positioned): Range {
 //#region uri
 
 function pathToUri(path: string): string {
-	return URI.file(path).toString()
+	return URI.file(path).toString();
 }
 
 function uriToPath(uri: string): string {
