@@ -38,6 +38,7 @@ import {
 	Name,
 	ParseFunctionCall,
 	ParseTextLiteral,
+	ParseExpression,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -735,21 +736,52 @@ connection.onDocumentSymbol(documentSymbolParams => {
 	if (!parsed2) {
 		return;
 	}
+	return getDocumentSymbolsFromSymbolTable(parsed2.symbols);
+});
+
+function getDocumentSymbolsFromSymbolTable(symbolTable: SymbolTable): DocumentSymbol[] {
 	return map(
-		parsed2.symbols,
+		symbolTable,
 		(symbol, name) => {
 			const documentSymbol: DocumentSymbol = {
-				// TODO functions? etc
-				kind: SymbolKind.Constant,
+				kind: symbol.normalizedType instanceof FunctionType
+					? SymbolKind.Function
+					: SymbolKind.Constant,
 				name: name,
 				range: positionedToRange(symbol.definition ?? symbol),
 				selectionRange: positionedToRange(symbol),
-				// TODO get nested symbols from definition/value expression
-				// children: 
+				children: symbol.definition && getDocumentSymbolsFromExpression(symbol.definition),
 			};
 			return documentSymbol;
 		});
-});
+}
+
+function getDocumentSymbolsFromExpression(expression: PositionedExpression): DocumentSymbol[] {
+	switch (expression.type) {
+		case 'definition': {
+			if (expression.value) {
+				return getDocumentSymbolsFromExpression(expression.value);
+			}
+			return [];
+		}
+		case 'functionCall':
+			return [
+				...(expression.prefixArgument
+					? getDocumentSymbolsFromExpression(expression.prefixArgument)
+					: []),
+				...(expression.arguments
+					? getDocumentSymbolsFromExpression(expression.arguments)
+					: []),
+			];
+		case 'functionLiteral':
+			return getDocumentSymbolsFromSymbolTable(expression.symbols);
+		case 'list':
+			return expression.values.flatMap(value =>
+				getDocumentSymbolsFromExpression(value));
+		default:
+			return [];
+	}
+}
 //#endregion document symbols
 
 // Make the text document manager listen on the connection
