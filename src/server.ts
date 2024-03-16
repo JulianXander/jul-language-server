@@ -26,7 +26,13 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { coreLibPath, getPathFromImport, isImportFunctionCall, parseCode } from 'jul-compiler/out/parser/parser.js';
+import {
+	coreLibPath,
+	getPathFromImport,
+	isImportFunctionCall,
+	parseCode
+} from 'jul-compiler/out/parser/parser.js';
+import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
 import {
 	PositionedExpression,
@@ -38,7 +44,6 @@ import {
 	Name,
 	ParseFunctionCall,
 	ParseTextLiteral,
-	ParseExpression,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -736,34 +741,36 @@ connection.onDocumentSymbol(documentSymbolParams => {
 	if (!parsed2) {
 		return;
 	}
-	return getDocumentSymbolsFromSymbolTable(parsed2.symbols);
+	return parsed2.expressions && getDocumentSymbolsFromExpressions(parsed2.expressions);
 });
 
-function getDocumentSymbolsFromSymbolTable(symbolTable: SymbolTable): DocumentSymbol[] {
-	return map(
-		symbolTable,
-		(symbol, name) => {
-			const documentSymbol: DocumentSymbol = {
-				kind: symbol.normalizedType instanceof FunctionType
-					? SymbolKind.Function
-					: SymbolKind.Constant,
-				name: name,
-				range: positionedToRange(symbol.definition ?? symbol),
-				selectionRange: positionedToRange(symbol),
-				children: symbol.definition && getDocumentSymbolsFromExpression(symbol.definition),
-			};
-			return documentSymbol;
-		});
+function getDocumentSymbolsFromExpressions(expressions: PositionedExpression[]): DocumentSymbol[] {
+	return expressions.flatMap(expression =>
+		getDocumentSymbolsFromExpression(expression));
 }
 
 function getDocumentSymbolsFromExpression(expression: PositionedExpression): DocumentSymbol[] {
 	switch (expression.type) {
+		case 'branching':
+			return [
+				...getDocumentSymbolsFromExpression(expression.value),
+				...getDocumentSymbolsFromExpressions(expression.branches),
+			];
 		case 'definition': {
-			if (expression.value) {
-				return getDocumentSymbolsFromExpression(expression.value);
-			}
-			return [];
+			const children = expression.value && getDocumentSymbolsFromExpression(expression.value);
+			return createDocumentSymbol(expression, expression.name, expression.value?.inferredType, children);
 		}
+		case 'destructuring':
+			return [
+				...getDocumentSymbolsFromExpressions(expression.fields.fields),
+				...(expression.value
+					? getDocumentSymbolsFromExpression(expression.value)
+					: []),
+			];
+		case 'dictionary':
+			return getDocumentSymbolsFromExpressions(expression.fields);
+		case 'dictionaryType':
+			return getDocumentSymbolsFromExpressions(expression.fields);
 		case 'functionCall':
 			return [
 				...(expression.prefixArgument
@@ -774,13 +781,72 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 					: []),
 			];
 		case 'functionLiteral':
-			return getDocumentSymbolsFromSymbolTable(expression.symbols);
+			return [
+				...getDocumentSymbolsFromExpression(expression.params),
+				...(expression.returnType
+					? getDocumentSymbolsFromExpression(expression.returnType)
+					: []),
+				...getDocumentSymbolsFromExpressions(expression.body),
+			];
+		case 'functionTypeLiteral':
+			return [
+				...getDocumentSymbolsFromExpression(expression.params),
+				...getDocumentSymbolsFromExpression(expression.returnType),
+			];
 		case 'list':
-			return expression.values.flatMap(value =>
-				getDocumentSymbolsFromExpression(value));
-		default:
+			return getDocumentSymbolsFromExpressions(expression.values);
+		case 'parameter':
+			return createDocumentSymbol(expression, expression.name, expression.inferredType);
+		case 'parameters':
+			return getDocumentSymbolsFromExpressions(expression.singleFields);
+		case 'singleDictionaryField': {
+			const children = expression.value && getDocumentSymbolsFromExpression(expression.value);
+			return createDocumentSymbol(expression, expression.name, expression.value?.inferredType, children);
+		}
+		case 'singleDictionaryTypeField': {
+			return createDocumentSymbol(expression, expression.name, expression.typeGuard?.inferredType);
+		}
+		case 'bracketed':
+		case 'empty':
+		case 'field':
+		case 'float':
+		case 'fraction':
+		case 'index':
+		case 'integer':
+		case 'name':
+		case 'nestedReference':
+		case 'object':
+		case 'reference':
+		case 'spread':
+		case 'text':
 			return [];
+		default: {
+			const assertNever: never = expression;
+			throw new Error(`Unexpected expression.type for getDocumentSymbolsFromExpression: ${(assertNever as PositionedExpression).type}`);
+		}
 	}
+}
+
+function createDocumentSymbol(
+	definitionPosition: Positioned,
+	nameExpression: PositionedExpression,
+	type?: RuntimeType,
+	children?: DocumentSymbol[],
+): DocumentSymbol[] {
+	const nameString = getCheckedEscapableName(nameExpression);
+	if (nameString === undefined) {
+		return [];
+	}
+	const documentSymbol: DocumentSymbol = {
+		kind: type instanceof FunctionType
+			? SymbolKind.Function
+			: SymbolKind.Constant,
+		name: nameString,
+		range: positionedToRange(definitionPosition),
+		selectionRange: positionedToRange(nameExpression),
+		children: children,
+	};
+	return [documentSymbol];
 }
 //#endregion document symbols
 
