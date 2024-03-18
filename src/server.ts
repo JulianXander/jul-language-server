@@ -757,7 +757,14 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 				...getDocumentSymbolsFromExpressions(expression.branches),
 			];
 		case 'definition': {
-			const children = expression.value && getDocumentSymbolsFromExpression(expression.value);
+			const children = [
+				...(expression.typeGuard
+					? getDocumentSymbolsFromExpression(expression.typeGuard)
+					: []),
+				...(expression.value
+					? getDocumentSymbolsFromExpression(expression.value)
+					: []),
+			];
 			return createDocumentSymbol(expression, expression.name, getSymbolKindFromExpression(expression.value), children);
 		}
 		case 'destructuring':
