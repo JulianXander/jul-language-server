@@ -758,7 +758,7 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 			];
 		case 'definition': {
 			const children = expression.value && getDocumentSymbolsFromExpression(expression.value);
-			return createDocumentSymbol(expression, expression.name, expression.value?.inferredType, children);
+			return createDocumentSymbol(expression, expression.name, getSymbolKindFromExpression(expression.value), children);
 		}
 		case 'destructuring':
 			return [
@@ -796,15 +796,23 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 		case 'list':
 			return getDocumentSymbolsFromExpressions(expression.values);
 		case 'parameter':
-			return createDocumentSymbol(expression, expression.name, expression.inferredType);
+			return createDocumentSymbol(expression, expression.name, SymbolKind.Variable);
 		case 'parameters':
 			return getDocumentSymbolsFromExpressions(expression.singleFields);
 		case 'singleDictionaryField': {
-			const children = expression.value && getDocumentSymbolsFromExpression(expression.value);
-			return createDocumentSymbol(expression, expression.name, expression.value?.inferredType, children);
+			const children = [
+				...(expression.typeGuard
+					? getDocumentSymbolsFromExpression(expression.typeGuard)
+					: []),
+				...(expression.value
+					? getDocumentSymbolsFromExpression(expression.value)
+					: []),
+			];
+			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
 		}
 		case 'singleDictionaryTypeField': {
-			return createDocumentSymbol(expression, expression.name, expression.typeGuard?.inferredType);
+			const children = expression.typeGuard && getDocumentSymbolsFromExpression(expression.typeGuard);
+			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
 		}
 		case 'bracketed':
 		case 'empty':
@@ -827,10 +835,16 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 	}
 }
 
+function getSymbolKindFromExpression(expression: ParseValueExpression | undefined): SymbolKind {
+	return expression?.type === 'functionLiteral'
+		? SymbolKind.Function
+		: SymbolKind.Constant;
+}
+
 function createDocumentSymbol(
 	definitionPosition: Positioned,
 	nameExpression: PositionedExpression,
-	type?: RuntimeType,
+	kind: SymbolKind,
 	children?: DocumentSymbol[],
 ): DocumentSymbol[] {
 	const nameString = getCheckedEscapableName(nameExpression);
@@ -838,9 +852,7 @@ function createDocumentSymbol(
 		return [];
 	}
 	const documentSymbol: DocumentSymbol = {
-		kind: type instanceof FunctionType
-			? SymbolKind.Function
-			: SymbolKind.Constant,
+		kind: kind,
 		name: nameString,
 		range: positionedToRange(definitionPosition),
 		selectionRange: positionedToRange(nameExpression),
