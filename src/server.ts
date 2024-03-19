@@ -958,11 +958,6 @@ function findExpressionInExpression(
 				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
 				return foundType;
 			}
-			const fallback = expression.fallback;
-			if (fallback && isPositionInRange(rowIndex, columnIndex, fallback)) {
-				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
-				return foundFallBack;
-			}
 			const value = expression.value;
 			if (value && isPositionInRange(rowIndex, columnIndex, value)) {
 				const foundValue = findExpressionInExpression(value, rowIndex, columnIndex, scopes);
@@ -983,8 +978,6 @@ function findExpressionInExpression(
 			return expression;
 		}
 		case 'dictionary': {
-			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
-			return foundField ?? expression;
 		}
 		case 'dictionaryType': {
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
@@ -1005,11 +998,6 @@ function findExpressionInExpression(
 			if (assignedValue && isPositionInRange(rowIndex, columnIndex, assignedValue)) {
 				const foundAssignedValue = findExpressionInExpression(assignedValue, rowIndex, columnIndex, scopes);
 				return foundAssignedValue;
-			}
-			const fallback = expression.fallback;
-			if (fallback && isPositionInRange(rowIndex, columnIndex, fallback)) {
-				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
-				return foundFallBack;
 			}
 			return expression;
 		}
@@ -1095,9 +1083,7 @@ function findExpressionInExpression(
 				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
 				return foundType;
 			}
-			const fallback = expression.fallback;
-			const foundValue = fallback && findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
-			return foundValue ?? expression;
+			return expression;
 		}
 		case 'parameters': {
 			const foundField = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
@@ -1127,11 +1113,6 @@ function findExpressionInExpression(
 			if (value && isPositionInRange(rowIndex, columnIndex, value)) {
 				const foundValue = findExpressionInExpression(value, rowIndex, columnIndex, scopes);
 				return foundValue;
-			}
-			const fallback = expression.fallback;
-			if (fallback && isPositionInRange(rowIndex, columnIndex, fallback)) {
-				const foundFallBack = findExpressionInExpression(fallback, rowIndex, columnIndex, scopes);
-				return foundFallBack;
 			}
 			return expression;
 		}
@@ -1225,7 +1206,6 @@ function findAllOccurrencesInExpression(
 				...findAllOccurrencesInExpression(expression.name, searchTerm),
 				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
 				...findAllOccurrencesInExpression(expression.value, searchTerm),
-				...findAllOccurrencesInExpression(expression.fallback, searchTerm),
 			];
 			return occurences;
 		}
@@ -1248,7 +1228,7 @@ function findAllOccurrencesInExpression(
 		case 'empty':
 			return [];
 		case 'field':
-			// TODO check name range, source, typeGuard, fallback
+			// TODO check name range, source, typeGuard
 			// return expression;
 			return [];
 		case 'float':
@@ -1303,7 +1283,6 @@ function findAllOccurrencesInExpression(
 			const occurences = [
 				...findAllOccurrencesInExpression(expression.name, searchTerm),
 				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
-				...findAllOccurrencesInExpression(expression.fallback, searchTerm),
 			];
 			return occurences;
 		}
@@ -1325,7 +1304,6 @@ function findAllOccurrencesInExpression(
 				...findAllOccurrencesInExpression(expression.name, searchTerm),
 				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
 				...findAllOccurrencesInExpression(expression.value, searchTerm),
-				...findAllOccurrencesInExpression(expression.fallback, searchTerm),
 			];
 			return occurences;
 		}
