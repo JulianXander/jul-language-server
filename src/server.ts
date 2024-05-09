@@ -495,6 +495,10 @@ connection.onCompletion(completionParams => {
 	}
 	//#endregion dictionary literal field
 
+	//#region destructuring definition field
+
+	//#endregion destructuring definition field
+
 	return symbolsToCompletionItems(allScopes);
 });
 
@@ -769,11 +773,21 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 		}
 		case 'destructuring':
 			return [
-				...getDocumentSymbolsFromExpressions(expression.fields.fields),
+				...getDocumentSymbolsFromExpression(expression.fields),
 				...(expression.value
 					? getDocumentSymbolsFromExpression(expression.value)
 					: []),
 			];
+		case 'destructuringField': {
+			const children = [
+				...(expression.typeGuard
+					? getDocumentSymbolsFromExpression(expression.typeGuard)
+					: []),
+			];
+			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
+		}
+		case 'destructuringFields':
+			return getDocumentSymbolsFromExpressions(expression.fields);
 		case 'dictionary':
 			return getDocumentSymbolsFromExpressions(expression.fields);
 		case 'dictionaryType':
@@ -977,8 +991,23 @@ function findExpressionInExpression(
 			}
 			return expression;
 		}
-		case 'dictionary': {
+		case 'destructuringField': {
+			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
+				return expression.name;
+			}
+			const typeGuard = expression.typeGuard;
+			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
+				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
+				return foundType;
+			}
+			const source = expression.source;
+			if (source && isPositionInRange(rowIndex, columnIndex, source)) {
+				return source;
+			}
+			return expression;
 		}
+		case 'destructuringFields':
+		case 'dictionary':
 		case 'dictionaryType': {
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
 			return foundField ?? expression;
@@ -1211,16 +1240,21 @@ function findAllOccurrencesInExpression(
 		}
 		case 'destructuring': {
 			const occurences = [
-				// TODO
-				// ...findAllOccurrencesInExpressions(expression.fields, searchTerm),
+				...findAllOccurrencesInExpression(expression.fields, searchTerm),
 				...findAllOccurrencesInExpression(expression.value, searchTerm),
 			];
 			return occurences;
 		}
-		case 'dictionary': {
-			const occurences = findAllOccurrencesInExpressions(expression.fields, searchTerm);
+		case 'destructuringField': {
+			const occurences = [
+				...findAllOccurrencesInExpression(expression.name, searchTerm),
+				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
+				...findAllOccurrencesInExpression(expression.source, searchTerm),
+			];
 			return occurences;
 		}
+		case 'destructuringFields':
+		case 'dictionary':
 		case 'dictionaryType': {
 			const occurences = findAllOccurrencesInExpressions(expression.fields, searchTerm);
 			return occurences;
@@ -1417,6 +1451,8 @@ function getSymbolDefinition(
 		}
 		case 'bracketed':
 		case 'branching':
+		case 'destructuringField':
+		case 'destructuringFields':
 		case 'dictionary':
 		case 'dictionaryType':
 		case 'empty':
