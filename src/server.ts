@@ -55,7 +55,7 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { FunctionType, ListType, ParameterReference, ParametersType, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
+import { DictionaryLiteralType, FunctionType, ListType, ParameterReference, ParametersType, RuntimeDictionary, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -511,7 +511,6 @@ connection.onCompletion(completionParams => {
 		destructuringFields = expression.parent.parent;
 	}
 	if (destructuringFields) {
-		// TODO destructure import, inferredType
 		const destructuring = destructuringFields.parent;
 		if (destructuring?.type === 'destructuring') {
 			const destructuredValue = destructuring.value;
@@ -522,10 +521,19 @@ connection.onCompletion(completionParams => {
 			switch (destructuredValue?.type) {
 				case 'dictionary':
 				case 'dictionaryType':
-					console.log('TODO');
 					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter);
-				default:
+				default: {
+					const inferredType = destructuredValue?.inferredType;
+					if (inferredType instanceof DictionaryLiteralType) {
+						const allCompletionItems = dictionaryTypeToCompletionItems(inferredType.Fields);
+						// schon definierte Felder ausschließen
+						const filtered = allCompletionItems.filter(completionItem => {
+							return !destructuring.fields.symbols[completionItem.label];
+						});
+						return filtered;
+					}
 					return [];
+				}
 			}
 		}
 	}
@@ -533,6 +541,22 @@ connection.onCompletion(completionParams => {
 
 	return symbolsToCompletionItems(allScopes);
 });
+
+function dictionaryTypeToCompletionItems(
+	fields: RuntimeDictionary,
+): CompletionItem[] {
+	return map(
+		fields,
+		(type, name) => {
+			const completionItem: CompletionItem = {
+				label: name,
+				kind: CompletionItemKind.Constant,
+				detail: typeToString(type, 0),
+				// documentation: symbol.description,
+			};
+			return completionItem;
+		});
+}
 
 function symbolsToCompletionItems(
 	scopes: SymbolTable[],
