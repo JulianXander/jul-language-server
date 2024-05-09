@@ -1237,6 +1237,7 @@ function findAllOccurrencesInExpression(
 			return [];
 		case 'functionCall': {
 			const occurences = [
+				...findAllOccurrencesInExpression(expression.prefixArgument, searchTerm),
 				...findAllOccurrencesInExpression(expression.functionExpression, searchTerm),
 				...findAllOccurrencesInExpression(expression.arguments, searchTerm),
 			];
