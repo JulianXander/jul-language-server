@@ -44,6 +44,7 @@ import {
 	Name,
 	ParseFunctionCall,
 	ParseTextLiteral,
+	ParseDestructuringFields,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -496,7 +497,38 @@ connection.onCompletion(completionParams => {
 	//#endregion dictionary literal field
 
 	//#region destructuring definition field
-
+	let destructuringFields: ParseDestructuringFields | undefined;
+	if (expression?.type === 'destructuringFields') {
+		destructuringFields = expression;
+	}
+	if (expression?.parent?.type === 'destructuringFields') {
+		destructuringFields = expression.parent;
+	}
+	if (expression?.parent?.parent?.type === 'destructuringFields'
+		&& expression.parent.type === 'destructuringField'
+		&& expression === expression.parent.name
+	) {
+		destructuringFields = expression.parent.parent;
+	}
+	if (destructuringFields) {
+		// TODO destructure import, inferredType
+		const destructuring = destructuringFields.parent;
+		if (destructuring?.type === 'destructuring') {
+			const destructuredValue = destructuring.value;
+			// schon definierte Felder ausschließen
+			symbolFilter = (symbol, name) => {
+				return !destructuring.fields.symbols[name];
+			};
+			switch (destructuredValue?.type) {
+				case 'dictionary':
+				case 'dictionaryType':
+					console.log('TODO');
+					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter);
+				default:
+					return [];
+			}
+		}
+	}
 	//#endregion destructuring definition field
 
 	return symbolsToCompletionItems(allScopes);
