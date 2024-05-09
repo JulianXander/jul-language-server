@@ -699,8 +699,48 @@ connection.onDefinition((definitionParams) => {
 		};
 		return location;
 	}
-	//#endregion
+	//#endregion go to imported file
 
+	//#region go to imported symbol
+	if (expression?.type === 'name'
+		&& expression.parent?.type === 'destructuringField'
+		&& (expression === expression.parent.name
+			|| expression === expression.parent.source)
+		&& expression.parent.parent?.type === 'destructuringFields') {
+		const destructuring = expression.parent.parent.parent;
+		if (destructuring?.type === 'destructuring'
+			&& destructuring.value
+			&& isImportFunctionCall(destructuring.value)) {
+			const folderPath = dirname(documentPath);
+			const { fullPath, error } = getPathFromImport(destructuring.value, folderPath);
+			if (error) {
+				console.log(error);
+				return;
+			}
+			if (!fullPath) {
+				return;
+			}
+			let range: Range = {
+				start: { character: 0, line: 0 },
+				end: { character: 0, line: 0 },
+			};
+			const importedDocument = parsedDocuments[fullPath];
+			if (importedDocument) {
+				const destructuringField = expression.parent;
+				const symbolName = destructuringField.source ?? destructuringField.name;
+				const importedSymbol = importedDocument.unchecked.symbols[symbolName.name];
+				if (importedSymbol) {
+					range = positionedToRange(importedSymbol);
+				}
+			}
+			const location: Location = {
+				uri: pathToUri(fullPath),
+				range: range,
+			};
+			return location;
+		}
+	}
+	//#endregion go to imported symbol
 	const foundSymbol = getSymbolDefinition(expression, scopes);
 	if (foundSymbol) {
 		const location: Location = {
