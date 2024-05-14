@@ -49,6 +49,7 @@ import {
 import {
 	builtInSymbols,
 	checkTypes,
+	dereferenceParameterTypeFromFunctionRef,
 	findSymbolInScopesWithBuiltIns,
 	getTypeError,
 	ParsedDocuments,
@@ -390,7 +391,8 @@ connection.onCompletion(completionParams => {
 
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
-		const dereferenced = dereferenceTypeExpression(expression.source, scopes);
+		const source = expression.source;
+		const dereferenced = dereferenceTypeExpression(source, scopes);
 		switch (dereferenced?.type) {
 			case 'dictionary':
 			case 'dictionaryType':
@@ -421,8 +423,16 @@ connection.onCompletion(completionParams => {
 					},
 				];
 			// TODO Stream/ValueType
-			default:
+			default: {
+				const inferredType = source?.inferredType;
+				if (inferredType instanceof ParameterReference) {
+					const dereferencedParameter = dereferenceParameterTypeFromFunctionRef(inferredType);
+					if (dereferencedParameter instanceof DictionaryLiteralType) {
+						return dictionaryTypeToCompletionItems(dereferencedParameter.Fields);
+					}
+				}
 				return [];
+			}
 		}
 	}
 	//#endregion / field reference
@@ -447,7 +457,7 @@ connection.onCompletion(completionParams => {
 				case 'dictionary':
 				case 'dictionaryType':
 					return symbolsToCompletionItems([dereferenced.symbols], symbolFilter);
-				default:
+				default: {
 					const inferredType = typeGuard?.inferredType;
 					if (inferredType instanceof TypeOfType) {
 						const innerType = inferredType.value;
@@ -464,6 +474,7 @@ connection.onCompletion(completionParams => {
 						}
 					}
 					return [];
+				}
 			}
 		}
 		//#region function call arg
