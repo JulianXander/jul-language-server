@@ -55,7 +55,7 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { DictionaryLiteralType, FunctionType, ListType, ParameterReference, ParametersType, RuntimeDictionary, RuntimeType, TupleType } from 'jul-compiler/out/runtime.js';
+import { DictionaryLiteralType, FunctionType, ListType, ParameterReference, ParametersType, RuntimeDictionary, RuntimeType, TupleType, TypeOfType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -441,12 +441,28 @@ connection.onCompletion(completionParams => {
 		if (expression.parent?.type === 'definition'
 			&& expression.parent.value === expression
 			&& expression.parent.typeGuard) {
-			const dereferenced = dereferenceTypeExpression(expression.parent.typeGuard, scopes);
+			const typeGuard = expression.parent.typeGuard;
+			const dereferenced = dereferenceTypeExpression(typeGuard, scopes);
 			switch (dereferenced?.type) {
 				case 'dictionary':
 				case 'dictionaryType':
 					return symbolsToCompletionItems([dereferenced.symbols], symbolFilter);
 				default:
+					const inferredType = typeGuard?.inferredType;
+					if (inferredType instanceof TypeOfType) {
+						const innerType = inferredType.value;
+						if (innerType instanceof DictionaryLiteralType) {
+							const allCompletionItems = dictionaryTypeToCompletionItems(innerType.Fields);
+							// schon definierte Felder ausschließen
+							if (expression.type === 'dictionary') {
+								const filtered = allCompletionItems.filter(completionItem => {
+									return !expression.symbols[completionItem.label];
+								});
+								return filtered;
+							}
+							return allCompletionItems;
+						}
+					}
 					return [];
 			}
 		}
