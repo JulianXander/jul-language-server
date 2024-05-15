@@ -35,16 +35,25 @@ import {
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
 import {
-	PositionedExpression,
-	ParseValueExpression,
-	SymbolTable,
-	ParsedFile,
-	SymbolDefinition,
-	Reference,
+	CompileTimeType,
 	Name,
+	PositionedExpression,
+	ParameterReference,
+	ParseDestructuringFields,
 	ParseFunctionCall,
 	ParseTextLiteral,
-	ParseDestructuringFields,
+	ParseValueExpression,
+	ParsedFile,
+	Reference,
+	SymbolTable,
+	SymbolDefinition,
+	CompileTimeFunctionType,
+	ParametersType,
+	CompileTimeListType,
+	CompileTimeTupleType,
+	CompileTimeDictionaryLiteralType,
+	CompileTimeTypeOfType,
+	CompileTimeDictionary,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -56,7 +65,6 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { DictionaryLiteralType, FunctionType, ListType, ParameterReference, ParametersType, RuntimeDictionary, RuntimeType, TupleType, TypeOfType } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -345,7 +353,7 @@ connection.onCompletion(completionParams => {
 	const infixFunctionCall = getInfixFunctionCall(expression);
 	if (infixFunctionCall) {
 		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.inferredType;
-		let prefixArgumentType: RuntimeType | undefined;
+		let prefixArgumentType: CompileTimeType | undefined;
 		if (prefixArgumentTypeRaw instanceof ParameterReference) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
 			prefixArgumentType = dereferenced?.symbol.normalizedType;
@@ -359,19 +367,19 @@ connection.onCompletion(completionParams => {
 				return false;
 			}
 			const symbolType = symbol.normalizedType;
-			if (symbolType instanceof FunctionType) {
+			if (symbolType instanceof CompileTimeFunctionType) {
 				const paramsType = symbolType.ParamsType;
 				if (paramsType instanceof ParametersType) {
-					let firstParameterType: RuntimeType | undefined;
+					let firstParameterType: CompileTimeType | undefined;
 					if (paramsType.singleNames.length) {
 						firstParameterType = paramsType.singleNames[0]?.type;
 					}
 					else if (paramsType.rest) {
 						const restType = paramsType.rest?.type;
-						if (restType instanceof ListType) {
+						if (restType instanceof CompileTimeListType) {
 							firstParameterType = restType.ElementType;
 						}
-						else if (restType instanceof TupleType) {
+						else if (restType instanceof CompileTimeTupleType) {
 							firstParameterType = restType.ElementTypes[0];
 						}
 					}
@@ -400,9 +408,9 @@ connection.onCompletion(completionParams => {
 			case 'functionLiteral':
 				// TODO ParamsType, ReturnType stattdessen als symbols?
 				const functionType = dereferenced.inferredType;
-				let paramsType: RuntimeType | undefined;
-				let returnType: RuntimeType | undefined;
-				if (functionType instanceof FunctionType) {
+				let paramsType: CompileTimeType | undefined;
+				let returnType: CompileTimeType | undefined;
+				if (functionType instanceof CompileTimeFunctionType) {
 					returnType = functionType.ReturnType;
 					paramsType = functionType.ParamsType;
 				}
@@ -427,7 +435,7 @@ connection.onCompletion(completionParams => {
 				const inferredType = source?.inferredType;
 				if (inferredType instanceof ParameterReference) {
 					const dereferencedParameter = dereferenceParameterTypeFromFunctionRef(inferredType);
-					if (dereferencedParameter instanceof DictionaryLiteralType) {
+					if (dereferencedParameter instanceof CompileTimeDictionaryLiteralType) {
 						return dictionaryTypeToCompletionItems(dereferencedParameter.Fields);
 					}
 				}
@@ -459,9 +467,9 @@ connection.onCompletion(completionParams => {
 					return symbolsToCompletionItems([dereferenced.symbols], symbolFilter);
 				default: {
 					const inferredType = typeGuard?.inferredType;
-					if (inferredType instanceof TypeOfType) {
+					if (inferredType instanceof CompileTimeTypeOfType) {
 						const innerType = inferredType.value;
-						if (innerType instanceof DictionaryLiteralType) {
+						if (innerType instanceof CompileTimeDictionaryLiteralType) {
 							const allCompletionItems = dictionaryTypeToCompletionItems(innerType.Fields);
 							// schon definierte Felder ausschließen
 							if (expression.type === 'dictionary') {
@@ -551,7 +559,7 @@ connection.onCompletion(completionParams => {
 					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter);
 				default: {
 					const inferredType = destructuredValue?.inferredType;
-					if (inferredType instanceof DictionaryLiteralType) {
+					if (inferredType instanceof CompileTimeDictionaryLiteralType) {
 						const allCompletionItems = dictionaryTypeToCompletionItems(inferredType.Fields);
 						// schon definierte Felder ausschließen
 						const filtered = allCompletionItems.filter(completionItem => {
@@ -570,7 +578,7 @@ connection.onCompletion(completionParams => {
 });
 
 function dictionaryTypeToCompletionItems(
-	fields: RuntimeDictionary,
+	fields: CompileTimeDictionary,
 ): CompletionItem[] {
 	return map(
 		fields,
@@ -1677,7 +1685,7 @@ function getParsedFileByUri(uri: string): ParsedFile | undefined {
 //#endregion uri
 
 function getTypeMarkdown(
-	type: RuntimeType | undefined,
+	type: CompileTimeType | undefined,
 	description: string | undefined,
 ): MarkupContent {
 	console.log(type);
