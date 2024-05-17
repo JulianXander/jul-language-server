@@ -66,8 +66,8 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { BuiltInTypeBase } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
-import { BuiltInTypeBase } from 'jul-compiler/out/runtime';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
