@@ -69,6 +69,9 @@ import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/
 import { BuiltInTypeBase } from 'jul-compiler/out/runtime.js';
 import { readdirSync } from 'fs';
 
+// For performance do not process large files
+const maxFileSize = 100000;
+
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all as any, undefined as any);
@@ -116,6 +119,9 @@ documents.onDidChangeContent(change => {
 	const textDocument = change.document;
 	const uri = textDocument.uri;
 	const text = textDocument.getText();
+	if (text.length > maxFileSize) {
+		return;
+	}
 	const path = uriToPath(uri);
 	const parsed = parseDocumentByCode(text, path);
 	if (coreLibUri === uri) {
@@ -185,6 +191,9 @@ function parseDocumentByPath(path: string): void {
 	}
 	const code = tryReadTextFile(path);
 	if (code === undefined) {
+		return;
+	}
+	if (code.length > maxFileSize) {
 		return;
 	}
 	parseDocumentByCode(code, path);
