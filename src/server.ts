@@ -60,12 +60,14 @@ import {
 	checkTypes,
 	dereferenceParameterTypeFromFunctionRef,
 	findSymbolInScopesWithBuiltIns,
+	getStreamGetValueType,
 	getTypeError,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { readdirSync } from 'fs';
+import { BuiltInTypeBase } from 'jul-compiler/out/runtime';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -430,13 +432,34 @@ connection.onCompletion(completionParams => {
 							: typeToString(returnType, 0),
 					},
 				];
-			// TODO Stream/ValueType
 			default: {
 				const inferredType = source?.inferredType;
-				if (inferredType instanceof ParameterReference) {
-					const dereferencedParameter = dereferenceParameterTypeFromFunctionRef(inferredType);
-					if (dereferencedParameter instanceof CompileTimeDictionaryLiteralType) {
-						return dictionaryTypeToCompletionItems(dereferencedParameter.Fields);
+				if (inferredType instanceof BuiltInTypeBase) {
+					switch (inferredType.type) {
+						case 'parameterReference': {
+							const dereferencedParameter = dereferenceParameterTypeFromFunctionRef(inferredType);
+							if (dereferencedParameter instanceof CompileTimeDictionaryLiteralType) {
+								return dictionaryTypeToCompletionItems(dereferencedParameter.Fields);
+							}
+							break;
+						}
+						case 'stream': {
+							return [
+								{
+									label: 'getValue',
+									kind: CompletionItemKind.Function,
+									detail: typeToString(getStreamGetValueType(inferredType), 0),
+								},
+								// TODO? nur bei TypeOf(Stream)
+								{
+									label: 'ValueType',
+									kind: CompletionItemKind.Constant,
+									detail: typeToString(inferredType.ValueType, 0),
+								},
+							];
+						}
+						default:
+							break;
 					}
 				}
 				return [];
