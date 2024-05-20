@@ -58,7 +58,6 @@ import {
 import {
 	builtInSymbols,
 	checkTypes,
-	dereferenceParameterTypeFromFunctionRef,
 	findSymbolInScopesWithBuiltIns,
 	getStreamGetValueType,
 	getTypeError,
@@ -418,7 +417,7 @@ connection.onCompletion(completionParams => {
 				return symbolsToCompletionItems([dereferenced.symbols]);
 			case 'functionLiteral':
 				// TODO ParamsType, ReturnType stattdessen als symbols?
-				const functionType = dereferenced.inferredType;
+				const functionType = dereferenced.dereferencedType;
 				let paramsType: CompileTimeType | undefined;
 				let returnType: CompileTimeType | undefined;
 				if (functionType instanceof CompileTimeFunctionType) {
@@ -442,31 +441,25 @@ connection.onCompletion(completionParams => {
 					},
 				];
 			default: {
-				const inferredType = source?.inferredType;
-				if (inferredType instanceof BuiltInTypeBase) {
-					switch (inferredType.type) {
-						case 'parameterReference': {
-							const dereferencedParameter = dereferenceParameterTypeFromFunctionRef(inferredType);
-							if (dereferencedParameter instanceof CompileTimeDictionaryLiteralType) {
-								return dictionaryTypeToCompletionItems(dereferencedParameter.Fields);
-							}
-							break;
-						}
-						case 'stream': {
+				const dereferencedType = source?.dereferencedType;
+				if (dereferencedType instanceof BuiltInTypeBase) {
+					switch (dereferencedType.type) {
+						case 'dictionaryLiteral':
+							return dictionaryTypeToCompletionItems(dereferencedType.Fields);
+						case 'stream':
 							return [
 								{
 									label: 'getValue',
 									kind: CompletionItemKind.Function,
-									detail: typeToString(getStreamGetValueType(inferredType), 0),
+									detail: typeToString(getStreamGetValueType(dereferencedType), 0),
 								},
 								// TODO? nur bei TypeOf(Stream)
 								{
 									label: 'ValueType',
 									kind: CompletionItemKind.Constant,
-									detail: typeToString(inferredType.ValueType, 0),
+									detail: typeToString(dereferencedType.ValueType, 0),
 								},
 							];
-						}
 						default:
 							break;
 					}
@@ -498,9 +491,9 @@ connection.onCompletion(completionParams => {
 				case 'dictionaryType':
 					return symbolsToCompletionItems([dereferenced.symbols], symbolFilter);
 				default: {
-					const inferredType = typeGuard?.inferredType;
-					if (inferredType instanceof CompileTimeTypeOfType) {
-						const innerType = inferredType.value;
+					const dereferencedType = typeGuard?.dereferencedType;
+					if (dereferencedType instanceof CompileTimeTypeOfType) {
+						const innerType = dereferencedType.value;
 						if (innerType instanceof CompileTimeDictionaryLiteralType) {
 							const allCompletionItems = dictionaryTypeToCompletionItems(innerType.Fields);
 							// schon definierte Felder ausschließen
@@ -590,9 +583,9 @@ connection.onCompletion(completionParams => {
 				case 'dictionaryType':
 					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter);
 				default: {
-					const inferredType = destructuredValue?.inferredType;
-					if (inferredType instanceof CompileTimeDictionaryLiteralType) {
-						const allCompletionItems = dictionaryTypeToCompletionItems(inferredType.Fields);
+					const dereferencedType = destructuredValue?.dereferencedType;
+					if (dereferencedType instanceof CompileTimeDictionaryLiteralType) {
+						const allCompletionItems = dictionaryTypeToCompletionItems(dereferencedType.Fields);
 						// schon definierte Felder ausschließen
 						const filtered = allCompletionItems.filter(completionItem => {
 							return !destructuring.fields.symbols[completionItem.label];
