@@ -366,7 +366,7 @@ connection.onCompletion(completionParams => {
 		let prefixArgumentType: CompileTimeType | undefined;
 		if (prefixArgumentTypeRaw instanceof ParameterReference) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
-			prefixArgumentType = dereferenced?.symbol.normalizedType;
+			prefixArgumentType = dereferenced?.symbol.inferredType;
 		}
 		else {
 			prefixArgumentType = prefixArgumentTypeRaw;
@@ -376,7 +376,7 @@ connection.onCompletion(completionParams => {
 			if (prefixArgumentType === undefined) {
 				return false;
 			}
-			const symbolType = symbol.normalizedType;
+			const symbolType = symbol.dereferencedType;
 			if (symbolType instanceof CompileTimeFunctionType) {
 				const paramsType = symbolType.ParamsType;
 				if (paramsType instanceof ParametersType) {
@@ -633,9 +633,9 @@ function symbolsToCompletionItems(
 				const completionItem: CompletionItem = {
 					label: name,
 					kind: CompletionItemKind.Constant,
-					detail: symbol.normalizedType === undefined
+					detail: symbol.dereferencedType === undefined
 						? undefined
-						: typeToString(symbol.normalizedType, 0),
+						: typeToString(symbol.dereferencedType, 0),
 					documentation: symbol.description,
 				};
 				return completionItem;
@@ -681,14 +681,14 @@ connection.onSignatureHelp(signatureParams => {
 						paramsType.singleFields.forEach(singleField => {
 							parameterResults.push({
 								label: singleField.name.name,
-								documentation: getTypeMarkdown(singleField.inferredType, singleField.description),
+								documentation: getTypeMarkdown(singleField.dereferencedType, singleField.description),
 							});
 						});
 						const rest = paramsType.rest;
 						if (rest) {
 							parameterResults.push({
 								label: rest.name.name,
-								documentation: getTypeMarkdown(rest.inferredType, rest.description),
+								documentation: getTypeMarkdown(rest.dereferencedType, rest.description),
 							});
 						}
 					}
@@ -707,7 +707,7 @@ connection.onSignatureHelp(signatureParams => {
 					});
 				}
 				// TODO parameter index ermitteln bei function call mit dictionary Argument
-				const normalizedFunctionType = functionSymbol.symbol.normalizedType;
+				const normalizedFunctionType = functionSymbol.symbol.dereferencedType;
 				const signatureResult: SignatureHelp = {
 					signatures: [{
 						label: normalizedFunctionType === undefined
@@ -840,7 +840,7 @@ connection.onHover((hoverParams) => {
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
 		return {
-			contents: getTypeMarkdown(symbol.normalizedType, symbol.description),
+			contents: getTypeMarkdown(symbol.dereferencedType, symbol.description),
 		};
 	}
 });
