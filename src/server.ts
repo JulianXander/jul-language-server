@@ -415,31 +415,17 @@ connection.onCompletion(completionParams => {
 			case 'dictionary':
 			case 'dictionaryType':
 				return symbolsToCompletionItems([dereferenced.symbols]);
-			case 'functionLiteral':
-				// TODO ParamsType, ReturnType stattdessen als symbols?
+			case 'functionLiteral': {
 				const functionType = dereferenced.dereferencedType;
-				let paramsType: CompileTimeType | undefined;
-				let returnType: CompileTimeType | undefined;
-				if (functionType instanceof CompileTimeFunctionType) {
-					returnType = functionType.ReturnType;
-					paramsType = functionType.ParamsType;
-				}
-				return [
-					{
-						label: 'ParamsType',
-						kind: CompletionItemKind.Constant,
-						detail: paramsType === undefined
-							? undefined
-							: typeToString(paramsType, 0),
-					},
-					{
-						label: 'ReturnType',
-						kind: CompletionItemKind.Constant,
-						detail: returnType === undefined
-							? undefined
-							: typeToString(returnType, 0),
-					},
-				];
+				return functionTypeToCompletionItems(functionType);
+			}
+			case 'functionTypeLiteral': {
+				const typeOfFunctionType = dereferenced.dereferencedType;
+				const functionType = typeOfFunctionType instanceof CompileTimeTypeOfType
+					? typeOfFunctionType.value
+					: undefined;
+				return functionTypeToCompletionItems(functionType);
+			}
 			default: {
 				const dereferencedType = source?.dereferencedType;
 				if (dereferencedType instanceof BuiltInTypeBase) {
@@ -601,6 +587,32 @@ connection.onCompletion(completionParams => {
 
 	return symbolsToCompletionItems(allScopes);
 });
+
+function functionTypeToCompletionItems(functionType: CompileTimeType | undefined): CompletionItem[] {
+	// TODO ParamsType, ReturnType stattdessen als symbols?
+	let paramsType: CompileTimeType | undefined;
+	let returnType: CompileTimeType | undefined;
+	if (functionType instanceof CompileTimeFunctionType) {
+		returnType = functionType.ReturnType;
+		paramsType = functionType.ParamsType;
+	}
+	return [
+		{
+			label: 'ParamsType',
+			kind: CompletionItemKind.Constant,
+			detail: paramsType === undefined
+				? undefined
+				: typeToString(paramsType, 0),
+		},
+		{
+			label: 'ReturnType',
+			kind: CompletionItemKind.Constant,
+			detail: returnType === undefined
+				? undefined
+				: typeToString(returnType, 0),
+		},
+	];
+}
 
 function dictionaryTypeToCompletionItems(
 	fields: CompileTimeDictionary,
