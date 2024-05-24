@@ -458,7 +458,8 @@ connection.onCompletion(completionParams => {
 
 	//#region dictionary literal field
 	if (expression?.type === 'empty'
-		|| expression?.type === 'dictionary') {
+		|| expression?.type === 'dictionary'
+		|| expression?.type === 'object') {
 		console.log('dictionary literal field');
 		console.log(expression.type);
 		if (expression.type === 'dictionary') {
