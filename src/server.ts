@@ -643,12 +643,16 @@ function symbolsToCompletionItems(
 				if (!showSymbol) {
 					return undefined;
 				}
+				const symbolType = symbol.dereferencedType;
+				const isFunction = symbolType instanceof CompileTimeFunctionType;
 				const completionItem: CompletionItem = {
 					label: name,
-					kind: CompletionItemKind.Constant,
-					detail: symbol.dereferencedType === undefined
+					kind: isFunction
+						? CompletionItemKind.Function
+						: CompletionItemKind.Constant,
+					detail: symbolType === undefined
 						? undefined
-						: typeToString(symbol.dereferencedType, 0),
+						: typeToString(symbolType, 0),
 					documentation: symbol.description,
 				};
 				return completionItem;
