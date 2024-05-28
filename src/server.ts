@@ -599,20 +599,6 @@ connection.onCompletion(completionParams => {
 		const functionCall = expression.parent.parent.parent;
 		const functionSymbol = getFunctionSymbolFromFunctionCall(functionCall, scopes);
 		if (functionSymbol) {
-			console.log('TODO function literal parameter name');
-			// const functionParseType = functionSymbol.symbol.typeExpression;
-			// if (functionParseType?.type === 'functionLiteral') {
-			// 	const paramsType = functionParseType.params;
-			// 	if (paramsType.type === 'parameters') {
-			// 		const completionItems = paramsType.singleFields.map(singleField => {
-			// 			return parseParameterToCompletionItem(singleField, false);
-			// 		});
-			// 		if (paramsType.rest) {
-			// 			completionItems.push(parseParameterToCompletionItem(paramsType.rest, true));
-			// 		}
-			// 		return completionItems;
-			// 	}
-			// }
 			const functionDereferencedType = functionSymbol.symbol.dereferencedType;
 			if (functionDereferencedType instanceof CompileTimeFunctionType) {
 				const paramsType = functionDereferencedType.ParamsType;
@@ -627,11 +613,17 @@ connection.onCompletion(completionParams => {
 						if (parameterType instanceof CompileTimeFunctionType) {
 							const innerParamsType = parameterType.ParamsType;
 							if (innerParamsType instanceof ParametersType) {
-								const completionItems = innerParamsType.singleNames.map(singleName => {
-									return parameterToCompletionItem(singleName, false);
+								const completionItems: CompletionItem[] = [];
+								innerParamsType.singleNames.forEach((singleName, index) => {
+									const isAlreadyDeclared = expression.singleFields.some(declaredParameter =>
+										declaredParameter.source === singleName.name
+										|| (!declaredParameter.source && declaredParameter.name.name === singleName.name));
+									if (!isAlreadyDeclared) {
+										completionItems.push(parameterToCompletionItem(singleName, index, false));
+									}
 								});
-								if (innerParamsType.rest) {
-									completionItems.push(parameterToCompletionItem(innerParamsType.rest, true));
+								if (innerParamsType.rest && !expression.rest) {
+									completionItems.push(parameterToCompletionItem(innerParamsType.rest, innerParamsType.singleNames.length, true));
 								}
 								return completionItems;
 							}
@@ -658,7 +650,7 @@ function parseParameterToCompletionItem(parameter: ParseParameterField, isRest: 
 	return completionItem;
 }
 
-function parameterToCompletionItem(parameter: Parameter, isRest: boolean): CompletionItem {
+function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {
 	const completionItem: CompletionItem = {
 		label: (isRest ? '...' : '') + parameter.name,
 		kind: CompletionItemKind.Constant,
@@ -666,6 +658,7 @@ function parameterToCompletionItem(parameter: Parameter, isRest: boolean): Compl
 			? undefined
 			: typeToString(parameter.type, 0),
 		// documentation: parameter.description,
+		sortText: '' + index,
 	};
 	return completionItem;
 }
