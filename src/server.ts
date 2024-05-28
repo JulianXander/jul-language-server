@@ -54,6 +54,8 @@ import {
 	CompileTimeDictionaryLiteralType,
 	CompileTimeTypeOfType,
 	CompileTimeDictionary,
+	ParseParameterField,
+	Parameter,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -586,8 +588,127 @@ connection.onCompletion(completionParams => {
 	}
 	//#endregion destructuring definition field
 
+	//#region function literal parameter name
+	// Wenn function literal argument eines functionCalls ist
+	if (expression?.type === 'parameters'
+		&& expression.parent?.type === 'functionLiteral'
+		&& expression.parent.parent?.type === 'list'
+		&& expression.parent.parent.parent?.type === 'functionCall'
+	) {
+		const argsExpression = expression.parent.parent;
+		const functionCall = expression.parent.parent.parent;
+		const functionSymbol = getFunctionSymbolFromFunctionCall(functionCall, scopes);
+		if (functionSymbol) {
+			console.log('TODO function literal parameter name');
+			// const functionParseType = functionSymbol.symbol.typeExpression;
+			// if (functionParseType?.type === 'functionLiteral') {
+			// 	const paramsType = functionParseType.params;
+			// 	if (paramsType.type === 'parameters') {
+			// 		const completionItems = paramsType.singleFields.map(singleField => {
+			// 			return parseParameterToCompletionItem(singleField, false);
+			// 		});
+			// 		if (paramsType.rest) {
+			// 			completionItems.push(parseParameterToCompletionItem(paramsType.rest, true));
+			// 		}
+			// 		return completionItems;
+			// 	}
+			// }
+			const functionDereferencedType = functionSymbol.symbol.dereferencedType;
+			if (functionDereferencedType instanceof CompileTimeFunctionType) {
+				const paramsType = functionDereferencedType.ParamsType;
+				if (paramsType instanceof ParametersType) {
+					const parameterCount = paramsType.singleNames.length + (paramsType.rest ? 1 : 0);
+					const parameterIndex = getParameterIndex(argsExpression, !!functionCall.prefixArgument, expression.startRowIndex, expression.startColumnIndex, parameterCount);
+					const currentParameter = parameterIndex < paramsType.singleNames.length
+						? paramsType.singleNames[parameterIndex]
+						: paramsType.rest;
+					if (currentParameter) {
+						const parameterType = currentParameter.type;
+						if (parameterType instanceof CompileTimeFunctionType) {
+							const innerParamsType = parameterType.ParamsType;
+							if (innerParamsType instanceof ParametersType) {
+								const completionItems = innerParamsType.singleNames.map(singleName => {
+									return parameterToCompletionItem(singleName, false);
+								});
+								if (innerParamsType.rest) {
+									completionItems.push(parameterToCompletionItem(innerParamsType.rest, true));
+								}
+								return completionItems;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	//#endregion function literal parameter name
+
 	return symbolsToCompletionItems(allScopes);
 });
+
+function parseParameterToCompletionItem(parameter: ParseParameterField, isRest: boolean): CompletionItem {
+	const completionItem: CompletionItem = {
+		label: (isRest ? '...' : '') + parameter.name.name,
+		kind: CompletionItemKind.Constant,
+		detail: parameter.dereferencedType === undefined
+			? undefined
+			: typeToString(parameter.dereferencedType, 0),
+		documentation: parameter.description,
+	};
+	return completionItem;
+}
+
+function parameterToCompletionItem(parameter: Parameter, isRest: boolean): CompletionItem {
+	const completionItem: CompletionItem = {
+		label: (isRest ? '...' : '') + parameter.name,
+		kind: CompletionItemKind.Constant,
+		detail: parameter.type === undefined
+			? undefined
+			: typeToString(parameter.type, 0),
+		// documentation: parameter.description,
+	};
+	return completionItem;
+}
+
+function getFunctionSymbolFromFunctionCall(functionCall: ParseFunctionCall, scopes: SymbolTable[]): {
+	name: string;
+	isBuiltIn: boolean;
+	symbol: SymbolDefinition;
+} | undefined {
+	const functionExpression = functionCall.functionExpression;
+	if (functionExpression?.type === 'reference') {
+		const functionName = functionExpression.name.name;
+		const functionSymbol = findSymbolInScopesWithBuiltIns(functionName, scopes);
+		return functionSymbol && {
+			...functionSymbol,
+			name: functionName,
+		};
+	}
+}
+
+function getParameterIndex(
+	argsExpression: PositionedExpression,
+	hasPrefixArg: boolean,
+	rowIndex: number,
+	columnIndex: number,
+	parameterCount: number,
+) {
+	// TODO parameter index ermitteln bei function call mit dictionary Argument
+	let parameterIndex = hasPrefixArg ? 1 : 0;
+	if (argsExpression.type === 'list') {
+		argsExpression.values.forEach(value => {
+			// values vor der aktuellen Position zählen
+			if ((value.endRowIndex < rowIndex ||
+				(value.endRowIndex === rowIndex && value.endColumnIndex < columnIndex))
+				// TODO was wenn mehr values als Parameter (ohne Rest Parameter)?
+				&& parameterIndex < parameterCount - 1
+			) {
+				parameterIndex++;
+			}
+		});
+	}
+	return parameterIndex;
+}
 
 function functionTypeToCompletionItems(functionType: CompileTimeType | undefined): CompletionItem[] {
 	// TODO ParamsType, ReturnType stattdessen als symbols?
@@ -685,59 +806,43 @@ connection.onSignatureHelp(signatureParams => {
 	const columnIndex = signatureParams.position.character;
 	const { expression, scopes } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
 	if (expression?.parent?.type === 'functionCall') {
-		const functionExpression = expression.parent.functionExpression;
-		if (functionExpression?.type === 'reference') {
-			const functionName = functionExpression.name.name;
-			const functionSymbol = findSymbolInScopesWithBuiltIns(functionName, scopes);
-			if (functionSymbol) {
-				const functionType = functionSymbol.symbol.typeExpression;
-				const parameterResults: ParameterInformation[] = [];
-				if (functionType?.type === 'functionLiteral') {
-					const paramsType = functionType.params;
-					if (paramsType.type === 'parameters') {
-						paramsType.singleFields.forEach(singleField => {
-							parameterResults.push({
-								label: singleField.name.name,
-								documentation: getTypeMarkdown(singleField.dereferencedType, singleField.description),
-							});
+		const functionCall = expression.parent;
+		const functionSymbol = getFunctionSymbolFromFunctionCall(functionCall, scopes);
+		if (functionSymbol) {
+			const functionType = functionSymbol.symbol.typeExpression;
+			const parameterResults: ParameterInformation[] = [];
+			if (functionType?.type === 'functionLiteral') {
+				const paramsType = functionType.params;
+				if (paramsType.type === 'parameters') {
+					paramsType.singleFields.forEach(singleField => {
+						parameterResults.push({
+							label: singleField.name.name,
+							documentation: getTypeMarkdown(singleField.dereferencedType, singleField.description),
 						});
-						const rest = paramsType.rest;
-						if (rest) {
-							parameterResults.push({
-								label: rest.name.name,
-								documentation: getTypeMarkdown(rest.dereferencedType, rest.description),
-							});
-						}
+					});
+					const rest = paramsType.rest;
+					if (rest) {
+						parameterResults.push({
+							label: rest.name.name,
+							documentation: getTypeMarkdown(rest.dereferencedType, rest.description),
+						});
 					}
 				}
-				let parameterIndex = 0;
-				if (expression.type === 'list') {
-					expression.values.forEach(value => {
-						// values vor der aktuellen Position zählen
-						if ((value.endRowIndex < rowIndex ||
-							(value.endRowIndex === rowIndex && value.endColumnIndex < columnIndex))
-							// TODO was wenn mehr values als Parameter (ohne Rest Parameter)?
-							&& parameterIndex < parameterResults.length - 1
-						) {
-							parameterIndex++;
-						}
-					});
-				}
-				// TODO parameter index ermitteln bei function call mit dictionary Argument
-				const normalizedFunctionType = functionSymbol.symbol.dereferencedType;
-				const signatureResult: SignatureHelp = {
-					signatures: [{
-						label: normalizedFunctionType === undefined
-							? functionName
-							: typeToString(normalizedFunctionType, 0),
-						documentation: functionSymbol.symbol.description,
-						parameters: parameterResults,
-					}],
-					activeParameter: parameterIndex,
-					activeSignature: 0,
-				};
-				return signatureResult;
 			}
+			const parameterIndex = getParameterIndex(expression, !!functionCall.prefixArgument, rowIndex, columnIndex, parameterResults.length);
+			const normalizedFunctionType = functionSymbol.symbol.dereferencedType;
+			const signatureResult: SignatureHelp = {
+				signatures: [{
+					label: normalizedFunctionType === undefined
+						? functionSymbol.name
+						: typeToString(normalizedFunctionType, 0),
+					documentation: functionSymbol.symbol.description,
+					parameters: parameterResults,
+				}],
+				activeParameter: parameterIndex,
+				activeSignature: 0,
+			};
+			return signatureResult;
 		}
 	}
 	return undefined;
@@ -1212,8 +1317,9 @@ function findExpressionInExpression(
 				const foundPrefix = findExpressionInExpression(expression.prefixArgument, rowIndex, columnIndex, scopes);
 				return foundPrefix;
 			}
-			if (expression.functionExpression && isPositionInRange(rowIndex, columnIndex, expression.functionExpression)) {
-				const foundFunction = findExpressionInExpression(expression.functionExpression, rowIndex, columnIndex, scopes);
+			const functionExpression = expression.functionExpression;
+			if (functionExpression && isPositionInRange(rowIndex, columnIndex, functionExpression)) {
+				const foundFunction = findExpressionInExpression(functionExpression, rowIndex, columnIndex, scopes);
 				return foundFunction;
 			}
 			if (expression.arguments) {
