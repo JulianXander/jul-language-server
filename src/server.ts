@@ -594,6 +594,7 @@ connection.onCompletion(completionParams => {
 		&& expression.parent?.type === 'functionLiteral'
 		&& expression.parent.parent?.type === 'list'
 		&& expression.parent.parent.parent?.type === 'functionCall'
+		&& expression.parent.parent.parent.arguments === expression.parent.parent
 	) {
 		const argsExpression = expression.parent.parent;
 		const functionCall = expression.parent.parent.parent;
@@ -604,7 +605,7 @@ connection.onCompletion(completionParams => {
 				const paramsType = functionDereferencedType.ParamsType;
 				if (paramsType instanceof ParametersType) {
 					const parameterCount = paramsType.singleNames.length + (paramsType.rest ? 1 : 0);
-					const parameterIndex = getParameterIndex(argsExpression, !!functionCall.prefixArgument, expression.startRowIndex, expression.startColumnIndex, parameterCount);
+					const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
 					const currentParameter = parameterIndex < paramsType.singleNames.length
 						? paramsType.singleNames[parameterIndex]
 						: paramsType.rest;
@@ -679,16 +680,20 @@ function getFunctionSymbolFromFunctionCall(functionCall: ParseFunctionCall, scop
 	}
 }
 
+/**
+ * Ermittelt den Index des Parameters, für den das Argument ist, das an der Position liegt.
+ * Position muss in arguments liegen.
+ */
 function getParameterIndex(
-	argsExpression: PositionedExpression,
-	hasPrefixArg: boolean,
+	functionCall: ParseFunctionCall,
 	rowIndex: number,
 	columnIndex: number,
 	parameterCount: number,
 ) {
+	const argsExpression = functionCall.arguments;
 	// TODO parameter index ermitteln bei function call mit dictionary Argument
-	let parameterIndex = hasPrefixArg ? 1 : 0;
-	if (argsExpression.type === 'list') {
+	let parameterIndex = functionCall.prefixArgument ? 1 : 0;
+	if (argsExpression?.type === 'list') {
 		argsExpression.values.forEach(value => {
 			// values vor der aktuellen Position zählen
 			if ((value.endRowIndex < rowIndex ||
@@ -822,7 +827,7 @@ connection.onSignatureHelp(signatureParams => {
 					}
 				}
 			}
-			const parameterIndex = getParameterIndex(expression, !!functionCall.prefixArgument, rowIndex, columnIndex, parameterResults.length);
+			const parameterIndex = getParameterIndex(functionCall, rowIndex, columnIndex, parameterResults.length);
 			const normalizedFunctionType = functionSymbol.symbol.dereferencedType;
 			const signatureResult: SignatureHelp = {
 				signatures: [{
