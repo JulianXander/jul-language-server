@@ -54,7 +54,6 @@ import {
 	CompileTimeDictionaryLiteralType,
 	CompileTimeTypeOfType,
 	CompileTimeDictionary,
-	ParseParameterField,
 	Parameter,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
@@ -596,7 +595,6 @@ connection.onCompletion(completionParams => {
 		&& expression.parent.parent.parent?.type === 'functionCall'
 		&& expression.parent.parent.parent.arguments === expression.parent.parent
 	) {
-		const argsExpression = expression.parent.parent;
 		const functionCall = expression.parent.parent.parent;
 		const functionSymbol = getFunctionSymbolFromFunctionCall(functionCall, scopes);
 		if (functionSymbol) {
@@ -638,18 +636,6 @@ connection.onCompletion(completionParams => {
 
 	return symbolsToCompletionItems(allScopes);
 });
-
-function parseParameterToCompletionItem(parameter: ParseParameterField, isRest: boolean): CompletionItem {
-	const completionItem: CompletionItem = {
-		label: (isRest ? '...' : '') + parameter.name.name,
-		kind: CompletionItemKind.Constant,
-		detail: parameter.dereferencedType === undefined
-			? undefined
-			: typeToString(parameter.dereferencedType, 0),
-		documentation: parameter.description,
-	};
-	return completionItem;
-}
 
 function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {
 	const completionItem: CompletionItem = {
