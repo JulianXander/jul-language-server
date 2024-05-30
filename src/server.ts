@@ -961,12 +961,15 @@ connection.onPrepareRename(prepareRenameParams => {
 	}
 
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, prepareRenameParams.position.line, prepareRenameParams.position.character);
+	if (!expression) {
+		return expression;
+	}
 	const foundSymbol = getSymbolDefinition(expression, scopes);
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
 
-	return positionedToRange(foundSymbol.expression);
+	return positionedToRange(expression);
 });
 connection.onRenameRequest(renameParams => {
 	const documentUri = renameParams.textDocument.uri;
@@ -981,12 +984,13 @@ connection.onRenameRequest(renameParams => {
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
-	const occurences = findAllOccurrencesInParsedFile(parsedFile, foundSymbol.expression);
+	const searchTerm = foundSymbol.name;
+	const occurences = findAllOccurrencesInParsedFile(parsedFile, searchTerm);
 	return {
 		changes: {
-			[documentUri]: occurences.map(expression => {
+			[documentUri]: occurences.map(innerExpression => {
 				return {
-					range: positionedToRange(expression),
+					range: positionedToRange(innerExpression),
 					newText: renameParams.newName,
 				};
 			})
@@ -1458,7 +1462,7 @@ function isPositionInRange(
 // TODO scope berücksichtigen
 function findAllOccurrencesInParsedFile(
 	parsedFile: ParsedFile,
-	searchTerm: Reference | Name,
+	searchTerm: string,
 ): PositionedExpression[] {
 	const expressions = parsedFile.checked?.expressions;
 	return expressions
@@ -1468,7 +1472,7 @@ function findAllOccurrencesInParsedFile(
 
 function findAllOccurrencesInExpressions(
 	expressions: PositionedExpression[],
-	searchTerm: Reference | Name,
+	searchTerm: string,
 ): PositionedExpression[] {
 	return expressions.flatMap(expression => {
 		return findAllOccurrencesInExpression(expression, searchTerm);
@@ -1477,7 +1481,7 @@ function findAllOccurrencesInExpressions(
 
 function findAllOccurrencesInExpression(
 	expression: PositionedExpression | undefined,
-	searchTerm: Reference | Name,
+	searchTerm: string,
 ): PositionedExpression[] {
 	if (!expression) {
 		return [];
@@ -1562,7 +1566,7 @@ function findAllOccurrencesInExpression(
 		case 'list':
 			return findAllOccurrencesInExpressions(expression.values, searchTerm);
 		case 'name':
-			return expression.name === getSearchName(searchTerm)
+			return expression.name === searchTerm
 				? [expression]
 				: [];
 		case 'nestedReference': {
@@ -1593,7 +1597,7 @@ function findAllOccurrencesInExpression(
 		}
 		case 'reference': {
 			const referenceName = expression.name;
-			return referenceName.name === getSearchName(searchTerm)
+			return referenceName.name === searchTerm
 				? [referenceName]
 				: [];
 		}
@@ -1650,20 +1654,18 @@ function getSymbolDefinition(
 ): {
 	isBuiltIn: boolean;
 	symbol: SymbolDefinition;
-	/**
-	 * Die expression, die an der Position (rowIndex, columnIndex) gefunden wurde.
-	 */
-	expression: Reference | Name;
+	name: string;
 } | undefined {
 	if (!expression) {
 		return undefined;
 	}
 	switch (expression.type) {
 		case 'reference': {
-			const definition = findSymbolInScopesWithBuiltIns(expression.name.name, scopes);
+			const name = expression.name.name;
+			const definition = findSymbolInScopesWithBuiltIns(name, scopes);
 			return definition && {
 				...definition,
-				expression: expression,
+				name: name,
 			};
 		}
 		case 'definition': {
@@ -1689,7 +1691,7 @@ function getSymbolDefinition(
 					const dereferencedSource = dereferenceTypeExpression(parent.source, scopes);
 					const foundSymbol = getSymbolFromDictionary(dereferencedSource, name);
 					return foundSymbol && {
-						expression: expression,
+						name: name,
 						isBuiltIn: false,
 						symbol: foundSymbol,
 					};
@@ -1698,7 +1700,7 @@ function getSymbolDefinition(
 				case 'singleDictionaryTypeField': {
 					const foundSymbol = getSymbolFromDictionary(parent.parent, name);
 					return foundSymbol && {
-						expression: expression,
+						name: name,
 						isBuiltIn: false,
 						symbol: foundSymbol,
 					};
@@ -1707,7 +1709,7 @@ function getSymbolDefinition(
 					const definition = findSymbolInScopesWithBuiltIns(name, scopes);
 					return definition && {
 						...definition,
-						expression: expression,
+						name: name,
 					};
 				}
 			}
