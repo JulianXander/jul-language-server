@@ -1478,7 +1478,7 @@ function findAllOccurrencesInParsedFile(
 		return findAllOccurrencesInExpressions(expressions, searchTerm);
 	}
 	switch (parent.type) {
-		case 'definition':
+		case 'dictionary':
 			// TODO rename field
 			return [];
 		case 'functionLiteral':
