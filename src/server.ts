@@ -55,6 +55,7 @@ import {
 	CompileTimeTypeOfType,
 	CompileTimeDictionary,
 	Parameter,
+	DefinitionExpression,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -980,12 +981,15 @@ connection.onRenameRequest(renameParams => {
 
 	// TODO rename across multiple files
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, renameParams.position.line, renameParams.position.character);
+	if (!expression) {
+		return;
+	}
 	const foundSymbol = getSymbolDefinition(expression, scopes);
-	if (!foundSymbol || foundSymbol.isBuiltIn) {
+	if (!foundSymbol || foundSymbol.isBuiltIn || !foundSymbol.symbol.definition) {
 		return;
 	}
 	const searchTerm = foundSymbol.name;
-	const occurences = findAllOccurrencesInParsedFile(parsedFile, searchTerm);
+	const occurences = findAllOccurrencesInParsedFile(parsedFile, foundSymbol.symbol.definition, searchTerm);
 	return {
 		changes: {
 			[documentUri]: occurences.map(innerExpression => {
@@ -1459,15 +1463,30 @@ function isPositionInRange(
 
 //#region findAllOccurrences
 
-// TODO scope berücksichtigen
 function findAllOccurrencesInParsedFile(
 	parsedFile: ParsedFile,
+	definition: DefinitionExpression,
 	searchTerm: string,
 ): PositionedExpression[] {
 	const expressions = parsedFile.checked?.expressions;
-	return expressions
-		? findAllOccurrencesInExpressions(expressions, searchTerm)
-		: [];
+	if (!expressions) {
+		return [];
+	}
+	const parent = definition.parent;
+	if (!parent) {
+		// definition im root scope: alles umbenennen
+		return findAllOccurrencesInExpressions(expressions, searchTerm);
+	}
+	switch (parent.type) {
+		case 'definition':
+			// TODO rename field
+			return [];
+		case 'functionLiteral':
+			return findAllOccurrencesInExpressions(parent.body, searchTerm);
+		// TODO other types?
+		default:
+			return [];
+	}
 }
 
 function findAllOccurrencesInExpressions(
@@ -1573,10 +1592,11 @@ function findAllOccurrencesInExpression(
 			const occurences = [
 				...findAllOccurrencesInExpression(expression.source, searchTerm),
 			];
-			const nestedKey = expression.nestedKey;
-			if (nestedKey) {
-				occurences.push(...findAllOccurrencesInExpression(nestedKey, searchTerm));
-			}
+			// TODO rename field
+			// const nestedKey = expression.nestedKey;
+			// if (nestedKey) {
+			// 	occurences.push(...findAllOccurrencesInExpression(nestedKey, searchTerm));
+			// }
 			return occurences;
 		}
 		case 'object':
@@ -1603,7 +1623,8 @@ function findAllOccurrencesInExpression(
 		}
 		case 'singleDictionaryField': {
 			const occurences = [
-				...findAllOccurrencesInExpression(expression.name, searchTerm),
+				// TODO rename field
+				// ...findAllOccurrencesInExpression(expression.name, searchTerm),
 				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
 				...findAllOccurrencesInExpression(expression.value, searchTerm),
 			];
@@ -1611,7 +1632,8 @@ function findAllOccurrencesInExpression(
 		}
 		case 'singleDictionaryTypeField': {
 			const occurences = [
-				...findAllOccurrencesInExpression(expression.name, searchTerm),
+				// TODO rename field
+				// ...findAllOccurrencesInExpression(expression.name, searchTerm),
 				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
 			];
 			return occurences;
