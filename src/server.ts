@@ -1,3 +1,9 @@
+import { readdirSync } from 'fs';
+import { dirname, extname, join } from 'path';
+import {
+	LanguageService,
+	getLanguageService as getHtmlLanguageService,
+} from 'vscode-html-languageservice';
 import {
 	CompletionItem,
 	CompletionItemKind,
@@ -18,11 +24,6 @@ import {
 	TextDocumentSyncKind,
 } from 'vscode-languageserver';
 import {
-	LanguageService,
-	getLanguageService as getHtmlLanguageService,
-} from 'vscode-html-languageservice';
-import { dirname, extname, join } from 'path';
-import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -38,7 +39,6 @@ import {
 	CompileTimeType,
 	Name,
 	PositionedExpression,
-	ParameterReference,
 	ParseDestructuringFields,
 	ParseFunctionCall,
 	ParseTextLiteral,
@@ -47,12 +47,6 @@ import {
 	Reference,
 	SymbolTable,
 	SymbolDefinition,
-	CompileTimeFunctionType,
-	ParametersType,
-	CompileTimeListType,
-	CompileTimeTupleType,
-	CompileTimeDictionaryLiteralType,
-	CompileTimeTypeOfType,
 	CompileTimeDictionary,
 	Parameter,
 	DefinitionExpression,
@@ -63,12 +57,19 @@ import {
 	findSymbolInScopesWithBuiltIns,
 	getStreamGetValueType,
 	getTypeError,
+	isBuiltInType,
+	isDictionaryLiteralType,
+	isFunctionType,
+	isListType,
+	isParamterReference,
+	isParamtersType,
+	isTupleType,
+	isTypeOfType,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { BuiltInTypeBase } from 'jul-compiler/out/runtime.js';
-import { readdirSync } from 'fs';
+import { _julTypeSymbol } from 'jul-compiler/out/runtime.js';
 
 // For performance do not process large files
 const maxFileSize = 100000;
@@ -366,7 +367,7 @@ connection.onCompletion(completionParams => {
 	if (infixFunctionCall) {
 		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.inferredType;
 		let prefixArgumentType: CompileTimeType | undefined;
-		if (prefixArgumentTypeRaw instanceof ParameterReference) {
+		if (isParamterReference(prefixArgumentTypeRaw)) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
 			prefixArgumentType = dereferenced?.symbol.inferredType;
 		}
@@ -379,19 +380,19 @@ connection.onCompletion(completionParams => {
 				return false;
 			}
 			const symbolType = symbol.dereferencedType;
-			if (symbolType instanceof CompileTimeFunctionType) {
+			if (isFunctionType(symbolType)) {
 				const paramsType = symbolType.ParamsType;
-				if (paramsType instanceof ParametersType) {
+				if (isParamtersType(paramsType)) {
 					let firstParameterType: CompileTimeType | undefined;
 					if (paramsType.singleNames.length) {
 						firstParameterType = paramsType.singleNames[0]?.type;
 					}
 					else if (paramsType.rest) {
 						const restType = paramsType.rest?.type;
-						if (restType instanceof CompileTimeListType) {
+						if (isListType(restType)) {
 							firstParameterType = restType.ElementType;
 						}
-						else if (restType instanceof CompileTimeTupleType) {
+						else if (isTupleType(restType)) {
 							firstParameterType = restType.ElementTypes[0];
 						}
 					}
@@ -423,15 +424,15 @@ connection.onCompletion(completionParams => {
 			}
 			case 'functionTypeLiteral': {
 				const typeOfFunctionType = dereferenced.dereferencedType;
-				const functionType = typeOfFunctionType instanceof CompileTimeTypeOfType
+				const functionType = isTypeOfType(typeOfFunctionType)
 					? typeOfFunctionType.value
 					: undefined;
 				return functionTypeToCompletionItems(functionType);
 			}
 			default: {
 				const dereferencedType = source?.dereferencedType;
-				if (dereferencedType instanceof BuiltInTypeBase) {
-					switch (dereferencedType.type) {
+				if (isBuiltInType(dereferencedType)) {
+					switch (dereferencedType[_julTypeSymbol]) {
 						case 'dictionaryLiteral':
 							return dictionaryTypeToCompletionItems(dereferencedType.Fields);
 						case 'stream':
@@ -481,9 +482,9 @@ connection.onCompletion(completionParams => {
 					return symbolsToCompletionItems([dereferenced.symbols], symbolFilter);
 				default: {
 					const dereferencedType = typeGuard?.dereferencedType;
-					if (dereferencedType instanceof CompileTimeTypeOfType) {
+					if (isTypeOfType(dereferencedType)) {
 						const innerType = dereferencedType.value;
-						if (innerType instanceof CompileTimeDictionaryLiteralType) {
+						if (isDictionaryLiteralType(innerType)) {
 							const allCompletionItems = dictionaryTypeToCompletionItems(innerType.Fields);
 							// schon definierte Felder ausschließen
 							if (expression.type === 'dictionary') {
@@ -573,7 +574,7 @@ connection.onCompletion(completionParams => {
 					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter);
 				default: {
 					const dereferencedType = destructuredValue?.dereferencedType;
-					if (dereferencedType instanceof CompileTimeDictionaryLiteralType) {
+					if (isDictionaryLiteralType(dereferencedType)) {
 						const allCompletionItems = dictionaryTypeToCompletionItems(dereferencedType.Fields);
 						// schon definierte Felder ausschließen
 						const filtered = allCompletionItems.filter(completionItem => {
@@ -600,9 +601,9 @@ connection.onCompletion(completionParams => {
 		const functionSymbol = getFunctionSymbolFromFunctionCall(functionCall, scopes);
 		if (functionSymbol) {
 			const functionDereferencedType = functionSymbol.symbol.dereferencedType;
-			if (functionDereferencedType instanceof CompileTimeFunctionType) {
+			if (isFunctionType(functionDereferencedType)) {
 				const paramsType = functionDereferencedType.ParamsType;
-				if (paramsType instanceof ParametersType) {
+				if (isParamtersType(paramsType)) {
 					const parameterCount = paramsType.singleNames.length + (paramsType.rest ? 1 : 0);
 					const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
 					const currentParameter = parameterIndex < paramsType.singleNames.length
@@ -610,9 +611,9 @@ connection.onCompletion(completionParams => {
 						: paramsType.rest;
 					if (currentParameter) {
 						const parameterType = currentParameter.type;
-						if (parameterType instanceof CompileTimeFunctionType) {
+						if (isFunctionType(parameterType)) {
 							const innerParamsType = parameterType.ParamsType;
-							if (innerParamsType instanceof ParametersType) {
+							if (isParamtersType(innerParamsType)) {
 								const completionItems: CompletionItem[] = [];
 								innerParamsType.singleNames.forEach((singleName, index) => {
 									const isAlreadyDeclared = expression.singleFields.some(declaredParameter =>
@@ -699,7 +700,7 @@ function functionTypeToCompletionItems(functionType: CompileTimeType | undefined
 	// TODO ParamsType, ReturnType stattdessen als symbols?
 	let paramsType: CompileTimeType | undefined;
 	let returnType: CompileTimeType | undefined;
-	if (functionType instanceof CompileTimeFunctionType) {
+	if (isFunctionType(functionType)) {
 		returnType = functionType.ReturnType;
 		paramsType = functionType.ParamsType;
 	}
@@ -750,7 +751,7 @@ function symbolsToCompletionItems(
 					return undefined;
 				}
 				const symbolType = symbol.dereferencedType;
-				const isFunction = symbolType instanceof CompileTimeFunctionType;
+				const isFunction = isFunctionType(symbolType);
 				const completionItem: CompletionItem = {
 					label: name,
 					kind: isFunction
