@@ -366,7 +366,7 @@ connection.onCompletion(completionParams => {
 	const infixFunctionCall = getInfixFunctionCall(expression);
 	if (infixFunctionCall) {
 		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.inferredType;
-		let prefixArgumentType: CompileTimeType | undefined;
+		let prefixArgumentType: CompileTimeType | null;
 		if (isParamterReference(prefixArgumentTypeRaw)) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
 			prefixArgumentType = dereferenced?.symbol.inferredType;
@@ -376,14 +376,14 @@ connection.onCompletion(completionParams => {
 		}
 
 		symbolFilter = symbol => {
-			if (prefixArgumentType === undefined) {
+			if (prefixArgumentType === null) {
 				return false;
 			}
 			const symbolType = symbol.dereferencedType;
 			if (isFunctionType(symbolType)) {
 				const paramsType = symbolType.ParamsType;
 				if (isParamtersType(paramsType)) {
-					let firstParameterType: CompileTimeType | undefined;
+					let firstParameterType: CompileTimeType | null;
 					if (paramsType.singleNames.length) {
 						firstParameterType = paramsType.singleNames[0]?.type;
 					}
@@ -396,7 +396,7 @@ connection.onCompletion(completionParams => {
 							firstParameterType = restType.ElementTypes[0];
 						}
 					}
-					if (firstParameterType === undefined) {
+					if (firstParameterType === null) {
 						return false;
 					}
 					const typeError = getTypeError(undefined, prefixArgumentType, firstParameterType);
@@ -643,7 +643,7 @@ function parameterToCompletionItem(parameter: Parameter, index: number, isRest: 
 	const completionItem: CompletionItem = {
 		label: (isRest ? '...' : '') + parameter.name,
 		kind: CompletionItemKind.Constant,
-		detail: parameter.type === undefined
+		detail: parameter.type === null
 			? undefined
 			: typeToString(parameter.type, 0),
 		// documentation: parameter.description,
@@ -696,10 +696,10 @@ function getParameterIndex(
 	return parameterIndex;
 }
 
-function functionTypeToCompletionItems(functionType: CompileTimeType | undefined): CompletionItem[] {
+function functionTypeToCompletionItems(functionType: CompileTimeType | null): CompletionItem[] {
 	// TODO ParamsType, ReturnType stattdessen als symbols?
-	let paramsType: CompileTimeType | undefined;
-	let returnType: CompileTimeType | undefined;
+	let paramsType: CompileTimeType | null;
+	let returnType: CompileTimeType | null;
 	if (isFunctionType(functionType)) {
 		returnType = functionType.ReturnType;
 		paramsType = functionType.ParamsType;
@@ -708,14 +708,14 @@ function functionTypeToCompletionItems(functionType: CompileTimeType | undefined
 		{
 			label: 'ParamsType',
 			kind: CompletionItemKind.Constant,
-			detail: paramsType === undefined
+			detail: paramsType === null
 				? undefined
 				: typeToString(paramsType, 0),
 		},
 		{
 			label: 'ReturnType',
 			kind: CompletionItemKind.Constant,
-			detail: returnType === undefined
+			detail: returnType === null
 				? undefined
 				: typeToString(returnType, 0),
 		},
@@ -757,7 +757,7 @@ function symbolsToCompletionItems(
 					kind: isFunction
 						? CompletionItemKind.Function
 						: CompletionItemKind.Constant,
-					detail: symbolType === undefined
+					detail: symbolType === null
 						? undefined
 						: typeToString(symbolType, 0),
 					documentation: symbol.description,
@@ -819,7 +819,7 @@ connection.onSignatureHelp(signatureParams => {
 			const normalizedFunctionType = functionSymbol.symbol.dereferencedType;
 			const signatureResult: SignatureHelp = {
 				signatures: [{
-					label: normalizedFunctionType === undefined
+					label: normalizedFunctionType === null
 						? functionSymbol.name
 						: typeToString(normalizedFunctionType, 0),
 					documentation: functionSymbol.symbol.description,
@@ -1842,11 +1842,11 @@ function getParsedFileByUri(uri: string): ParsedFile | undefined {
 //#endregion uri
 
 function getTypeMarkdown(
-	type: CompileTimeType | undefined,
+	type: CompileTimeType | null,
 	description: string | undefined,
 ): MarkupContent {
 	console.log(type);
-	const typeString = type === undefined
+	const typeString = type === null
 		? ''
 		: `\`\`\`jul
 ${typeToString(type, 0)}
