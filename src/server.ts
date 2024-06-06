@@ -62,7 +62,7 @@ import {
 	isFunctionType,
 	isListType,
 	isParamterReference,
-	isParamtersType,
+	isParametersType,
 	isTupleType,
 	isTypeOfType,
 	ParsedDocuments,
@@ -382,7 +382,7 @@ connection.onCompletion(completionParams => {
 			const symbolType = symbol.dereferencedType;
 			if (isFunctionType(symbolType)) {
 				const paramsType = symbolType.ParamsType;
-				if (isParamtersType(paramsType)) {
+				if (isParametersType(paramsType)) {
 					let firstParameterType: CompileTimeType | null;
 					if (paramsType.singleNames.length) {
 						firstParameterType = paramsType.singleNames[0]?.type;
@@ -603,7 +603,7 @@ connection.onCompletion(completionParams => {
 			const functionDereferencedType = functionSymbol.symbol.dereferencedType;
 			if (isFunctionType(functionDereferencedType)) {
 				const paramsType = functionDereferencedType.ParamsType;
-				if (isParamtersType(paramsType)) {
+				if (isParametersType(paramsType)) {
 					const parameterCount = paramsType.singleNames.length + (paramsType.rest ? 1 : 0);
 					const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
 					const currentParameter = parameterIndex < paramsType.singleNames.length
@@ -613,7 +613,7 @@ connection.onCompletion(completionParams => {
 						const parameterType = currentParameter.type;
 						if (isFunctionType(parameterType)) {
 							const innerParamsType = parameterType.ParamsType;
-							if (isParamtersType(innerParamsType)) {
+							if (isParametersType(innerParamsType)) {
 								const completionItems: CompletionItem[] = [];
 								innerParamsType.singleNames.forEach((singleName, index) => {
 									const isAlreadyDeclared = expression.singleFields.some(declaredParameter =>
