@@ -50,6 +50,7 @@ import {
 	CompileTimeDictionary,
 	Parameter,
 	DefinitionExpression,
+	ParseDestructuringField,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -844,12 +845,12 @@ connection.onDefinition((definitionParams) => {
 	if (!parsedFile) {
 		return;
 	}
+	const folderPath = dirname(documentPath);
 	const rowIndex = definitionParams.position.line;
 	const columnIndex = definitionParams.position.character;
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 	//#region go to imported file
 	if (isImportPath(expression)) {
-		const folderPath = dirname(documentPath);
 		const { fullPath, error } = getPathFromImport(expression.parent!.parent as ParseFunctionCall, folderPath);
 		if (error) {
 			console.log(error);
@@ -869,52 +870,14 @@ connection.onDefinition((definitionParams) => {
 	}
 	//#endregion go to imported file
 
-	//#region go to imported symbol
-	if (expression?.type === 'name'
-		&& expression.parent?.type === 'destructuringField'
-		&& (expression === expression.parent.name
-			|| expression === expression.parent.source)
-		&& expression.parent.parent?.type === 'destructuringFields') {
-		const destructuring = expression.parent.parent.parent;
-		if (destructuring?.type === 'destructuring'
-			&& destructuring.value
-			&& isImportFunctionCall(destructuring.value)) {
-			const folderPath = dirname(documentPath);
-			const { fullPath, error } = getPathFromImport(destructuring.value, folderPath);
-			if (error) {
-				console.log(error);
-				return;
-			}
-			if (!fullPath) {
-				return;
-			}
-			let range: Range = {
-				start: { character: 0, line: 0 },
-				end: { character: 0, line: 0 },
-			};
-			const importedDocument = parsedDocuments[fullPath];
-			if (importedDocument) {
-				const destructuringField = expression.parent;
-				const symbolName = destructuringField.source ?? destructuringField.name;
-				const importedSymbol = importedDocument.unchecked.symbols[symbolName.name];
-				if (importedSymbol) {
-					range = positionedToRange(importedSymbol);
-				}
-			}
-			const location: Location = {
-				uri: pathToUri(fullPath),
-				range: range,
-			};
-			return location;
-		}
-	}
-	//#endregion go to imported symbol
-	const foundSymbol = getSymbolDefinition(expression, scopes);
+	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
 	if (foundSymbol) {
 		const location: Location = {
 			uri: foundSymbol.isBuiltIn
 				? coreLibUri
-				: documentUri,
+				: foundSymbol.filePath
+					? pathToUri(foundSymbol.filePath)
+					: documentUri,
 			range: positionedToRange(foundSymbol.symbol)
 		};
 		return location;
@@ -924,7 +887,8 @@ connection.onDefinition((definitionParams) => {
 
 //#region hover
 connection.onHover((hoverParams) => {
-	const parsed = getParsedFileByUri(hoverParams.textDocument.uri);
+	const documentUri = hoverParams.textDocument.uri;
+	const parsed = getParsedFileByUri(documentUri);
 	if (!parsed) {
 		return;
 	}
@@ -944,7 +908,9 @@ connection.onHover((hoverParams) => {
 	// 	contents: 'expr type: ' + expression?.type,
 	// };
 
-	const foundSymbol = getSymbolDefinition(expression, scopes);
+	const documentPath = uriToPath(documentUri);
+	const folderPath = dirname(documentPath);
+	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
 		return {
@@ -966,7 +932,9 @@ connection.onPrepareRename(prepareRenameParams => {
 	if (!expression) {
 		return expression;
 	}
-	const foundSymbol = getSymbolDefinition(expression, scopes);
+	const documentPath = uriToPath(documentUri);
+	const folderPath = dirname(documentPath);
+	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
@@ -985,7 +953,9 @@ connection.onRenameRequest(renameParams => {
 	if (!expression) {
 		return;
 	}
-	const foundSymbol = getSymbolDefinition(expression, scopes);
+	const documentPath = uriToPath(documentUri);
+	const folderPath = dirname(documentPath);
+	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
 	if (!foundSymbol || foundSymbol.isBuiltIn || !foundSymbol.symbol.definition) {
 		return;
 	}
@@ -1655,29 +1625,24 @@ function findAllOccurrencesInExpression(
 	}
 }
 
-function getSearchName(searchTerm: Reference | Name): string {
-	switch (searchTerm.type) {
-		case 'name':
-			return searchTerm.name;
-		case 'reference':
-			return searchTerm.name.name;
-		default: {
-			const assertNever: never = searchTerm;
-			throw new Error(`Unexpected searchTerm.type: ${(assertNever as Reference | Name).type}`);
-		}
-	}
-}
-
 //#endregion findAllOccurrences
 
-// TODO go to source file bei import?
+//#region get Symbol
+
+//#endregion get Symbol
+
 function getSymbolDefinition(
 	expression: PositionedExpression | undefined,
 	scopes: SymbolTable[],
+	folderPath: string,
 ): {
 	isBuiltIn: boolean;
 	symbol: SymbolDefinition;
 	name: string;
+	/**
+	 * undefined, wenn Symbol in gleicher Datei gefunden
+	 */
+	filePath?: string;
 } | undefined {
 	if (!expression) {
 		return undefined;
@@ -1710,22 +1675,33 @@ function getSymbolDefinition(
 			const parent = expression.parent;
 			const name = expression.name;
 			switch (parent?.type) {
+				case 'destructuringField': {
+					const importedSymbol = getImportedSymbol(parent, folderPath);
+					return importedSymbol?.symbol && {
+						name: name,
+						isBuiltIn: false,
+						symbol: importedSymbol.symbol,
+						filePath: importedSymbol.filePath,
+					};
+				}
 				case 'nestedReference': {
 					const dereferencedSource = dereferenceTypeExpression(parent.source, scopes);
-					const foundSymbol = getSymbolFromDictionary(dereferencedSource, name);
+					const foundSymbol = getSymbolFromDictionary(dereferencedSource, name, scopes, folderPath);
 					return foundSymbol && {
 						name: name,
 						isBuiltIn: false,
-						symbol: foundSymbol,
+						symbol: foundSymbol.symbol,
+						filePath: foundSymbol.filePath,
 					};
 				}
 				case 'singleDictionaryField':
 				case 'singleDictionaryTypeField': {
-					const foundSymbol = getSymbolFromDictionary(parent.parent, name);
+					const foundSymbol = getSymbolFromDictionary(parent.parent, name, scopes, folderPath);
 					return foundSymbol && {
 						name: name,
 						isBuiltIn: false,
-						symbol: foundSymbol,
+						symbol: foundSymbol.symbol,
+						filePath: foundSymbol.filePath,
 					};
 				}
 				default: {
@@ -1769,15 +1745,91 @@ function getSymbolDefinition(
 	}
 }
 
-function getSymbolFromDictionary(dictionary: PositionedExpression | undefined, name: string) {
+function getSymbolFromDictionary(
+	dictionary: PositionedExpression | undefined,
+	name: string,
+	scopes: SymbolTable[],
+	folderPath: string,
+): {
+	symbol: SymbolDefinition;
+	/**
+	 * undefined, wenn Symbol in gleicher Datei gefunden
+	 */
+	filePath?: string;
+} | undefined {
 	switch (dictionary?.type) {
 		case 'dictionaryType':
 		case 'dictionary': {
-			const foundSymbol = dictionary.symbols[name];
-			return foundSymbol;
+			// wenn möglich Symbol des Felds im deklarierten DictionaryLiteralTyp liefern
+			const definition = dictionary.parent;
+			if (definition?.type === 'definition'
+				&& definition.value === dictionary
+				&& definition.typeGuard) {
+				const typeSymbol = getSymbolDefinition(definition.typeGuard, scopes, folderPath);
+				const typeDefinition = typeSymbol?.symbol.definition;
+				if (typeDefinition?.type === 'destructuringField') {
+					const importedSymbol = getImportedSymbol(typeDefinition, folderPath);
+					const typeDefinition2 = importedSymbol?.symbol?.definition;
+					const fieldSymbol = getFieldSymbol(typeDefinition2, name);
+					return fieldSymbol && {
+						symbol: fieldSymbol,
+						filePath: importedSymbol?.filePath,
+					};
+				}
+				else {
+					const fieldSymbol = getFieldSymbol(typeDefinition, name);
+					return fieldSymbol && { symbol: fieldSymbol };
+				}
+			}
+			const fieldSymbol = dictionary.symbols[name];
+			return fieldSymbol && { symbol: fieldSymbol };
 		}
 		default:
 			return undefined;
+	}
+}
+
+function getFieldSymbol(
+	typeDefinition: DefinitionExpression | undefined,
+	name: string,
+): SymbolDefinition | undefined {
+	if (typeDefinition?.type === 'definition'
+		&& typeDefinition.value?.type === 'dictionaryType') {
+		const fieldSymbol = typeDefinition.value?.symbols[name];
+		return fieldSymbol;
+	}
+}
+
+function getImportedSymbol(
+	destructuringField: ParseDestructuringField,
+	folderPath: string,
+): {
+	symbol: SymbolDefinition | undefined;
+	filePath: string;
+} | undefined {
+	if (destructuringField.parent?.type === 'destructuringFields') {
+		const destructuring = destructuringField.parent.parent;
+		if (destructuring?.type === 'destructuring'
+			&& destructuring.value
+			&& isImportFunctionCall(destructuring.value)) {
+			const { fullPath, error } = getPathFromImport(destructuring.value, folderPath);
+			if (error) {
+				console.log(error);
+				return;
+			}
+			if (!fullPath) {
+				return;
+			}
+			const importedDocument = parsedDocuments[fullPath];
+			if (importedDocument) {
+				const symbolName = destructuringField.source ?? destructuringField.name;
+				const importedSymbol = importedDocument.unchecked.symbols[symbolName.name];
+				return {
+					symbol: importedSymbol,
+					filePath: fullPath,
+				};
+			}
+		}
 	}
 }
 
