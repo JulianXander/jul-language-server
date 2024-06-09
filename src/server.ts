@@ -1629,8 +1629,6 @@ function findAllOccurrencesInExpression(
 
 //#region get Symbol
 
-//#endregion get Symbol
-
 function getSymbolDefinition(
 	expression: PositionedExpression | undefined,
 	scopes: SymbolTable[],
@@ -1832,6 +1830,8 @@ function getImportedSymbol(
 		}
 	}
 }
+
+//#endregion get Symbol
 
 function dereferenceTypeExpression(
 	sourceExpression: PositionedExpression,
