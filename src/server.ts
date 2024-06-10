@@ -254,6 +254,7 @@ connection.onCompletion(completionParams => {
 	if (!parsedFile) {
 		return;
 	}
+	const folderPath = dirname(documentPath);
 	const position = completionParams.position;
 	const rowIndex = position.line;
 	const columnIndex = position.character;
@@ -292,7 +293,6 @@ connection.onCompletion(completionParams => {
 
 	//#region import path
 	if (isImportPath(expression)) {
-		const folderPath = dirname(documentPath);
 		const rawImportedPath = expression.values[0]?.type === 'textToken'
 			? expression.values[0].value
 			: undefined;
@@ -414,7 +414,7 @@ connection.onCompletion(completionParams => {
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
 		const source = expression.source;
-		const dereferenced = dereferenceTypeExpression(source, scopes);
+		const dereferenced = dereferenceTypeExpression(source, scopes, folderPath)?.typeExpression;
 		switch (dereferenced?.type) {
 			case 'dictionary':
 			case 'dictionaryType':
@@ -476,7 +476,7 @@ connection.onCompletion(completionParams => {
 			&& expression.parent.value === expression
 			&& expression.parent.typeGuard) {
 			const typeGuard = expression.parent.typeGuard;
-			const dereferenced = dereferenceTypeExpression(typeGuard, scopes);
+			const dereferenced = dereferenceTypeExpression(typeGuard, scopes, folderPath)?.typeExpression;
 			switch (dereferenced?.type) {
 				case 'dictionary':
 				case 'dictionaryType':
@@ -508,7 +508,7 @@ connection.onCompletion(completionParams => {
 			if (!functionExpression) {
 				return [];
 			}
-			const dereferenced = dereferenceTypeExpression(functionExpression, scopes);
+			const dereferenced = dereferenceTypeExpression(functionExpression, scopes, folderPath)?.typeExpression;
 			if (dereferenced?.type === 'functionLiteral') {
 				if (dereferenced.params.type === 'parameters') {
 					return symbolsToCompletionItems([dereferenced.params.symbols], symbolFilter);
@@ -523,13 +523,13 @@ connection.onCompletion(completionParams => {
 			if (!functionExpression) {
 				return [];
 			}
-			const dereferencedFunction = dereferenceTypeExpression(functionExpression, scopes);
+			const dereferencedFunction = dereferenceTypeExpression(functionExpression, scopes, folderPath)?.typeExpression;
 			if (dereferencedFunction?.type === 'functionLiteral') {
 				if (dereferencedFunction.params.type === 'parameters') {
 					// TODO rest
 					const matchedParam = dereferencedFunction.params.singleFields[argIndex];
 					if (matchedParam?.typeGuard) {
-						const dereferencedParamType = dereferenceTypeExpression(matchedParam.typeGuard, scopes);
+						const dereferencedParamType = dereferenceTypeExpression(matchedParam.typeGuard, scopes, folderPath)?.typeExpression;
 						switch (dereferencedParamType?.type) {
 							case 'dictionary':
 							case 'dictionaryType':
@@ -1683,13 +1683,19 @@ function getSymbolDefinition(
 					};
 				}
 				case 'nestedReference': {
-					const dereferencedSource = dereferenceTypeExpression(parent.source, scopes);
-					const foundSymbol = getSymbolFromDictionary(dereferencedSource, name, scopes, folderPath);
+					const dereferencedSource = dereferenceTypeExpression(parent.source, scopes, folderPath);
+					if (!dereferencedSource) {
+						return undefined;
+					}
+					const dereferencedFolderPath = dereferencedSource.filePath
+						? dirname(dereferencedSource.filePath)
+						: folderPath;
+					const foundSymbol = getSymbolFromDictionary(dereferencedSource.typeExpression, name, scopes, dereferencedFolderPath);
 					return foundSymbol && {
 						name: name,
 						isBuiltIn: false,
 						symbol: foundSymbol.symbol,
-						filePath: foundSymbol.filePath,
+						filePath: foundSymbol.filePath ?? dereferencedSource.filePath,
 					};
 				}
 				case 'singleDictionaryField':
@@ -1822,7 +1828,8 @@ function getImportedSymbol(
 			const importedDocument = parsedDocuments[fullPath];
 			if (importedDocument) {
 				const symbolName = destructuringField.source ?? destructuringField.name;
-				const importedSymbol = importedDocument.unchecked.symbols[symbolName.name];
+				const impordedExpressions = importedDocument.checked ?? importedDocument.unchecked;
+				const importedSymbol = impordedExpressions.symbols[symbolName.name];
 				return {
 					symbol: importedSymbol,
 					filePath: fullPath,
@@ -1837,7 +1844,14 @@ function getImportedSymbol(
 function dereferenceTypeExpression(
 	sourceExpression: PositionedExpression,
 	scopes: SymbolTable[],
-): PositionedExpression | undefined {
+	folderPath: string,
+): {
+	typeExpression: PositionedExpression;
+	/**
+	 * undefined, wenn Symbol in gleicher Datei gefunden
+	 */
+	filePath?: string;
+} | undefined {
 	switch (sourceExpression.type) {
 		case 'reference':
 			const dereferenced = findSymbolInScopesWithBuiltIns(sourceExpression.name.name, scopes);
@@ -1845,10 +1859,22 @@ function dereferenceTypeExpression(
 				return undefined;
 			}
 			const dereferencedType = dereferenced.symbol.typeExpression;
-			// TODO fix scopes?
-			return dereferencedType && dereferenceTypeExpression(dereferencedType, scopes);
+			if (dereferencedType) {
+				// TODO fix scopes?
+				return dereferenceTypeExpression(dereferencedType, scopes, folderPath);
+			}
+			const definition = dereferenced.symbol.definition;
+			if (definition?.type === 'destructuringField') {
+				const importedSymbol = getImportedSymbol(definition, folderPath);
+				const typeExpression = importedSymbol?.symbol?.typeExpression;
+				return typeExpression && {
+					typeExpression: typeExpression,
+					filePath: importedSymbol.filePath,
+				};
+			}
+			return undefined;
 		default:
-			return sourceExpression;
+			return { typeExpression: sourceExpression };
 	}
 }
 
