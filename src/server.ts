@@ -1760,6 +1760,7 @@ function getSymbolFromDictionary(
 		case 'dictionary': {
 			// wenn möglich Symbol des Felds im deklarierten DictionaryLiteralTyp liefern
 			const definition = dictionary.parent;
+			// TODO wenn dictionary reference: definition holen, und davon den typeGuard nehmen
 			if (definition?.type === 'definition'
 				&& definition.value === dictionary
 				&& definition.typeGuard) {
