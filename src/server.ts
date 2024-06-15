@@ -37,14 +37,11 @@ import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js
 import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
 import {
 	CompileTimeType,
-	Name,
 	PositionedExpression,
 	ParseDestructuringFields,
 	ParseFunctionCall,
-	ParseTextLiteral,
 	ParseValueExpression,
 	ParsedFile,
-	Reference,
 	SymbolTable,
 	SymbolDefinition,
 	CompileTimeDictionary,
@@ -55,6 +52,7 @@ import {
 import {
 	builtInSymbols,
 	checkTypes,
+	dereferenceNameFromObject,
 	findSymbolInScopesWithBuiltIns,
 	getStreamGetValueType,
 	getTypeError,
@@ -66,6 +64,7 @@ import {
 	isParametersType,
 	isTupleType,
 	isTypeOfType,
+	isUnionType,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker.js';
@@ -291,58 +290,77 @@ connection.onCompletion(completionParams => {
 	}
 	//#endregion embbeded language
 
-	//#region import path
-	if (isImportPath(expression)) {
-		const rawImportedPath = expression.values[0]?.type === 'textToken'
-			? expression.values[0].value
-			: undefined;
-		let entryFolderPath = folderPath;
-		let entries;
-		if (rawImportedPath) {
-			entryFolderPath = join(folderPath, rawImportedPath);
-			try {
+	if (expression?.type === 'text') {
+		//#region import path
+		if (isImportPath(expression)) {
+			const rawImportedPath = expression.values[0]?.type === 'textToken'
+				? expression.values[0].value
+				: undefined;
+			let entryFolderPath = folderPath;
+			let entries;
+			if (rawImportedPath) {
+				entryFolderPath = join(folderPath, rawImportedPath);
+				try {
+					entries = readdirSync(entryFolderPath, { withFileTypes: true });
+				} catch (error) {
+					console.error(error);
+				}
+			}
+			if (!entries) {
+				entryFolderPath = folderPath;
 				entries = readdirSync(entryFolderPath, { withFileTypes: true });
-			} catch (error) {
-				console.error(error);
 			}
-		}
-		if (!entries) {
-			entryFolderPath = folderPath;
-			entries = readdirSync(entryFolderPath, { withFileTypes: true });
-		}
-		return entries.map(entry => {
-			const entryName = entry.name;
-			const isDirectory = entry.isDirectory();
-			// selbst import nicht vorschlagen
-			if (!isDirectory) {
-				const entryFilePath = join(entryFolderPath, entryName);
-				if (entryFilePath === documentPath) {
-					return undefined;
+			return entries.map(entry => {
+				const entryName = entry.name;
+				const isDirectory = entry.isDirectory();
+				// selbst import nicht vorschlagen
+				if (!isDirectory) {
+					const entryFilePath = join(entryFolderPath, entryName);
+					if (entryFilePath === documentPath) {
+						return undefined;
+					}
 				}
-			}
-			// nur Dateien mit importierbarer extension vorschlagen
-			// TODO nur Ordner, die importierbare Dateien enthalten vorschlagen
-			const extension = extname(entryName);
-			if (!isDirectory) {
-				if (!isValidExtension(extension)) {
-					return undefined;
+				// nur Dateien mit importierbarer extension vorschlagen
+				// TODO nur Ordner, die importierbare Dateien enthalten vorschlagen
+				const extension = extname(entryName);
+				if (!isDirectory) {
+					if (!isValidExtension(extension)) {
+						return undefined;
+					}
 				}
-			}
-			const completionItem: CompletionItem = {
-				label: entryName,
-				insertText: (rawImportedPath
-					? ''
-					: './') + entryName,
-				kind: isDirectory
-					? CompletionItemKind.Folder
-					: CompletionItemKind.File,
-				detail: undefined,
-				documentation: undefined,
-			};
-			return completionItem;
-		}).filter(isDefined);
+				const completionItem: CompletionItem = {
+					label: entryName,
+					insertText: (rawImportedPath
+						? ''
+						: './') + entryName,
+					kind: isDirectory
+						? CompletionItemKind.Folder
+						: CompletionItemKind.File,
+					detail: undefined,
+					documentation: undefined,
+				};
+				return completionItem;
+			}).filter(isDefined);
+		}
+		//#endregion import path
+
+		//#region Text literal with declared type
+		const declaredType = getDeclaredType(expression);
+		switch (typeof declaredType) {
+			case 'string':
+				return [stringToCompletionItem(declaredType)];
+			case 'object':
+				if (isUnionType(declaredType)) {
+					return declaredType.ChoiceTypes
+						.filter((choiceType): choiceType is string =>
+							typeof choiceType === 'string')
+						.map(stringToCompletionItem);
+				}
+			default:
+				break;
+		}
+		//#endregion Text literal with declared type
 	}
-	//#endregion import path
 
 	const allScopes = [...scopes, builtInSymbols];
 	let symbolFilter: ((symbol: SymbolDefinition, name: string) => boolean) | undefined = undefined;
@@ -472,6 +490,7 @@ connection.onCompletion(completionParams => {
 				return !expression.symbols[name];
 			};
 		}
+		// TODO refactor mit getDeclaredType
 		if (expression.parent?.type === 'definition'
 			&& expression.parent.value === expression
 			&& expression.parent.typeGuard) {
@@ -640,6 +659,46 @@ connection.onCompletion(completionParams => {
 	return symbolsToCompletionItems(allScopes);
 });
 
+// TODO CompileTimeType vs TypeExpression vs Symbol liefern?
+function getDeclaredType(expression: PositionedExpression): CompileTimeType | null {
+	// TODO recursive getDeclaredType für List elements
+	// TODO if expression is function function call arg: get type from parameter
+	switch (expression.parent?.type) {
+		case 'definition':
+			if (expression.parent.value === expression
+				&& expression.parent.typeGuard) {
+				const dereferencedType = expression.parent.typeGuard.dereferencedType;
+				if (isTypeOfType(dereferencedType)) {
+					return dereferencedType.value;
+				}
+				return dereferencedType;
+			}
+			else {
+				return null;
+			}
+		case 'singleDictionaryField': {
+			const dictionary = expression.parent.parent;
+			if (!dictionary) {
+				return null;
+			}
+			const dictionaryDeclaredType = getDeclaredType(dictionary);
+			if (dictionaryDeclaredType === null) {
+				return null;
+			}
+			const nameString = getCheckedEscapableName(expression.parent.name);
+			if (!nameString) {
+				return null;
+			}
+			const dereferencedName = dereferenceNameFromObject(nameString, dictionaryDeclaredType);
+			return dereferencedName;
+		}
+		case undefined:
+			return null;
+		default:
+			return null;
+	}
+}
+
 function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {
 	const completionItem: CompletionItem = {
 		label: (isRest ? '...' : '') + parameter.name,
@@ -721,6 +780,17 @@ function functionTypeToCompletionItems(functionType: CompileTimeType | null): Co
 				: typeToString(returnType, 0),
 		},
 	];
+}
+
+function stringToCompletionItem(value: string): CompletionItem {
+	const completionItem: CompletionItem = {
+		label: value,
+		kind: CompletionItemKind.Constant,
+		// kind: CompletionItemKind.Text,
+		// detail: typeToString(value, 0),
+		// documentation: symbol.description,
+	};
+	return completionItem;
 }
 
 function dictionaryTypeToCompletionItems(
@@ -851,7 +921,7 @@ connection.onDefinition((definitionParams) => {
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 	//#region go to imported file
 	if (isImportPath(expression)) {
-		const { fullPath, error } = getPathFromImport(expression.parent!.parent as ParseFunctionCall, folderPath);
+		const { fullPath, error } = getPathFromImport(expression!.parent!.parent as ParseFunctionCall, folderPath);
 		if (error) {
 			console.log(error);
 			return;
@@ -1877,7 +1947,7 @@ function dereferenceTypeExpression(
 	}
 }
 
-function isImportPath(expression: PositionedExpression | undefined): expression is ParseTextLiteral {
+function isImportPath(expression: PositionedExpression | undefined): boolean {
 	if (expression
 		&& expression.type === 'text'
 		&& expression.parent?.type === 'list'
