@@ -482,86 +482,32 @@ connection.onCompletion(completionParams => {
 	if (expression?.type === 'empty'
 		|| expression?.type === 'dictionary'
 		|| expression?.type === 'object') {
-		console.log('dictionary literal field');
-		console.log(expression.type);
-		if (expression.type === 'dictionary') {
-			// bei dictionary literal schon definierte Felder ausschließen
-			symbolFilter = (symbol, name) => {
-				return !expression.symbols[name];
-			};
-		}
-		// TODO refactor mit getDeclaredType
-		if (expression.parent?.type === 'definition'
-			&& expression.parent.value === expression
-			&& expression.parent.typeGuard) {
-			const typeGuard = expression.parent.typeGuard;
-			const dereferenced = dereferenceTypeExpression(typeGuard, scopes, folderPath)?.typeExpression;
-			switch (dereferenced?.type) {
-				case 'dictionary':
-				case 'dictionaryType':
-					return symbolsToCompletionItems([dereferenced.symbols], symbolFilter);
-				default: {
-					const dereferencedType = typeGuard?.dereferencedType;
-					if (isTypeOfType(dereferencedType)) {
-						const innerType = dereferencedType.value;
-						if (isDictionaryLiteralType(innerType)) {
-							const allCompletionItems = dictionaryTypeToCompletionItems(innerType.Fields);
-							// schon definierte Felder ausschließen
-							if (expression.type === 'dictionary') {
-								const filtered = allCompletionItems.filter(completionItem => {
-									return !expression.symbols[completionItem.label];
-								});
-								return filtered;
-							}
-							return allCompletionItems;
-						}
-					}
-					return [];
-				}
+		const declaredType = getDeclaredType(expression);
+		if (isDictionaryLiteralType(declaredType)) {
+			const completionItems = dictionaryTypeToCompletionItems(declaredType.Fields);
+			// schon definierte Felder ausschließen
+			if (expression.type === 'dictionary') {
+				const filtered = completionItems.filter(completionItem => {
+					return !expression.symbols[completionItem.label];
+				});
+				return filtered;
 			}
+			return completionItems;
 		}
 		//#region function call arg
-		// TODO handle prefix arg
-		if (expression.parent?.type === 'functionCall') {
-			const functionExpression = expression.parent.functionExpression;
-			if (!functionExpression) {
-				return [];
+		if (isParametersType(declaredType)) {
+			const completionItems = declaredType.singleNames.map((singleName, index) => {
+				return parameterToCompletionItem(singleName, index, false);
+			});
+			// schon definierte Argumente ausschließen
+			if (expression.type === 'dictionary') {
+				const filtered = completionItems.filter(completionItem => {
+					return !expression.symbols[completionItem.label];
+				});
+				return filtered;
 			}
-			const dereferenced = dereferenceTypeExpression(functionExpression, scopes, folderPath)?.typeExpression;
-			if (dereferenced?.type === 'functionLiteral') {
-				if (dereferenced.params.type === 'parameters') {
-					return symbolsToCompletionItems([dereferenced.params.symbols], symbolFilter);
-				}
-			}
-			return [];
+			return completionItems;
 		}
-		if (expression.parent?.type === 'list'
-			&& expression.parent.parent?.type === 'functionCall') {
-			const argIndex = expression.parent.values.indexOf(expression);
-			const functionExpression = expression.parent.parent.functionExpression;
-			if (!functionExpression) {
-				return [];
-			}
-			const dereferencedFunction = dereferenceTypeExpression(functionExpression, scopes, folderPath)?.typeExpression;
-			if (dereferencedFunction?.type === 'functionLiteral') {
-				if (dereferencedFunction.params.type === 'parameters') {
-					// TODO rest
-					const matchedParam = dereferencedFunction.params.singleFields[argIndex];
-					if (matchedParam?.typeGuard) {
-						const dereferencedParamType = dereferenceTypeExpression(matchedParam.typeGuard, scopes, folderPath)?.typeExpression;
-						switch (dereferencedParamType?.type) {
-							case 'dictionary':
-							case 'dictionaryType':
-								return symbolsToCompletionItems([dereferencedParamType.symbols], symbolFilter);
-							default:
-								return [];
-						}
-					}
-				}
-			}
-			return [];
-		}
-		// TODO function call dictionary arg
 		//#endregion function call arg
 	}
 	//#endregion dictionary literal field
@@ -610,48 +556,22 @@ connection.onCompletion(completionParams => {
 	//#endregion destructuring definition field
 
 	//#region function literal parameter name
-	// Wenn function literal argument eines functionCalls ist
-	if (expression?.type === 'parameters'
-		&& expression.parent?.type === 'functionLiteral'
-		&& expression.parent.parent?.type === 'list'
-		&& expression.parent.parent.parent?.type === 'functionCall'
-		&& expression.parent.parent.parent.arguments === expression.parent.parent
-	) {
-		const functionCall = expression.parent.parent.parent;
-		const functionSymbol = getFunctionSymbolFromFunctionCall(functionCall, scopes);
-		if (functionSymbol) {
-			const functionDereferencedType = functionSymbol.symbol.dereferencedType;
-			if (isFunctionType(functionDereferencedType)) {
-				const paramsType = functionDereferencedType.ParamsType;
-				if (isParametersType(paramsType)) {
-					const parameterCount = paramsType.singleNames.length + (paramsType.rest ? 1 : 0);
-					const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
-					const currentParameter = parameterIndex < paramsType.singleNames.length
-						? paramsType.singleNames[parameterIndex]
-						: paramsType.rest;
-					if (currentParameter) {
-						const parameterType = currentParameter.type;
-						if (isFunctionType(parameterType)) {
-							const innerParamsType = parameterType.ParamsType;
-							if (isParametersType(innerParamsType)) {
-								const completionItems: CompletionItem[] = [];
-								innerParamsType.singleNames.forEach((singleName, index) => {
-									const isAlreadyDeclared = expression.singleFields.some(declaredParameter =>
-										declaredParameter.source === singleName.name
-										|| (!declaredParameter.source && declaredParameter.name.name === singleName.name));
-									if (!isAlreadyDeclared) {
-										completionItems.push(parameterToCompletionItem(singleName, index, false));
-									}
-								});
-								if (innerParamsType.rest && !expression.rest) {
-									completionItems.push(parameterToCompletionItem(innerParamsType.rest, innerParamsType.singleNames.length, true));
-								}
-								return completionItems;
-							}
-						}
-					}
+	if (expression?.type === 'parameters') {
+		const innerParamsType = getDeclaredType(expression);
+		if (isParametersType(innerParamsType)) {
+			const completionItems: CompletionItem[] = [];
+			innerParamsType.singleNames.forEach((singleName, index) => {
+				const isAlreadyDeclared = expression.singleFields.some(declaredParameter =>
+					declaredParameter.source === singleName.name
+					|| (!declaredParameter.source && declaredParameter.name.name === singleName.name));
+				if (!isAlreadyDeclared) {
+					completionItems.push(parameterToCompletionItem(singleName, index, false));
 				}
+			});
+			if (innerParamsType.rest && !expression.rest) {
+				completionItems.push(parameterToCompletionItem(innerParamsType.rest, innerParamsType.singleNames.length, true));
 			}
+			return completionItems;
 		}
 	}
 	//#endregion function literal parameter name
@@ -662,7 +582,6 @@ connection.onCompletion(completionParams => {
 // TODO CompileTimeType vs TypeExpression vs Symbol liefern?
 function getDeclaredType(expression: PositionedExpression): CompileTimeType | null {
 	// TODO recursive getDeclaredType für List elements
-	// TODO if expression is function function call arg: get type from parameter
 	switch (expression.parent?.type) {
 		case 'definition':
 			if (expression.parent.value === expression
@@ -676,6 +595,54 @@ function getDeclaredType(expression: PositionedExpression): CompileTimeType | nu
 			else {
 				return null;
 			}
+		case 'functionLiteral': {
+			if (expression.parent.params !== expression) {
+				return null;
+			}
+			const functionLiteralDeclaredType = getDeclaredType(expression.parent);
+			if (!isFunctionType(functionLiteralDeclaredType)) {
+				return null;
+			}
+			return functionLiteralDeclaredType.ParamsType;
+		}
+		case 'functionCall': {
+			// function call arg
+			// TODO handle prefix arg
+			if (expression.parent.arguments !== expression) {
+				return null;
+			}
+			const functionExpression = expression.parent.functionExpression;
+			if (!functionExpression) {
+				return null;
+			}
+			const functionType = functionExpression.dereferencedType;
+			if (isFunctionType(functionType)) {
+				return functionType.ParamsType;
+			}
+			return null;
+		}
+		case 'list': {
+			const functionCall = expression.parent.parent;
+			if (functionCall?.type === 'functionCall'
+				&& functionCall.arguments === expression.parent) {
+				// function call arg
+				const paramsType = getDeclaredType(expression.parent);
+				if (!isParametersType(paramsType)) {
+					return null;
+				}
+				const parameterCount = paramsType.singleNames.length + (paramsType.rest ? 1 : 0);
+				const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
+				const currentParameter = parameterIndex < paramsType.singleNames.length
+					? paramsType.singleNames[parameterIndex]
+					: paramsType.rest;
+				if (!currentParameter) {
+					return null;
+				}
+				return currentParameter.type;
+			}
+			// Todo return list element type
+			return null;
+		}
 		case 'singleDictionaryField': {
 			const dictionary = expression.parent.parent;
 			if (!dictionary) {
