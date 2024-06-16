@@ -52,6 +52,7 @@ import {
 import {
 	builtInSymbols,
 	checkTypes,
+	dereferenceIndexFromObject,
 	dereferenceNameFromObject,
 	findSymbolInScopesWithBuiltIns,
 	getStreamGetValueType,
@@ -622,26 +623,31 @@ function getDeclaredType(expression: PositionedExpression): CompileTimeType | nu
 			return null;
 		}
 		case 'list': {
-			const functionCall = expression.parent.parent;
+			const list = expression.parent;
+			const listType = getDeclaredType(list);
+			if (listType === null) {
+				return null;
+			}
+			const functionCall = list.parent;
 			if (functionCall?.type === 'functionCall'
-				&& functionCall.arguments === expression.parent) {
+				&& functionCall.arguments === list) {
 				// function call arg
-				const paramsType = getDeclaredType(expression.parent);
-				if (!isParametersType(paramsType)) {
+				if (!isParametersType(listType)) {
 					return null;
 				}
-				const parameterCount = paramsType.singleNames.length + (paramsType.rest ? 1 : 0);
+				const parameterCount = listType.singleNames.length + (listType.rest ? 1 : 0);
 				const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
-				const currentParameter = parameterIndex < paramsType.singleNames.length
-					? paramsType.singleNames[parameterIndex]
-					: paramsType.rest;
+				const currentParameter = parameterIndex < listType.singleNames.length
+					? listType.singleNames[parameterIndex]
+					: listType.rest;
 				if (!currentParameter) {
 					return null;
 				}
 				return currentParameter.type;
 			}
-			// Todo return list element type
-			return null;
+			const index = list.values.indexOf(expression as any);
+			const elementType = dereferenceIndexFromObject(index, listType);
+			return elementType;
 		}
 		case 'singleDictionaryField': {
 			const dictionary = expression.parent.parent;
@@ -656,8 +662,8 @@ function getDeclaredType(expression: PositionedExpression): CompileTimeType | nu
 			if (!nameString) {
 				return null;
 			}
-			const dereferencedName = dereferenceNameFromObject(nameString, dictionaryDeclaredType);
-			return dereferencedName;
+			const fieldType = dereferenceNameFromObject(nameString, dictionaryDeclaredType);
+			return fieldType;
 		}
 		case undefined:
 			return null;
