@@ -2001,9 +2001,9 @@ function getTypeMarkdown(
 	console.log(type);
 	const typeString = type
 		? `\`\`\`jul
-	${typeToString(type.rawType, 0)}
-	\`\`\`
-	`
+${typeToString(type.rawType, 0)}
+\`\`\`
+`
 		: '';
 	return {
 		kind: 'markdown',
