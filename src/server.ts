@@ -484,32 +484,36 @@ connection.onCompletion(completionParams => {
 		|| expression?.type === 'dictionary'
 		|| expression?.type === 'object') {
 		const declaredType = getDeclaredType(expression);
+		let allCompletionItems: CompletionItem[] | undefined;
 		if (isDictionaryLiteralType(declaredType)) {
-			const completionItems = dictionaryTypeToCompletionItems(declaredType.Fields);
-			// schon definierte Felder ausschließen
-			if (expression.type === 'dictionary') {
-				const filtered = completionItems.filter(completionItem => {
-					return !expression.symbols[completionItem.label];
-				});
-				return filtered;
-			}
-			return completionItems;
+			allCompletionItems = dictionaryTypeToCompletionItems(declaredType.Fields);
+		}
+		if (isUnionType(declaredType)) {
+			allCompletionItems = declaredType.ChoiceTypes.flatMap(choiceType => {
+				if (isDictionaryLiteralType(choiceType)) {
+					const completionItems = dictionaryTypeToCompletionItems(choiceType.Fields);
+					return completionItems;
+				}
+				return [];
+			});
 		}
 		//#region function call arg
 		if (isParametersType(declaredType)) {
-			const completionItems = declaredType.singleNames.map((singleName, index) => {
+			allCompletionItems = declaredType.singleNames.map((singleName, index) => {
 				return parameterToCompletionItem(singleName, index, false);
 			});
-			// schon definierte Argumente ausschließen
+		}
+		//#endregion function call arg
+		if (allCompletionItems) {
+			// schon definierte Felder ausschließen
 			if (expression.type === 'dictionary') {
-				const filtered = completionItems.filter(completionItem => {
+				const filtered = allCompletionItems.filter(completionItem => {
 					return !expression.symbols[completionItem.label];
 				});
 				return filtered;
 			}
-			return completionItems;
+			return allCompletionItems;
 		}
-		//#endregion function call arg
 	}
 	//#endregion dictionary literal field
 
