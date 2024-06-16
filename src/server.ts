@@ -813,13 +813,6 @@ connection.onHover((hoverParams) => {
 		return;
 	}
 
-	const declaredType = getDeclaredType(expression);
-	if (declaredType) {
-		return {
-			contents: getTypeMarkdown(declaredType, undefined),
-		};
-	}
-
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
 	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
@@ -827,6 +820,13 @@ connection.onHover((hoverParams) => {
 		const symbol = foundSymbol.symbol;
 		return {
 			contents: getTypeMarkdown(symbol.typeInfo, symbol.description),
+		};
+	}
+
+	const declaredType = getDeclaredType(expression);
+	if (declaredType) {
+		return {
+			contents: getTypeMarkdown(declaredType, undefined),
 		};
 	}
 });
