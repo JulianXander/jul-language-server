@@ -489,12 +489,17 @@ connection.onCompletion(completionParams => {
 			allCompletionItems = dictionaryTypeToCompletionItems(declaredType.Fields);
 		}
 		if (isUnionType(declaredType)) {
-			allCompletionItems = declaredType.ChoiceTypes.flatMap(choiceType => {
+			allCompletionItems = [];
+			declaredType.ChoiceTypes.forEach(choiceType => {
 				if (isDictionaryLiteralType(choiceType)) {
 					const completionItems = dictionaryTypeToCompletionItems(choiceType.Fields);
-					return completionItems;
+					completionItems.forEach(newCompletionItem => {
+						// Duplikate vermeiden
+						if (!allCompletionItems?.some(existingCompletionItem => existingCompletionItem.label === newCompletionItem.label)) {
+							allCompletionItems?.push(newCompletionItem);
+						}
+					});
 				}
-				return [];
 			});
 		}
 		//#region function call arg
