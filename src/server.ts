@@ -432,48 +432,29 @@ connection.onCompletion(completionParams => {
 
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
-		const source = expression.source;
-		const dereferenced = dereferenceTypeExpression(source, scopes, folderPath)?.typeExpression;
-		switch (dereferenced?.type) {
-			case 'dictionary':
-			case 'dictionaryType':
-				return symbolsToCompletionItems([dereferenced.symbols]);
-			case 'functionLiteral': {
-				const functionType = dereferenced.dereferencedType;
-				return functionTypeToCompletionItems(functionType);
-			}
-			case 'functionTypeLiteral': {
-				const typeOfFunctionType = dereferenced.dereferencedType;
-				const functionType = isTypeOfType(typeOfFunctionType)
-					? typeOfFunctionType.value
-					: undefined;
-				return functionTypeToCompletionItems(functionType);
-			}
-			default: {
-				const dereferencedType = source?.dereferencedType;
-				if (isBuiltInType(dereferencedType)) {
-					switch (dereferencedType[_julTypeSymbol]) {
-						case 'dictionaryLiteral':
-							return dictionaryTypeToCompletionItems(dereferencedType.Fields);
-						case 'stream':
-							return [
-								{
-									label: 'getValue',
-									kind: CompletionItemKind.Function,
-									detail: typeToString(getStreamGetValueType(dereferencedType), 0),
-								},
-								// TODO? nur bei TypeOf(Stream)
-								{
-									label: 'ValueType',
-									kind: CompletionItemKind.Constant,
-									detail: typeToString(dereferencedType.ValueType, 0),
-								},
-							];
-						default:
-							break;
-					}
-				}
-				return [];
+		const dereferencedType = expression.source?.dereferencedType;
+		if (isBuiltInType(dereferencedType)) {
+			switch (dereferencedType[_julTypeSymbol]) {
+				case 'dictionaryLiteral':
+					return dictionaryTypeToCompletionItems(dereferencedType.Fields);
+				case 'function':
+					return functionTypeToCompletionItems(dereferencedType);
+				case 'stream':
+					return [
+						{
+							label: 'getValue',
+							kind: CompletionItemKind.Function,
+							detail: typeToString(getStreamGetValueType(dereferencedType), 0),
+						},
+						// TODO? nur bei TypeOf(Stream)
+						{
+							label: 'ValueType',
+							kind: CompletionItemKind.Constant,
+							detail: typeToString(dereferencedType.ValueType, 0),
+						},
+					];
+				default:
+					return [];
 			}
 		}
 	}
@@ -589,97 +570,7 @@ connection.onCompletion(completionParams => {
 	return symbolsToCompletionItems(allScopes);
 });
 
-// TODO CompileTimeType vs TypeExpression vs Symbol liefern?
-function getDeclaredType(expression: PositionedExpression): CompileTimeType | null {
-	// TODO recursive getDeclaredType für List elements
-	switch (expression.parent?.type) {
-		case 'definition':
-			if (expression.parent.value === expression
-				&& expression.parent.typeGuard) {
-				const dereferencedType = expression.parent.typeGuard.dereferencedType;
-				if (isTypeOfType(dereferencedType)) {
-					return dereferencedType.value;
-				}
-				return dereferencedType;
-			}
-			else {
-				return null;
-			}
-		case 'functionLiteral': {
-			if (expression.parent.params !== expression) {
-				return null;
-			}
-			const functionLiteralDeclaredType = getDeclaredType(expression.parent);
-			if (!isFunctionType(functionLiteralDeclaredType)) {
-				return null;
-			}
-			return functionLiteralDeclaredType.ParamsType;
-		}
-		case 'functionCall': {
-			// function call arg
-			// TODO handle prefix arg
-			if (expression.parent.arguments !== expression) {
-				return null;
-			}
-			const functionExpression = expression.parent.functionExpression;
-			if (!functionExpression) {
-				return null;
-			}
-			const functionType = functionExpression.dereferencedType;
-			if (isFunctionType(functionType)) {
-				return functionType.ParamsType;
-			}
-			return null;
-		}
-		case 'list': {
-			const list = expression.parent;
-			const listType = getDeclaredType(list);
-			if (listType === null) {
-				return null;
-			}
-			const functionCall = list.parent;
-			if (functionCall?.type === 'functionCall'
-				&& functionCall.arguments === list) {
-				// function call arg
-				if (!isParametersType(listType)) {
-					return null;
-				}
-				const parameterCount = listType.singleNames.length + (listType.rest ? 1 : 0);
-				const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
-				const currentParameter = parameterIndex < listType.singleNames.length
-					? listType.singleNames[parameterIndex]
-					: listType.rest;
-				if (!currentParameter) {
-					return null;
-				}
-				return currentParameter.type;
-			}
-			const index = list.values.indexOf(expression as any);
-			const elementType = dereferenceIndexFromObject(index, listType);
-			return elementType;
-		}
-		case 'singleDictionaryField': {
-			const dictionary = expression.parent.parent;
-			if (!dictionary) {
-				return null;
-			}
-			const dictionaryDeclaredType = getDeclaredType(dictionary);
-			if (dictionaryDeclaredType === null) {
-				return null;
-			}
-			const nameString = getCheckedEscapableName(expression.parent.name);
-			if (!nameString) {
-				return null;
-			}
-			const fieldType = dereferenceNameFromObject(nameString, dictionaryDeclaredType);
-			return fieldType;
-		}
-		case undefined:
-			return null;
-		default:
-			return null;
-	}
-}
+//#region create CompletionItems
 
 function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {
 	const completionItem: CompletionItem = {
@@ -692,50 +583,6 @@ function parameterToCompletionItem(parameter: Parameter, index: number, isRest: 
 		sortText: '' + index,
 	};
 	return completionItem;
-}
-
-function getFunctionSymbolFromFunctionCall(functionCall: ParseFunctionCall, scopes: SymbolTable[]): {
-	name: string;
-	isBuiltIn: boolean;
-	symbol: SymbolDefinition;
-} | undefined {
-	const functionExpression = functionCall.functionExpression;
-	if (functionExpression?.type === 'reference') {
-		const functionName = functionExpression.name.name;
-		const functionSymbol = findSymbolInScopesWithBuiltIns(functionName, scopes);
-		return functionSymbol && {
-			...functionSymbol,
-			name: functionName,
-		};
-	}
-}
-
-/**
- * Ermittelt den Index des Parameters, für den das Argument ist, das an der Position liegt.
- * Position muss in arguments liegen.
- */
-function getParameterIndex(
-	functionCall: ParseFunctionCall,
-	rowIndex: number,
-	columnIndex: number,
-	parameterCount: number,
-) {
-	const argsExpression = functionCall.arguments;
-	// TODO parameter index ermitteln bei function call mit dictionary Argument
-	let parameterIndex = functionCall.prefixArgument ? 1 : 0;
-	if (argsExpression?.type === 'list') {
-		argsExpression.values.forEach(value => {
-			// values vor der aktuellen Position zählen
-			if ((value.endRowIndex < rowIndex ||
-				(value.endRowIndex === rowIndex && value.endColumnIndex < columnIndex))
-				// TODO was wenn mehr values als Parameter (ohne Rest Parameter)?
-				&& parameterIndex < parameterCount - 1
-			) {
-				parameterIndex++;
-			}
-		});
-	}
-	return parameterIndex;
 }
 
 function functionTypeToCompletionItems(functionType: CompileTimeType | null): CompletionItem[] {
@@ -820,6 +667,8 @@ function symbolsToCompletionItems(
 	});
 }
 
+//#endregion create CompletionItems
+
 // This handler resolves additional information for the item selected in
 // the completion list.
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
@@ -886,6 +735,22 @@ connection.onSignatureHelp(signatureParams => {
 	}
 	return undefined;
 });
+
+function getFunctionSymbolFromFunctionCall(functionCall: ParseFunctionCall, scopes: SymbolTable[]): {
+	name: string;
+	isBuiltIn: boolean;
+	symbol: SymbolDefinition;
+} | undefined {
+	const functionExpression = functionCall.functionExpression;
+	if (functionExpression?.type === 'reference') {
+		const functionName = functionExpression.name.name;
+		const functionSymbol = findSymbolInScopesWithBuiltIns(functionName, scopes);
+		return functionSymbol && {
+			...functionSymbol,
+			name: functionName,
+		};
+	}
+}
 //#endregion function signature help
 
 //#region go to definition
@@ -1923,6 +1788,126 @@ function dereferenceTypeExpression(
 		default:
 			return { typeExpression: sourceExpression };
 	}
+}
+
+// TODO CompileTimeType vs TypeExpression vs Symbol liefern?
+function getDeclaredType(expression: PositionedExpression): CompileTimeType | null {
+	// TODO recursive getDeclaredType für List elements
+	switch (expression.parent?.type) {
+		case 'definition':
+			if (expression.parent.value === expression
+				&& expression.parent.typeGuard) {
+				const dereferencedType = expression.parent.typeGuard.dereferencedType;
+				if (isTypeOfType(dereferencedType)) {
+					return dereferencedType.value;
+				}
+				return dereferencedType;
+			}
+			else {
+				return null;
+			}
+		case 'functionLiteral': {
+			if (expression.parent.params !== expression) {
+				return null;
+			}
+			const functionLiteralDeclaredType = getDeclaredType(expression.parent);
+			if (!isFunctionType(functionLiteralDeclaredType)) {
+				return null;
+			}
+			return functionLiteralDeclaredType.ParamsType;
+		}
+		case 'functionCall': {
+			// function call arg
+			// TODO handle prefix arg
+			if (expression.parent.arguments !== expression) {
+				return null;
+			}
+			const functionExpression = expression.parent.functionExpression;
+			if (!functionExpression) {
+				return null;
+			}
+			const functionType = functionExpression.dereferencedType;
+			if (isFunctionType(functionType)) {
+				return functionType.ParamsType;
+			}
+			return null;
+		}
+		case 'list': {
+			const list = expression.parent;
+			const listType = getDeclaredType(list);
+			if (listType === null) {
+				return null;
+			}
+			const functionCall = list.parent;
+			if (functionCall?.type === 'functionCall'
+				&& functionCall.arguments === list) {
+				// function call arg
+				if (!isParametersType(listType)) {
+					return null;
+				}
+				const parameterCount = listType.singleNames.length + (listType.rest ? 1 : 0);
+				const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
+				const currentParameter = parameterIndex < listType.singleNames.length
+					? listType.singleNames[parameterIndex]
+					: listType.rest;
+				if (!currentParameter) {
+					return null;
+				}
+				return currentParameter.type;
+			}
+			const index = list.values.indexOf(expression as any);
+			const elementType = dereferenceIndexFromObject(index, listType);
+			return elementType;
+		}
+		case 'singleDictionaryField': {
+			const dictionary = expression.parent.parent;
+			if (!dictionary) {
+				return null;
+			}
+			const dictionaryDeclaredType = getDeclaredType(dictionary);
+			if (dictionaryDeclaredType === null) {
+				return null;
+			}
+			const nameString = getCheckedEscapableName(expression.parent.name);
+			if (!nameString) {
+				return null;
+			}
+			const fieldType = dereferenceNameFromObject(nameString, dictionaryDeclaredType);
+			return fieldType;
+		}
+		case undefined:
+			return null;
+		default:
+			return null;
+	}
+}
+
+/**
+ * Ermittelt den Index des Parameters, für den das Argument ist, das an der Position liegt.
+ * Position muss in arguments liegen.
+ */
+function getParameterIndex(
+	functionCall: ParseFunctionCall,
+	rowIndex: number,
+	columnIndex: number,
+	parameterCount: number,
+) {
+	const argsExpression = functionCall.arguments;
+	// TODO parameter index ermitteln bei function call mit dictionary Argument
+	let parameterIndex = functionCall.prefixArgument ? 1 : 0;
+	if (argsExpression?.type === 'list') {
+		argsExpression.values.forEach(value => {
+			// values vor der aktuellen Position zählen
+			if ((value.endRowIndex < rowIndex ||
+				(value.endRowIndex === rowIndex && value.endColumnIndex < columnIndex))
+				// TODO was wenn mehr values als Parameter (ohne Rest Parameter)?
+				&& parameterIndex < parameterCount - 1
+			) {
+				parameterIndex++;
+			}
+		});
+	}
+	return parameterIndex;
 }
 
 function isImportPath(expression: PositionedExpression | undefined): boolean {
