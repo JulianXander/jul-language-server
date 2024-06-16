@@ -944,21 +944,17 @@ connection.onHover((hoverParams) => {
 	if (!parsed) {
 		return;
 	}
-	// TODO find functiontLiteral, show param + return type
 	const { expression, scopes } = findExpressionInParsedFile(parsed, hoverParams.position.line, hoverParams.position.character);
-	// // TODO functionCall, definition berücksichtigen?
-	// if (expression?.type === 'reference') {
-	// 	// hoverParams.position.
-	// 	// TODO find expression by position row/column
-	// 	// parsed.parsed
-	// 	// TODO check for ref, provide Type information, doc comments
-	// 	return {
-	// 		contents: 'test: ' + expression.names[0],
-	// 	};
-	// }
-	// return {
-	// 	contents: 'expr type: ' + expression?.type,
-	// };
+	if (!expression) {
+		return;
+	}
+
+	const declaredType = getDeclaredType(expression);
+	if (declaredType !== null) {
+		return {
+			contents: getTypeMarkdown(declaredType, undefined),
+		};
+	}
 
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
