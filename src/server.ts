@@ -1603,6 +1603,17 @@ function getSymbolDefinition(
 					};
 				}
 				case 'nestedReference': {
+					const declaredSourceType = getDeclaredType(parent.source);
+					const sourceType = declaredSourceType?.dereferencedType ?? parent.source.typeInfo?.dereferencedType;
+					if (isDictionaryLiteralType(sourceType)) {
+						const foundSymbol2 = sourceType.expression?.symbols[name];
+						return foundSymbol2 && {
+							name: name,
+							isBuiltIn: false,
+							symbol: foundSymbol2,
+							// filePath: foundSymbol.filePath,
+						};
+					}
 					const dereferencedSource = dereferenceTypeExpression(parent.source, scopes, folderPath);
 					if (!dereferencedSource) {
 						return undefined;
