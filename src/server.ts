@@ -434,30 +434,7 @@ connection.onCompletion(completionParams => {
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
 		const dereferencedType = expression.source?.typeInfo?.dereferencedType;
-		if (isBuiltInType(dereferencedType)) {
-			switch (dereferencedType[_julTypeSymbol]) {
-				case 'dictionaryLiteral':
-					return dictionaryTypeToCompletionItems(dereferencedType.Fields);
-				case 'function':
-					return functionTypeToCompletionItems(dereferencedType);
-				case 'stream':
-					return [
-						{
-							label: 'getValue',
-							kind: CompletionItemKind.Function,
-							detail: typeToString(getStreamGetValueType(dereferencedType), 0),
-						},
-						// TODO? nur bei TypeOf(Stream)
-						{
-							label: 'ValueType',
-							kind: CompletionItemKind.Constant,
-							detail: typeToString(dereferencedType.ValueType, 0),
-						},
-					];
-				default:
-					return [];
-			}
-		}
+		return getNestedReferenceCompletionItems(dereferencedType);
 	}
 	//#endregion / field reference
 
@@ -584,6 +561,36 @@ function parameterToCompletionItem(parameter: Parameter, index: number, isRest: 
 		sortText: '' + index,
 	};
 	return completionItem;
+}
+
+function getNestedReferenceCompletionItems(dereferencedType: CompileTimeType): CompletionItem[] {
+	if (isBuiltInType(dereferencedType)) {
+		switch (dereferencedType[_julTypeSymbol]) {
+			case 'dictionaryLiteral':
+				return dictionaryTypeToCompletionItems(dereferencedType.Fields);
+			case 'function':
+				return functionTypeToCompletionItems(dereferencedType);
+			case 'reference':
+				return getNestedReferenceCompletionItems(dereferencedType.dereferencedType);
+			case 'stream':
+				return [
+					{
+						label: 'getValue',
+						kind: CompletionItemKind.Function,
+						detail: typeToString(getStreamGetValueType(dereferencedType), 0),
+					},
+					// TODO? nur bei TypeOf(Stream)
+					{
+						label: 'ValueType',
+						kind: CompletionItemKind.Constant,
+						detail: typeToString(dereferencedType.ValueType, 0),
+					},
+				];
+			default:
+				return [];
+		}
+	}
+	return [];
 }
 
 function functionTypeToCompletionItems(functionType: CompileTimeType | null): CompletionItem[] {
