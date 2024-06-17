@@ -62,8 +62,9 @@ import {
 	isDictionaryLiteralType,
 	isFunctionType,
 	isListType,
-	isParamterReference,
+	isParameterReference,
 	isParametersType,
+	isReferenceType,
 	isTupleType,
 	isTypeOfType,
 	isUnionType,
@@ -388,7 +389,7 @@ connection.onCompletion(completionParams => {
 	if (infixFunctionCall) {
 		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.typeInfo!.rawType;
 		let prefixArgumentType: CompileTimeType | null;
-		if (isParamterReference(prefixArgumentTypeRaw)) {
+		if (isParameterReference(prefixArgumentTypeRaw)) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
 			prefixArgumentType = dereferenced?.symbol.typeInfo?.rawType;
 		}
@@ -772,6 +773,9 @@ connection.onDefinition((definitionParams) => {
 	const rowIndex = definitionParams.position.line;
 	const columnIndex = definitionParams.position.character;
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
+	if (!expression) {
+		return;
+	}
 	//#region go to imported file
 	if (isImportPath(expression)) {
 		const { fullPath, error } = getPathFromImport(expression!.parent!.parent as ParseFunctionCall, folderPath);
@@ -1549,7 +1553,7 @@ function findAllOccurrencesInExpression(
 //#region get Symbol
 
 function getSymbolDefinition(
-	expression: PositionedExpression | undefined,
+	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	folderPath: string,
 ): {
@@ -1561,9 +1565,6 @@ function getSymbolDefinition(
 	 */
 	filePath?: string;
 } | undefined {
-	if (!expression) {
-		return undefined;
-	}
 	switch (expression.type) {
 		case 'reference': {
 			const name = expression.name.name;
@@ -1619,6 +1620,19 @@ function getSymbolDefinition(
 				}
 				case 'singleDictionaryField':
 				case 'singleDictionaryTypeField': {
+					const declaredParentType = getDeclaredType(parent.parent!);
+					const deref = isReferenceType(declaredParentType?.dereferencedType)
+						? declaredParentType?.dereferencedType.dereferencedType
+						: declaredParentType?.dereferencedType;
+					if (isDictionaryLiteralType(deref)) {
+						const foundSymbol2 = deref.expression?.symbols[name];
+						return foundSymbol2 && {
+							name: name,
+							isBuiltIn: false,
+							symbol: foundSymbol2,
+							// filePath: foundSymbol.filePath,
+						};
+					}
 					const foundSymbol = getSymbolFromDictionary(parent.parent, name, scopes, folderPath);
 					return foundSymbol && {
 						name: name,
