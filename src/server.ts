@@ -1690,12 +1690,12 @@ function getSymbolFromDictionaryType(
 		? dictionary?.dereferencedType.dereferencedType
 		: dictionary?.dereferencedType;
 	if (isDictionaryLiteralType(deref)) {
-		const foundSymbol2 = deref.expression?.symbols[name];
-		return foundSymbol2 && {
+		const foundSymbol = deref.expression?.symbols[name];
+		return foundSymbol && {
 			name: name,
 			isBuiltIn: false,
-			symbol: foundSymbol2,
-			// filePath: foundSymbol.filePath,
+			symbol: foundSymbol,
+			filePath: deref.filePath,
 		};
 	}
 }
