@@ -1613,7 +1613,7 @@ function getSymbolDefinition(
 				case 'nestedReference': {
 					const declaredSourceType = getDeclaredType(parent.source);
 					const sourceType = declaredSourceType ?? parent.source.typeInfo;
-					const foundSymbol1 = sourceType && getSymbolFromDictionaryType(sourceType, name);
+					const foundSymbol1 = sourceType && getSymbolFromDictionaryType(sourceType.dereferencedType, name);
 					if (foundSymbol1) {
 						return foundSymbol1;
 					}
@@ -1635,7 +1635,7 @@ function getSymbolDefinition(
 				case 'singleDictionaryField':
 				case 'singleDictionaryTypeField': {
 					const declaredParentType = getDeclaredType(parent.parent!);
-					const foundSymbol1 = declaredParentType && getSymbolFromDictionaryType(declaredParentType, name);
+					const foundSymbol1 = declaredParentType && getSymbolFromDictionaryType(declaredParentType.dereferencedType, name);
 					if (foundSymbol1) {
 						return foundSymbol1;
 					}
@@ -1689,19 +1689,29 @@ function getSymbolDefinition(
 }
 
 function getSymbolFromDictionaryType(
-	dictionary: TypeInfo,
+	dictionaryType: CompileTimeType,
 	name: string,
 ): SymbolInfo | undefined {
-	const deref = isReferenceType(dictionary?.dereferencedType)
-		? dictionary?.dereferencedType.dereferencedType
-		: dictionary?.dereferencedType;
-	if (isDictionaryLiteralType(deref)) {
-		const foundSymbol = deref.expression?.symbols[name];
+	if (isReferenceType(dictionaryType)) {
+		return getSymbolFromDictionaryType(dictionaryType.dereferencedType, name);
+	}
+	if (isUnionType(dictionaryType)) {
+		// TODO return list of Symbols?
+		for (const choiceType of dictionaryType.ChoiceTypes) {
+			const choiceSymbol = getSymbolFromDictionaryType(choiceType, name);
+			if (choiceSymbol) {
+				return choiceSymbol;
+			}
+		}
+		return undefined;
+	}
+	if (isDictionaryLiteralType(dictionaryType)) {
+		const foundSymbol = dictionaryType.expression?.symbols[name];
 		return foundSymbol && {
 			name: name,
 			isBuiltIn: false,
 			symbol: foundSymbol,
-			filePath: deref.filePath,
+			filePath: dictionaryType.filePath,
 		};
 	}
 }
