@@ -444,31 +444,7 @@ connection.onCompletion(completionParams => {
 		|| expression?.type === 'dictionary'
 		|| expression?.type === 'object') {
 		const declaredType = getDeclaredType(expression)?.dereferencedType;
-		let allCompletionItems: CompletionItem[] | undefined;
-		if (isDictionaryLiteralType(declaredType)) {
-			allCompletionItems = dictionaryTypeToCompletionItems(declaredType.Fields);
-		}
-		if (isUnionType(declaredType)) {
-			allCompletionItems = [];
-			declaredType.ChoiceTypes.forEach(choiceType => {
-				if (isDictionaryLiteralType(choiceType)) {
-					const completionItems = dictionaryTypeToCompletionItems(choiceType.Fields);
-					completionItems.forEach(newCompletionItem => {
-						// Duplikate vermeiden
-						if (!allCompletionItems?.some(existingCompletionItem => existingCompletionItem.label === newCompletionItem.label)) {
-							allCompletionItems?.push(newCompletionItem);
-						}
-					});
-				}
-			});
-		}
-		//#region function call arg
-		if (isParametersType(declaredType)) {
-			allCompletionItems = declaredType.singleNames.map((singleName, index) => {
-				return parameterToCompletionItem(singleName, index, false);
-			});
-		}
-		//#endregion function call arg
+		const allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 		if (allCompletionItems) {
 			// schon definierte Felder ausschließen
 			if (expression.type === 'dictionary') {
@@ -550,6 +526,36 @@ connection.onCompletion(completionParams => {
 });
 
 //#region create CompletionItems
+
+function getDictionaryFieldCompletionItemsFromType(declaredType: CompileTimeType): CompletionItem[] | undefined {
+	let allCompletionItems: CompletionItem[] | undefined;
+	if (isReferenceType(declaredType)) {
+		return getDictionaryFieldCompletionItemsFromType(declaredType.dereferencedType);
+	}
+	if (isDictionaryLiteralType(declaredType)) {
+		allCompletionItems = dictionaryTypeToCompletionItems(declaredType.Fields);
+	}
+	if (isUnionType(declaredType)) {
+		allCompletionItems = [];
+		declaredType.ChoiceTypes.forEach(choiceType => {
+			const completionItems = getDictionaryFieldCompletionItemsFromType(choiceType);
+			completionItems?.forEach(newCompletionItem => {
+				// Duplikate vermeiden
+				if (!allCompletionItems?.some(existingCompletionItem => existingCompletionItem.label === newCompletionItem.label)) {
+					allCompletionItems?.push(newCompletionItem);
+				}
+			});
+		});
+	}
+	//#region function call arg
+	if (isParametersType(declaredType)) {
+		allCompletionItems = declaredType.singleNames.map((singleName, index) => {
+			return parameterToCompletionItem(singleName, index, false);
+		});
+	}
+	//#endregion function call arg
+	return allCompletionItems;
+}
 
 function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {
 	const completionItem: CompletionItem = {
