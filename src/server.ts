@@ -1613,39 +1613,14 @@ function getSymbolDefinition(
 				case 'nestedReference': {
 					const declaredSourceType = getDeclaredType(parent.source);
 					const sourceType = declaredSourceType ?? parent.source.typeInfo;
-					const foundSymbol1 = sourceType && getSymbolFromDictionaryType(sourceType.dereferencedType, name);
-					if (foundSymbol1) {
-						return foundSymbol1;
-					}
-					const dereferencedSource = dereferenceTypeExpression(parent.source, scopes, folderPath);
-					if (!dereferencedSource) {
-						return undefined;
-					}
-					const dereferencedFolderPath = dereferencedSource.filePath
-						? dirname(dereferencedSource.filePath)
-						: folderPath;
-					const foundSymbol = getSymbolFromDictionary(dereferencedSource.typeExpression, name, scopes, dereferencedFolderPath);
-					return foundSymbol && {
-						name: name,
-						isBuiltIn: false,
-						symbol: foundSymbol.symbol,
-						filePath: foundSymbol.filePath ?? dereferencedSource.filePath,
-					};
+					const foundSymbol = sourceType && getSymbolFromDictionaryType(sourceType.dereferencedType, name);
+					return foundSymbol;
 				}
 				case 'singleDictionaryField':
 				case 'singleDictionaryTypeField': {
 					const declaredParentType = getDeclaredType(parent.parent!);
-					const foundSymbol1 = declaredParentType && getSymbolFromDictionaryType(declaredParentType.dereferencedType, name);
-					if (foundSymbol1) {
-						return foundSymbol1;
-					}
-					const foundSymbol = getSymbolFromDictionary(parent.parent, name, scopes, folderPath);
-					return foundSymbol && {
-						name: name,
-						isBuiltIn: false,
-						symbol: foundSymbol.symbol,
-						filePath: foundSymbol.filePath,
-					};
+					const foundSymbol = declaredParentType && getSymbolFromDictionaryType(declaredParentType.dereferencedType, name);
+					return foundSymbol;
 				}
 				default: {
 					const definition = findSymbolInScopesWithBuiltIns(name, scopes);
@@ -1716,61 +1691,6 @@ function getSymbolFromDictionaryType(
 	}
 }
 
-function getSymbolFromDictionary(
-	dictionary: PositionedExpression | undefined,
-	name: string,
-	scopes: SymbolTable[],
-	folderPath: string,
-): {
-	symbol: SymbolDefinition;
-	/**
-	 * undefined, wenn Symbol in gleicher Datei gefunden
-	 */
-	filePath?: string;
-} | undefined {
-	switch (dictionary?.type) {
-		case 'dictionaryType':
-		case 'dictionary': {
-			// wenn möglich Symbol des Felds im deklarierten DictionaryLiteralTyp liefern
-			const definition = dictionary.parent;
-			if (definition?.type === 'definition'
-				&& definition.value === dictionary
-				&& definition.typeGuard) {
-				const typeSymbol = getSymbolDefinition(definition.typeGuard, scopes, folderPath);
-				const typeDefinition = typeSymbol?.symbol.definition;
-				if (typeDefinition?.type === 'destructuringField') {
-					const importedSymbol = getImportedSymbol(typeDefinition, folderPath);
-					const typeDefinition2 = importedSymbol?.symbol?.definition;
-					const fieldSymbol = getFieldSymbol(typeDefinition2, name);
-					return fieldSymbol && {
-						symbol: fieldSymbol,
-						filePath: importedSymbol?.filePath,
-					};
-				}
-				else {
-					const fieldSymbol = getFieldSymbol(typeDefinition, name);
-					return fieldSymbol && { symbol: fieldSymbol };
-				}
-			}
-			const fieldSymbol = dictionary.symbols[name];
-			return fieldSymbol && { symbol: fieldSymbol };
-		}
-		default:
-			return undefined;
-	}
-}
-
-function getFieldSymbol(
-	typeDefinition: DefinitionExpression | undefined,
-	name: string,
-): SymbolDefinition | undefined {
-	if (typeDefinition?.type === 'definition'
-		&& typeDefinition.value?.type === 'dictionaryType') {
-		const fieldSymbol = typeDefinition.value?.symbols[name];
-		return fieldSymbol;
-	}
-}
-
 function getImportedSymbol(
 	destructuringField: ParseDestructuringField,
 	folderPath: string,
@@ -1806,43 +1726,6 @@ function getImportedSymbol(
 }
 
 //#endregion get Symbol
-
-function dereferenceTypeExpression(
-	sourceExpression: PositionedExpression,
-	scopes: SymbolTable[],
-	folderPath: string,
-): {
-	typeExpression: PositionedExpression;
-	/**
-	 * undefined, wenn Symbol in gleicher Datei gefunden
-	 */
-	filePath?: string;
-} | undefined {
-	switch (sourceExpression.type) {
-		case 'reference':
-			const dereferenced = findSymbolInScopesWithBuiltIns(sourceExpression.name.name, scopes);
-			if (!dereferenced) {
-				return undefined;
-			}
-			const dereferencedType = dereferenced.symbol.typeExpression;
-			if (dereferencedType) {
-				// TODO fix scopes?
-				return dereferenceTypeExpression(dereferencedType, scopes, folderPath);
-			}
-			const definition = dereferenced.symbol.definition;
-			if (definition?.type === 'destructuringField') {
-				const importedSymbol = getImportedSymbol(definition, folderPath);
-				const typeExpression = importedSymbol?.symbol?.typeExpression;
-				return typeExpression && {
-					typeExpression: typeExpression,
-					filePath: importedSymbol.filePath,
-				};
-			}
-			return undefined;
-		default:
-			return { typeExpression: sourceExpression };
-	}
-}
 
 // TODO declaredType in TypeInfo packen (in checker inferType)?
 // TODO CompileTimeType vs TypeExpression vs Symbol liefern?
