@@ -1670,6 +1670,9 @@ function getSymbolFromDictionaryType(
 	if (isReferenceType(dictionaryType)) {
 		return getSymbolFromDictionaryType(dictionaryType.dereferencedType, name);
 	}
+	if (isTypeOfType(dictionaryType)) {
+		return getSymbolFromDictionaryType(dictionaryType.value, name);
+	}
 	if (isUnionType(dictionaryType)) {
 		// TODO return list of Symbols?
 		for (const choiceType of dictionaryType.ChoiceTypes) {
@@ -1788,20 +1791,24 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 	// TODO recursive getDeclaredType für List elements
 	switch (expression.parent?.type) {
 		case 'definition':
-			if (expression.parent.value === expression
-				&& expression.parent.typeGuard) {
-				const typeGuardType = expression.parent.typeGuard.typeInfo;
-				if (!typeGuardType) {
-					return undefined;
+			if (expression.parent.value === expression) {
+				if (expression.parent.typeGuard) {
+					const typeGuardType = expression.parent.typeGuard.typeInfo;
+					if (!typeGuardType) {
+						return undefined;
+					}
+					if (isTypeOfType(typeGuardType.dereferencedType)) {
+						// TODO? woher rawType? TypeInfo in CompileTimeTypeOfType.value?
+						return {
+							rawType: typeGuardType.dereferencedType.value,
+							dereferencedType: typeGuardType.dereferencedType.value,
+						};
+					}
+					return typeGuardType;
 				}
-				if (isTypeOfType(typeGuardType.dereferencedType)) {
-					// TODO? woher rawType? TypeInfo in CompileTimeTypeOfType.value?
-					return {
-						rawType: typeGuardType.dereferencedType.value,
-						dereferencedType: typeGuardType.dereferencedType.value,
-					};
+				else {
+					return expression.typeInfo;
 				}
-				return typeGuardType;
 			}
 			else {
 				return undefined;
