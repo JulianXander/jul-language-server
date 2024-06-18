@@ -1604,15 +1604,10 @@ function getSymbolDefinition(
 				}
 				case 'nestedReference': {
 					const declaredSourceType = getDeclaredType(parent.source);
-					const sourceType = declaredSourceType?.dereferencedType ?? parent.source.typeInfo?.dereferencedType;
-					if (isDictionaryLiteralType(sourceType)) {
-						const foundSymbol2 = sourceType.expression?.symbols[name];
-						return foundSymbol2 && {
-							name: name,
-							isBuiltIn: false,
-							symbol: foundSymbol2,
-							// filePath: foundSymbol.filePath,
-						};
+					const sourceType = declaredSourceType ?? parent.source.typeInfo;
+					const foundSymbol1 = sourceType && getSymbolFromDictionaryType(sourceType, name);
+					if (foundSymbol1) {
+						return foundSymbol1;
 					}
 					const dereferencedSource = dereferenceTypeExpression(parent.source, scopes, folderPath);
 					if (!dereferencedSource) {
@@ -1632,17 +1627,9 @@ function getSymbolDefinition(
 				case 'singleDictionaryField':
 				case 'singleDictionaryTypeField': {
 					const declaredParentType = getDeclaredType(parent.parent!);
-					const deref = isReferenceType(declaredParentType?.dereferencedType)
-						? declaredParentType?.dereferencedType.dereferencedType
-						: declaredParentType?.dereferencedType;
-					if (isDictionaryLiteralType(deref)) {
-						const foundSymbol2 = deref.expression?.symbols[name];
-						return foundSymbol2 && {
-							name: name,
-							isBuiltIn: false,
-							symbol: foundSymbol2,
-							// filePath: foundSymbol.filePath,
-						};
+					const foundSymbol1 = declaredParentType && getSymbolFromDictionaryType(declaredParentType, name);
+					if (foundSymbol1) {
+						return foundSymbol1;
 					}
 					const foundSymbol = getSymbolFromDictionary(parent.parent, name, scopes, folderPath);
 					return foundSymbol && {
@@ -1690,6 +1677,24 @@ function getSymbolDefinition(
 			const assertNever: never = expression;
 			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
 		}
+	}
+}
+
+function getSymbolFromDictionaryType(
+	dictionary: TypeInfo,
+	name: string,
+) {
+	const deref = isReferenceType(dictionary?.dereferencedType)
+		? dictionary?.dereferencedType.dereferencedType
+		: dictionary?.dereferencedType;
+	if (isDictionaryLiteralType(deref)) {
+		const foundSymbol2 = deref.expression?.symbols[name];
+		return foundSymbol2 && {
+			name: name,
+			isBuiltIn: false,
+			symbol: foundSymbol2,
+			// filePath: foundSymbol.filePath,
+		};
 	}
 }
 
