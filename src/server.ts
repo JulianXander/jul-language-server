@@ -1552,11 +1552,7 @@ function findAllOccurrencesInExpression(
 
 //#region get Symbol
 
-function getSymbolDefinition(
-	expression: PositionedExpression,
-	scopes: SymbolTable[],
-	folderPath: string,
-): {
+interface SymbolInfo {
 	isBuiltIn: boolean;
 	symbol: SymbolDefinition;
 	name: string;
@@ -1564,7 +1560,13 @@ function getSymbolDefinition(
 	 * undefined, wenn Symbol in gleicher Datei gefunden
 	 */
 	filePath?: string;
-} | undefined {
+}
+
+function getSymbolDefinition(
+	expression: PositionedExpression,
+	scopes: SymbolTable[],
+	folderPath: string,
+): SymbolInfo | undefined {
 	switch (expression.type) {
 		case 'reference': {
 			const name = expression.name.name;
@@ -1683,7 +1685,7 @@ function getSymbolDefinition(
 function getSymbolFromDictionaryType(
 	dictionary: TypeInfo,
 	name: string,
-) {
+): SymbolInfo | undefined {
 	const deref = isReferenceType(dictionary?.dereferencedType)
 		? dictionary?.dereferencedType.dereferencedType
 		: dictionary?.dereferencedType;
