@@ -1824,6 +1824,61 @@ function dereferenceTypeExpression(
 // TODO declaredType in TypeInfo packen (in checker inferType)?
 // TODO CompileTimeType vs TypeExpression vs Symbol liefern?
 function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined {
+	switch (expression.type) {
+		case 'nestedReference': {
+			const nestedKey = expression.nestedKey;
+			if (!nestedKey) {
+				return undefined;
+			}
+			const sourceType = getDeclaredType(expression.source);
+			if (!sourceType) {
+				return undefined;
+			}
+			switch (nestedKey.type) {
+				case 'index': {
+					const dereferencedType = dereferenceIndexFromObject(nestedKey.name, sourceType.dereferencedType);
+					if (dereferencedType === null) {
+						return undefined;
+					}
+					return {
+						rawType: dereferencedType,
+						dereferencedType: dereferencedType,
+					};
+				}
+				case 'name':
+				case 'text': {
+					const fieldName = getCheckedEscapableName(nestedKey);
+					if (!fieldName) {
+						return undefined;
+					}
+					const dereferencedType = dereferenceNameFromObject(fieldName, sourceType.dereferencedType);
+					if (dereferencedType === null) {
+						return undefined;
+					}
+					return {
+						rawType: dereferencedType,
+						dereferencedType: dereferencedType,
+					};
+				}
+				default: {
+					const assertNever: never = nestedKey;
+					throw new Error(`Unexpected nestedKey.type ${(assertNever as PositionedExpression).type}`);
+				}
+			}
+		}
+		case 'reference': {
+			return expression.typeInfo;
+			// TODO? stattdessen declaredType der symbol definition aus typeguard holen
+			// const name = expression.name.name;
+			// const definition = findSymbolInScopesWithBuiltIns(name, scopes);
+			// return definition && {
+			// 	...definition,
+			// 	name: name,
+			// };
+		}
+		default:
+			break;
+	}
 	// TODO recursive getDeclaredType für List elements
 	switch (expression.parent?.type) {
 		case 'definition':
@@ -1927,50 +1982,6 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 				dereferencedType: elementType,
 			};
 		}
-		// case 'nestedReference': {
-		// 	if (!expression.parent.parent) {
-		// 		return undefined;
-		// 	}
-		// 	const parentType = getDeclaredType(expression.parent);
-		// 	if (!parentType) {
-		// 		return undefined;
-		// 	}
-		// 	const nestedKey = expression.parent.nestedKey;
-		// 	if (!nestedKey) {
-		// 		return undefined;
-		// 	}
-		// 	switch (nestedKey.type) {
-		// 		case 'index': {
-		// 			const dereferencedType = dereferenceIndexFromObject(nestedKey.name, parentType.dereferencedType);
-		// 			if (dereferencedType === null) {
-		// 				return undefined;
-		// 			}
-		// 			return {
-		// 				rawType: dereferencedType,
-		// 				dereferencedType: dereferencedType,
-		// 			};
-		// 		}
-		// 		case 'name':
-		// 		case 'text': {
-		// 			const fieldName = getCheckedEscapableName(nestedKey);
-		// 			if (!fieldName) {
-		// 				return undefined;
-		// 			}
-		// 			const dereferencedType = dereferenceNameFromObject(fieldName, parentType.dereferencedType);
-		// 			if (dereferencedType === null) {
-		// 				return undefined;
-		// 			}
-		// 			return {
-		// 				rawType: dereferencedType,
-		// 				dereferencedType: dereferencedType,
-		// 			};
-		// 		}
-		// 		default: {
-		// 			const assertNever: never = nestedKey;
-		// 			throw new Error(`Unexpected nestedKey.type ${(assertNever as PositionedExpression).type}`);
-		// 		}
-		// 	}
-		// }
 		case 'singleDictionaryField': {
 			const dictionary = expression.parent.parent;
 			if (!dictionary) {
