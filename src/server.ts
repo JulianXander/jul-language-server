@@ -1734,6 +1734,12 @@ function getImportedSymbol(
 // TODO CompileTimeType vs TypeExpression vs Symbol liefern?
 function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined {
 	switch (expression.type) {
+		case 'name': {
+			if (expression.parent?.type === 'nestedReference') {
+				return getDeclaredType(expression.parent);
+			}
+			break;
+		}
 		case 'nestedReference': {
 			const nestedKey = expression.nestedKey;
 			if (!nestedKey) {
@@ -1895,8 +1901,6 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 				dereferencedType: elementType,
 			};
 		}
-		case 'nestedReference':
-			return getDeclaredType(expression.parent);
 		case 'singleDictionaryField': {
 			const dictionary = expression.parent.parent;
 			if (!dictionary) {
