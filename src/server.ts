@@ -1895,6 +1895,8 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 				dereferencedType: elementType,
 			};
 		}
+		case 'nestedReference':
+			return getDeclaredType(expression.parent);
 		case 'singleDictionaryField': {
 			const dictionary = expression.parent.parent;
 			if (!dictionary) {
