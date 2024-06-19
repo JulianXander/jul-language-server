@@ -1734,6 +1734,8 @@ function getImportedSymbol(
 // TODO CompileTimeType vs TypeExpression vs Symbol liefern?
 function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined {
 	switch (expression.type) {
+		case 'functionCall':
+			return expression.typeInfo;
 		case 'name': {
 			if (expression.parent?.type === 'nestedReference') {
 				return getDeclaredType(expression.parent);
