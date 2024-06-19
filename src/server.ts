@@ -49,6 +49,7 @@ import {
 	SymbolDefinition,
 	SymbolTable,
 	TypeInfo,
+	TextLiteralType,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -58,13 +59,12 @@ import {
 	findSymbolInScopesWithBuiltIns,
 	getStreamGetValueType,
 	getTypeError,
-	isBuiltInType,
 	isDictionaryLiteralType,
 	isFunctionType,
 	isListType,
 	isParameterReference,
 	isParametersType,
-	isReferenceType,
+	isTextLiteralType,
 	isTupleType,
 	isTypeOfType,
 	isUnionType,
@@ -72,7 +72,6 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { _julTypeSymbol } from 'jul-compiler/out/runtime.js';
 
 // For performance do not process large files
 const maxFileSize = 100000;
@@ -349,16 +348,13 @@ connection.onCompletion(completionParams => {
 
 		//#region Text literal with declared type
 		const declaredType = getDeclaredType(expression)?.dereferencedType;
-		switch (typeof declaredType) {
-			case 'string':
-				return [stringToCompletionItem(declaredType)];
-			case 'object':
-				if (isUnionType(declaredType)) {
-					return declaredType.ChoiceTypes
-						.filter((choiceType): choiceType is string =>
-							typeof choiceType === 'string')
-						.map(stringToCompletionItem);
-				}
+		switch (declaredType?.julType) {
+			case 'textLiteral':
+				return [textLiteralTypeToCompletionItem(declaredType)];
+			case 'or':
+				return declaredType.ChoiceTypes
+					.filter(isTextLiteralType)
+					.map(textLiteralTypeToCompletionItem);
 			default:
 				break;
 		}
@@ -388,7 +384,7 @@ connection.onCompletion(completionParams => {
 	const infixFunctionCall = getInfixFunctionCall(expression);
 	if (infixFunctionCall) {
 		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.typeInfo!.rawType;
-		let prefixArgumentType: CompileTimeType | null;
+		let prefixArgumentType: CompileTimeType | undefined;
 		if (isParameterReference(prefixArgumentTypeRaw)) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
 			prefixArgumentType = dereferenced?.symbol.typeInfo?.rawType;
@@ -398,14 +394,14 @@ connection.onCompletion(completionParams => {
 		}
 
 		symbolFilter = symbol => {
-			if (prefixArgumentType === null) {
+			if (!prefixArgumentType) {
 				return false;
 			}
 			const symbolType = symbol.typeInfo?.dereferencedType;
 			if (isFunctionType(symbolType)) {
 				const paramsType = symbolType.ParamsType;
 				if (isParametersType(paramsType)) {
-					let firstParameterType: CompileTimeType | null;
+					let firstParameterType: CompileTimeType | undefined;
 					if (paramsType.singleNames.length) {
 						firstParameterType = paramsType.singleNames[0]?.type;
 					}
@@ -418,7 +414,7 @@ connection.onCompletion(completionParams => {
 							firstParameterType = restType.ElementTypes[0];
 						}
 					}
-					if (firstParameterType === null) {
+					if (!firstParameterType) {
 						return false;
 					}
 					const typeError = getTypeError(undefined, prefixArgumentType, firstParameterType);
@@ -435,7 +431,7 @@ connection.onCompletion(completionParams => {
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
 		const dereferencedType = expression.source?.typeInfo?.dereferencedType;
-		return getNestedReferenceCompletionItems(dereferencedType);
+		return dereferencedType && getNestedReferenceCompletionItems(dereferencedType);
 	}
 	//#endregion / field reference
 
@@ -529,9 +525,6 @@ connection.onCompletion(completionParams => {
 
 function getDictionaryFieldCompletionItemsFromType(declaredType: CompileTimeType): CompletionItem[] | undefined {
 	let allCompletionItems: CompletionItem[] | undefined;
-	if (isReferenceType(declaredType)) {
-		return getDictionaryFieldCompletionItemsFromType(declaredType.dereferencedType);
-	}
 	if (isDictionaryLiteralType(declaredType)) {
 		allCompletionItems = dictionaryTypeToCompletionItems(declaredType.Fields);
 	}
@@ -561,9 +554,9 @@ function parameterToCompletionItem(parameter: Parameter, index: number, isRest: 
 	const completionItem: CompletionItem = {
 		label: (isRest ? '...' : '') + parameter.name,
 		kind: CompletionItemKind.Constant,
-		detail: parameter.type === null
-			? undefined
-			: typeToString(parameter.type, 0),
+		detail: parameter.type
+			? typeToString(parameter.type, 0, 0)
+			: undefined,
 		// documentation: parameter.description,
 		sortText: '' + index,
 	};
@@ -571,39 +564,36 @@ function parameterToCompletionItem(parameter: Parameter, index: number, isRest: 
 }
 
 function getNestedReferenceCompletionItems(dereferencedType: CompileTimeType): CompletionItem[] {
-	if (isBuiltInType(dereferencedType)) {
-		switch (dereferencedType[_julTypeSymbol]) {
-			case 'dictionaryLiteral':
-				return dictionaryTypeToCompletionItems(dereferencedType.Fields);
-			case 'function':
-				return functionTypeToCompletionItems(dereferencedType);
-			case 'reference':
-				return getNestedReferenceCompletionItems(dereferencedType.dereferencedType);
-			case 'stream':
-				return [
-					{
-						label: 'getValue',
-						kind: CompletionItemKind.Function,
-						detail: typeToString(getStreamGetValueType(dereferencedType), 0),
-					},
-					// TODO? nur bei TypeOf(Stream)
-					{
-						label: 'ValueType',
-						kind: CompletionItemKind.Constant,
-						detail: typeToString(dereferencedType.ValueType, 0),
-					},
-				];
-			default:
-				return [];
+	switch (dereferencedType.julType) {
+		case 'dictionaryLiteral':
+			return dictionaryTypeToCompletionItems(dereferencedType.Fields);
+		case 'function':
+			return functionTypeToCompletionItems(dereferencedType);
+		case 'stream': {
+			const getValueType = getStreamGetValueType(dereferencedType);
+			return [
+				{
+					label: 'getValue',
+					kind: CompletionItemKind.Function,
+					detail: typeToString(getValueType, 0, 0),
+				},
+				// TODO? nur bei TypeOf(Stream)
+				{
+					label: 'ValueType',
+					kind: CompletionItemKind.Constant,
+					detail: typeToString(dereferencedType.ValueType, 0, 0),
+				},
+			];
 		}
+		default:
+			return [];
 	}
-	return [];
 }
 
-function functionTypeToCompletionItems(functionType: CompileTimeType | null): CompletionItem[] {
+function functionTypeToCompletionItems(functionType: CompileTimeType | undefined): CompletionItem[] {
 	// TODO ParamsType, ReturnType stattdessen als symbols?
-	let paramsType: CompileTimeType | null;
-	let returnType: CompileTimeType | null;
+	let paramsType: CompileTimeType | undefined;
+	let returnType: CompileTimeType | undefined;
 	if (isFunctionType(functionType)) {
 		returnType = functionType.ReturnType;
 		paramsType = functionType.ParamsType;
@@ -612,23 +602,23 @@ function functionTypeToCompletionItems(functionType: CompileTimeType | null): Co
 		{
 			label: 'ParamsType',
 			kind: CompletionItemKind.Constant,
-			detail: paramsType === null
-				? undefined
-				: typeToString(paramsType, 0),
+			detail: paramsType
+				? typeToString(paramsType, 0, 0)
+				: undefined,
 		},
 		{
 			label: 'ReturnType',
 			kind: CompletionItemKind.Constant,
-			detail: returnType === null
-				? undefined
-				: typeToString(returnType, 0),
+			detail: returnType
+				? typeToString(returnType, 0, 0)
+				: undefined,
 		},
 	];
 }
 
-function stringToCompletionItem(value: string): CompletionItem {
+function textLiteralTypeToCompletionItem(value: TextLiteralType): CompletionItem {
 	const completionItem: CompletionItem = {
-		label: value,
+		label: value.value,
 		kind: CompletionItemKind.Constant,
 		// kind: CompletionItemKind.Text,
 		// detail: typeToString(value, 0),
@@ -646,7 +636,7 @@ function dictionaryTypeToCompletionItems(
 			const completionItem: CompletionItem = {
 				label: name,
 				kind: CompletionItemKind.Constant,
-				detail: typeToString(type, 0),
+				detail: typeToString(type, 0, 0),
 				// documentation: symbol.description,
 			};
 			return completionItem;
@@ -672,7 +662,7 @@ function symbolsToCompletionItems(
 					kind: isFunction
 						? CompletionItemKind.Function
 						: CompletionItemKind.Constant,
-					detail: symbolType && typeToString(symbolType.rawType, 0),
+					detail: symbolType && typeToString(symbolType.dereferencedType, 0, 0),
 					documentation: symbol.description,
 				};
 				return completionItem;
@@ -735,7 +725,7 @@ connection.onSignatureHelp(signatureParams => {
 			const signatureResult: SignatureHelp = {
 				signatures: [{
 					label: normalizedFunctionType
-						? typeToString(normalizedFunctionType.rawType, 0)
+						? typeToString(normalizedFunctionType.dereferencedType, 0, 0)
 						: functionSymbol.name,
 					documentation: functionSymbol.symbol.description,
 					parameters: parameterResults,
@@ -1667,9 +1657,6 @@ function getSymbolFromDictionaryType(
 	dictionaryType: CompileTimeType,
 	name: string,
 ): SymbolInfo | undefined {
-	if (isReferenceType(dictionaryType)) {
-		return getSymbolFromDictionaryType(dictionaryType.dereferencedType, name);
-	}
 	if (isTypeOfType(dictionaryType)) {
 		return getSymbolFromDictionaryType(dictionaryType.value, name);
 	}
@@ -1754,7 +1741,7 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 			switch (nestedKey.type) {
 				case 'index': {
 					const dereferencedType = dereferenceIndexFromObject(nestedKey.name, sourceType.dereferencedType);
-					if (dereferencedType === null) {
+					if (!dereferencedType) {
 						return undefined;
 					}
 					return {
@@ -1769,7 +1756,7 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 						return undefined;
 					}
 					const dereferencedType = dereferenceNameFromObject(fieldName, sourceType.dereferencedType);
-					if (dereferencedType === null) {
+					if (!dereferencedType) {
 						return undefined;
 					}
 					return {
@@ -1884,7 +1871,7 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 					return undefined;
 				}
 				// TODO? woher rawType? TypeInfo in Parameter.type?
-				if (currentParameter.type === null) {
+				if (!currentParameter.type) {
 					return undefined;
 				}
 				return {
@@ -1895,7 +1882,7 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 			const index = list.values.indexOf(expression as any);
 			const elementType = dereferenceIndexFromObject(index, listType.dereferencedType);
 			// TODO? woher rawType?
-			if (elementType === null) {
+			if (!elementType) {
 				return undefined;
 			}
 			return {
@@ -1918,7 +1905,7 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 			}
 			const fieldType = dereferenceNameFromObject(nameString, dictionaryDeclaredType.dereferencedType);
 			// TODO? woher rawType?
-			if (fieldType === null) {
+			if (!fieldType) {
 				return undefined;
 			}
 			return {
@@ -2010,7 +1997,7 @@ function getTypeMarkdown(
 	console.log(type);
 	const typeString = type
 		? `\`\`\`jul
-${typeToString(type.dereferencedType, 0)}
+${typeToString(type.dereferencedType, 0, 0)}
 \`\`\`
 `
 		: '';
