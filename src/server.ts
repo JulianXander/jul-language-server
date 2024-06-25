@@ -524,30 +524,32 @@ connection.onCompletion(completionParams => {
 //#region create CompletionItems
 
 function getDictionaryFieldCompletionItemsFromType(declaredType: CompileTimeType): CompletionItem[] | undefined {
-	let allCompletionItems: CompletionItem[] | undefined;
-	if (isDictionaryLiteralType(declaredType)) {
-		allCompletionItems = dictionaryTypeToCompletionItems(declaredType.Fields);
-	}
-	if (isUnionType(declaredType)) {
-		allCompletionItems = [];
-		declaredType.ChoiceTypes.forEach(choiceType => {
-			const completionItems = getDictionaryFieldCompletionItemsFromType(choiceType);
-			completionItems?.forEach(newCompletionItem => {
-				// Duplikate vermeiden
-				if (!allCompletionItems?.some(existingCompletionItem => existingCompletionItem.label === newCompletionItem.label)) {
-					allCompletionItems?.push(newCompletionItem);
-				}
+	switch (declaredType.julType) {
+		case 'dictionaryLiteral':
+			return dictionaryTypeToCompletionItems(declaredType.Fields);
+		case 'or': {
+			const allCompletionItems: CompletionItem[] = [];
+			declaredType.ChoiceTypes.forEach(choiceType => {
+				const completionItems = getDictionaryFieldCompletionItemsFromType(choiceType);
+				completionItems?.forEach(newCompletionItem => {
+					// Duplikate vermeiden
+					if (!allCompletionItems?.some(existingCompletionItem => existingCompletionItem.label === newCompletionItem.label)) {
+						allCompletionItems?.push(newCompletionItem);
+					}
+				});
 			});
-		});
+			return allCompletionItems;
+		}
+		case 'parameters': {
+			// function call arg
+			const allCompletionItems = declaredType.singleNames.map((singleName, index) => {
+				return parameterToCompletionItem(singleName, index, false);
+			});
+			return allCompletionItems;
+		}
+		default:
+			return undefined;
 	}
-	//#region function call arg
-	if (isParametersType(declaredType)) {
-		allCompletionItems = declaredType.singleNames.map((singleName, index) => {
-			return parameterToCompletionItem(singleName, index, false);
-		});
-	}
-	//#endregion function call arg
-	return allCompletionItems;
 }
 
 function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {
@@ -569,6 +571,10 @@ function getNestedReferenceCompletionItems(dereferencedType: CompileTimeType): C
 			return dictionaryTypeToCompletionItems(dereferencedType.Fields);
 		case 'function':
 			return functionTypeToCompletionItems(dereferencedType);
+		case 'or': {
+			const completionItems = dereferencedType.ChoiceTypes.flatMap(choiceType => getNestedReferenceCompletionItems(choiceType));
+			return completionItems;
+		}
 		case 'stream': {
 			const getValueType = getStreamGetValueType(dereferencedType);
 			return [
