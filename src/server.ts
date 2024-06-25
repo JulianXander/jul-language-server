@@ -67,7 +67,6 @@ import {
 	isTextLiteralType,
 	isTupleType,
 	isTypeOfType,
-	isUnionType,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker.js';
@@ -1663,27 +1662,30 @@ function getSymbolFromDictionaryType(
 	dictionaryType: CompileTimeType,
 	name: string,
 ): SymbolInfo | undefined {
-	if (isTypeOfType(dictionaryType)) {
-		return getSymbolFromDictionaryType(dictionaryType.value, name);
-	}
-	if (isUnionType(dictionaryType)) {
-		// TODO return list of Symbols?
-		for (const choiceType of dictionaryType.ChoiceTypes) {
-			const choiceSymbol = getSymbolFromDictionaryType(choiceType, name);
-			if (choiceSymbol) {
-				return choiceSymbol;
-			}
+	switch (dictionaryType.julType) {
+		case 'dictionaryLiteral': {
+			const foundSymbol = dictionaryType.expression?.symbols[name];
+			return foundSymbol && {
+				name: name,
+				isBuiltIn: false,
+				symbol: foundSymbol,
+				filePath: dictionaryType.filePath,
+			};
 		}
-		return undefined;
-	}
-	if (isDictionaryLiteralType(dictionaryType)) {
-		const foundSymbol = dictionaryType.expression?.symbols[name];
-		return foundSymbol && {
-			name: name,
-			isBuiltIn: false,
-			symbol: foundSymbol,
-			filePath: dictionaryType.filePath,
-		};
+		case 'or': {
+			// TODO return list of Symbols?
+			for (const choiceType of dictionaryType.ChoiceTypes) {
+				const choiceSymbol = getSymbolFromDictionaryType(choiceType, name);
+				if (choiceSymbol) {
+					return choiceSymbol;
+				}
+			}
+			return undefined;
+		}
+		case 'typeOf':
+			return getSymbolFromDictionaryType(dictionaryType.value, name);
+		default:
+			return undefined;
 	}
 }
 
