@@ -1559,6 +1559,7 @@ interface SymbolInfo {
 	name: string;
 	/**
 	 * undefined, wenn Symbol in gleicher Datei gefunden
+	 * Leerstring, wenn builtin.
 	 */
 	filePath?: string;
 }
@@ -1667,7 +1668,7 @@ function getSymbolFromDictionaryType(
 			const foundSymbol = dictionaryType.expression?.symbols[name];
 			return foundSymbol && {
 				name: name,
-				isBuiltIn: false,
+				isBuiltIn: dictionaryType.filePath === '',
 				symbol: foundSymbol,
 				filePath: dictionaryType.filePath,
 			};
