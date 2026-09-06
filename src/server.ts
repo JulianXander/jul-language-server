@@ -127,10 +127,6 @@ documents.onDidChangeContent(change => {
 	}
 	const path = uriToPath(uri);
 	const parsed = parseDocumentByCode(text, path);
-	if (coreLibUri === uri) {
-		// errors in core-lib ignorieren
-		return;
-	}
 	const { errors } = parsed.checked!;
 	const diagnostics: Diagnostic[] = errors.map(error => {
 		const diagnostic: Diagnostic = {
@@ -763,7 +759,12 @@ function getFunctionSymbolFromFunctionCall(functionCall: ParseFunctionCall, scop
 //#endregion function signature help
 
 //#region go to definition
-const coreLibUri = pathToUri(coreLibPath);
+// Go to definition auf builtIns führt in die core-lib. Statt die kompilierte Kopie in out/
+// als editierbare Datei zu öffnen, liefert der Server ihren Inhalt an ein read only
+// virtual document des Clients. Siehe extension.ts, coreLibScheme.
+const coreLibUri = 'jul-core-lib:/core-lib.jul';
+connection.onRequest('jul/coreLibContent', () =>
+	tryReadTextFile(coreLibPath) ?? '');
 connection.onDefinition((definitionParams) => {
 	const documentUri = definitionParams.textDocument.uri;
 	const documentPath = uriToPath(documentUri);
