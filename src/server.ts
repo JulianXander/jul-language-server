@@ -34,7 +34,7 @@ import {
 	parseCode
 } from 'jul-compiler/out/parser/parser.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
-import { Positioned } from 'jul-compiler/out/parser/parser-combinator.js';
+import { CompilerErrorSeverity, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
 	CompileTimeDictionary,
 	CompileTimeType,
@@ -134,8 +134,9 @@ documents.onDidChangeContent(change => {
 	const { errors } = parsed.checked!;
 	const diagnostics: Diagnostic[] = errors.map(error => {
 		const diagnostic: Diagnostic = {
-			severity: DiagnosticSeverity.Error,
+			severity: diagnosticSeverities[errorInfos[error.code].severity],
 			range: positionedToRange(error),
+			code: error.code,
 			message: error.message,
 			source: 'jul'
 		};
@@ -1971,6 +1972,16 @@ function isImportPath(expression: PositionedExpression | undefined): boolean {
 	}
 	return false;
 }
+
+/**
+ * Der Compiler kennt die LSP-Zahlen nicht - er läuft auch als CLI.
+ * Hier werden seine Werte auf DiagnosticSeverity übersetzt.
+ */
+const diagnosticSeverities: { [Severity in CompilerErrorSeverity]: DiagnosticSeverity; } = {
+	error: DiagnosticSeverity.Error,
+	warning: DiagnosticSeverity.Warning,
+	hint: DiagnosticSeverity.Hint,
+};
 
 function positionedToRange(positioned: Positioned): Range {
 	return {
