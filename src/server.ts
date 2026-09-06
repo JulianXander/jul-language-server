@@ -30,6 +30,7 @@ import { URI } from 'vscode-uri';
 import {
 	coreLibPath,
 	getPathFromImport,
+	isCoreLibPath,
 	isImportFunctionCall,
 	parseCode
 } from 'jul-compiler/out/parser/parser.js';
@@ -357,7 +358,11 @@ connection.onCompletion(completionParams => {
 		//#endregion Text literal with declared type
 	}
 
-	const allScopes = [...scopes, builtInSymbols];
+	// In der core-lib sind die builtInSymbols bereits der unterste Scope,
+	// sonst stünde jeder builtIn Name doppelt in der completion.
+	const allScopes = isCoreLibPath(documentPath)
+		? scopes
+		: [...scopes, builtInSymbols];
 	let symbolFilter: ((symbol: SymbolDefinition, name: string) => boolean) | undefined = undefined;
 	//#region infix function call (bei infix function reference)
 	function getInfixFunctionCall(expression: PositionedExpression | undefined): ParseFunctionCall | undefined {
