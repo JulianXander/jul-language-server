@@ -1000,7 +1000,8 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 			const children = expression.typeGuard && getDocumentSymbolsFromExpression(expression.typeGuard);
 			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
 		}
-		case 'bracketed':
+		case 'binding':
+		case 'data':
 		case 'empty':
 		case 'field':
 		case 'float':
@@ -1116,7 +1117,8 @@ function findExpressionInExpression(
 	scopes: SymbolTable[],
 ): PositionedExpression {
 	switch (expression.type) {
-		case 'bracketed': {
+		case 'binding':
+		case 'data': {
 			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
 			return foundField ?? expression;
 		}
@@ -1401,7 +1403,8 @@ function findAllOccurrencesInExpression(
 		return [];
 	}
 	switch (expression.type) {
-		case 'bracketed':
+		case 'binding':
+		case 'data':
 			// return findAllOccurrencesInExpression(expression.fields, name);
 			return [];
 		case 'branching': {
@@ -1627,7 +1630,8 @@ function getSymbolDefinition(
 				}
 			}
 		}
-		case 'bracketed':
+		case 'binding':
+		case 'data':
 		case 'branching':
 		case 'destructuringField':
 		case 'destructuringFields':
