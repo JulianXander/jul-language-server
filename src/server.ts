@@ -53,6 +53,7 @@ import {
 	TextLiteralType,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
+	resolvePlaceholders,
 	builtInSymbols,
 	checkTypes,
 	dereferenceIndexFromObject,
@@ -72,6 +73,18 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+
+/**
+ * Der Server zeigt und prüft Typen, verarbeitet sie aber nicht weiter - hier ist die aufgelöste
+ * Form also durchgängig die richtige.
+ */
+function getResolvedType(typeInfo: TypeInfo | undefined): CompileTimeType | undefined {
+	return typeInfo && resolvePlaceholders(typeInfo.type);
+}
+
+function getDeclaredResolvedType(expression: PositionedExpression): CompileTimeType | undefined {
+	return getResolvedType(getDeclaredType(expression));
+}
 
 // For performance do not process large files
 const maxFileSize = 100000;
@@ -344,7 +357,7 @@ connection.onCompletion(completionParams => {
 		//#endregion import path
 
 		//#region Text literal with declared type
-		const declaredType = getDeclaredType(expression)?.dereferencedType;
+		const declaredType = getDeclaredResolvedType(expression);
 		switch (declaredType?.julType) {
 			case 'textLiteral':
 				return [textLiteralTypeToCompletionItem(declaredType)];
@@ -384,11 +397,11 @@ connection.onCompletion(completionParams => {
 	}
 	const infixFunctionCall = getInfixFunctionCall(expression);
 	if (infixFunctionCall) {
-		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.typeInfo!.rawType;
+		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.typeInfo!.type;
 		let prefixArgumentType: CompileTimeType | undefined;
 		if (isParameterReference(prefixArgumentTypeRaw)) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
-			prefixArgumentType = dereferenced?.symbol.typeInfo?.rawType;
+			prefixArgumentType = dereferenced?.symbol.typeInfo?.type;
 		}
 		else {
 			prefixArgumentType = prefixArgumentTypeRaw;
@@ -398,7 +411,7 @@ connection.onCompletion(completionParams => {
 			if (!prefixArgumentType) {
 				return false;
 			}
-			const symbolType = symbol.typeInfo?.dereferencedType;
+			const symbolType = getResolvedType(symbol.typeInfo);
 			if (isFunctionType(symbolType)) {
 				const paramsType = symbolType.ParamsType;
 				if (isParametersType(paramsType)) {
@@ -431,7 +444,7 @@ connection.onCompletion(completionParams => {
 
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
-		const dereferencedType = expression.source?.typeInfo?.dereferencedType;
+		const dereferencedType = getResolvedType(expression.source?.typeInfo);
 		return dereferencedType && getNestedReferenceCompletionItems(dereferencedType);
 	}
 	//#endregion / field reference
@@ -440,7 +453,7 @@ connection.onCompletion(completionParams => {
 	if (expression?.type === 'empty'
 		|| expression?.type === 'dictionary'
 		|| expression?.type === 'object') {
-		const declaredType = getDeclaredType(expression)?.dereferencedType;
+		const declaredType = getDeclaredResolvedType(expression);
 		const allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 		if (allCompletionItems) {
 			// schon definierte Felder ausschließen
@@ -482,7 +495,7 @@ connection.onCompletion(completionParams => {
 				case 'dictionaryType':
 					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter);
 				default: {
-					const dereferencedType = destructuredValue?.typeInfo?.dereferencedType;
+					const dereferencedType = getResolvedType(destructuredValue?.typeInfo);
 					if (isDictionaryLiteralType(dereferencedType)) {
 						const allCompletionItems = dictionaryTypeToCompletionItems(dereferencedType.Fields);
 						// schon definierte Felder ausschließen
@@ -500,7 +513,7 @@ connection.onCompletion(completionParams => {
 
 	//#region function literal parameter name
 	if (expression?.type === 'parameters') {
-		const innerParamsType = getDeclaredType(expression)?.dereferencedType;
+		const innerParamsType = getDeclaredResolvedType(expression);
 		if (isParametersType(innerParamsType)) {
 			const completionItems: CompletionItem[] = [];
 			innerParamsType.singleNames.forEach((singleName, index) => {
@@ -662,14 +675,14 @@ function symbolsToCompletionItems(
 				if (!showSymbol) {
 					return undefined;
 				}
-				const symbolType = symbol.typeInfo;
-				const isFunction = isFunctionType(symbolType?.dereferencedType);
+				const symbolType = getResolvedType(symbol.typeInfo);
+				const isFunction = isFunctionType(symbolType);
 				const completionItem: CompletionItem = {
 					label: name,
 					kind: isFunction
 						? CompletionItemKind.Function
 						: CompletionItemKind.Constant,
-					detail: symbolType && typeToString(symbolType.dereferencedType, 0, 0),
+					detail: symbolType && typeToString(symbolType, 0, 0),
 					documentation: symbol.description,
 				};
 				return completionItem;
@@ -728,11 +741,11 @@ connection.onSignatureHelp(signatureParams => {
 				}
 			}
 			const parameterIndex = getParameterIndex(functionCall, rowIndex, columnIndex, parameterResults.length);
-			const normalizedFunctionType = functionSymbol.symbol.typeInfo;
+			const normalizedFunctionType = getResolvedType(functionSymbol.symbol.typeInfo);
 			const signatureResult: SignatureHelp = {
 				signatures: [{
 					label: normalizedFunctionType
-						? typeToString(normalizedFunctionType.dereferencedType, 0, 0)
+						? typeToString(normalizedFunctionType, 0, 0)
 						: functionSymbol.name,
 					documentation: functionSymbol.symbol.description,
 					parameters: parameterResults,
@@ -1622,14 +1635,14 @@ function getSymbolDefinition(
 				}
 				case 'nestedReference': {
 					const declaredSourceType = getDeclaredType(parent.source);
-					const sourceType = declaredSourceType ?? parent.source.typeInfo;
-					const foundSymbol = sourceType && getSymbolFromDictionaryType(sourceType.dereferencedType, name);
+					const sourceType = getResolvedType(declaredSourceType ?? parent.source.typeInfo);
+					const foundSymbol = sourceType && getSymbolFromDictionaryType(sourceType, name);
 					return foundSymbol;
 				}
 				case 'singleDictionaryField':
 				case 'singleDictionaryTypeField': {
-					const declaredParentType = getDeclaredType(parent.parent!);
-					const foundSymbol = declaredParentType && getSymbolFromDictionaryType(declaredParentType.dereferencedType, name);
+					const declaredParentType = getDeclaredResolvedType(parent.parent!);
+					const foundSymbol = declaredParentType && getSymbolFromDictionaryType(declaredParentType, name);
 					return foundSymbol;
 				}
 				default: {
@@ -1680,12 +1693,16 @@ function getSymbolFromDictionaryType(
 ): SymbolInfo | undefined {
 	switch (dictionaryType.julType) {
 		case 'dictionaryLiteral': {
-			const foundSymbol = dictionaryType.expression?.symbols[name];
+			const declaration = dictionaryType.declaration;
+			if (!declaration) {
+				return undefined;
+			}
+			const foundSymbol = declaration.expression.symbols[name];
 			return foundSymbol && {
 				name: name,
-				isBuiltIn: dictionaryType.filePath === '',
+				isBuiltIn: declaration.filePath === '',
 				symbol: foundSymbol,
-				filePath: dictionaryType.filePath,
+				filePath: declaration.filePath,
 			};
 		}
 		case 'or': {
@@ -1758,20 +1775,17 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 			if (!nestedKey) {
 				return undefined;
 			}
-			const sourceType = getDeclaredType(expression.source);
+			const sourceType = getDeclaredResolvedType(expression.source);
 			if (!sourceType) {
 				return undefined;
 			}
 			switch (nestedKey.type) {
 				case 'index': {
-					const dereferencedType = dereferenceIndexFromObject(nestedKey.name, sourceType.dereferencedType);
+					const dereferencedType = dereferenceIndexFromObject(nestedKey.name, sourceType);
 					if (!dereferencedType) {
 						return undefined;
 					}
-					return {
-						rawType: dereferencedType,
-						dereferencedType: dereferencedType,
-					};
+					return { type: dereferencedType };
 				}
 				case 'name':
 				case 'text': {
@@ -1779,14 +1793,11 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 					if (!fieldName) {
 						return undefined;
 					}
-					const dereferencedType = dereferenceNameFromObject(fieldName, sourceType.dereferencedType);
+					const dereferencedType = dereferenceNameFromObject(fieldName, sourceType);
 					if (!dereferencedType) {
 						return undefined;
 					}
-					return {
-						rawType: dereferencedType,
-						dereferencedType: dereferencedType,
-					};
+					return { type: dereferencedType };
 				}
 				default: {
 					const assertNever: never = nestedKey;
@@ -1816,12 +1827,9 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 					if (!typeGuardType) {
 						return undefined;
 					}
-					if (isTypeOfType(typeGuardType.dereferencedType)) {
-						// TODO? woher rawType? TypeInfo in CompileTimeTypeOfType.value?
-						return {
-							rawType: typeGuardType.dereferencedType.value,
-							dereferencedType: typeGuardType.dereferencedType.value,
-						};
+					const resolvedTypeGuardType = resolvePlaceholders(typeGuardType.type);
+					if (isTypeOfType(resolvedTypeGuardType)) {
+						return { type: resolvedTypeGuardType.value };
 					}
 					return typeGuardType;
 				}
@@ -1836,18 +1844,14 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 			if (expression.parent.params !== expression) {
 				return undefined;
 			}
-			const functionLiteralDeclaredType = getDeclaredType(expression.parent);
+			const functionLiteralDeclaredType = getDeclaredResolvedType(expression.parent);
 			if (!functionLiteralDeclaredType) {
 				return undefined;
 			}
-			if (!isFunctionType(functionLiteralDeclaredType.dereferencedType)) {
+			if (!isFunctionType(functionLiteralDeclaredType)) {
 				return undefined;
 			}
-			// TODO? woher rawType? TypeInfo in CompileTimeFunctionType.ParamsType?
-			return {
-				rawType: functionLiteralDeclaredType.dereferencedType.ParamsType,
-				dereferencedType: functionLiteralDeclaredType.dereferencedType.ParamsType,
-			};
+			return { type: functionLiteralDeclaredType.ParamsType };
 		}
 		case 'functionCall': {
 			// function call arg
@@ -1859,29 +1863,25 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 			if (!functionExpression) {
 				return undefined;
 			}
-			const functionType = functionExpression.typeInfo;
+			const functionType = getResolvedType(functionExpression.typeInfo);
 			if (!functionType) {
 				return undefined;
 			}
-			if (!isFunctionType(functionType.dereferencedType)) {
+			if (!isFunctionType(functionType)) {
 				return undefined;
 			}
-			// TODO? woher rawType? TypeInfo in CompileTimeFunctionType.ParamsType?
-			return {
-				rawType: functionType.dereferencedType.ParamsType,
-				dereferencedType: functionType.dereferencedType.ParamsType,
-			};
+			return { type: functionType.ParamsType };
 		}
 		case 'list': {
 			const list = expression.parent;
-			const listType = getDeclaredType(list);
+			const listType = getDeclaredResolvedType(list);
 			if (!listType) {
 				return undefined;
 			}
 			const functionCall = list.parent;
 			if (functionCall?.type === 'functionCall'
 				&& functionCall.arguments === list) {
-				const dereferencedlistType = listType.dereferencedType;
+				const dereferencedlistType = listType;
 				// function call arg
 				if (!isParametersType(dereferencedlistType)) {
 					return undefined;
@@ -1894,32 +1894,24 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 				if (!currentParameter) {
 					return undefined;
 				}
-				// TODO? woher rawType? TypeInfo in Parameter.type?
 				if (!currentParameter.type) {
 					return undefined;
 				}
-				return {
-					rawType: currentParameter.type,
-					dereferencedType: currentParameter.type,
-				};
+				return { type: currentParameter.type };
 			}
 			const index = list.values.indexOf(expression as any);
-			const elementType = dereferenceIndexFromObject(index, listType.dereferencedType);
-			// TODO? woher rawType?
+			const elementType = dereferenceIndexFromObject(index, listType);
 			if (!elementType) {
 				return undefined;
 			}
-			return {
-				rawType: elementType,
-				dereferencedType: elementType,
-			};
+			return { type: elementType };
 		}
 		case 'singleDictionaryField': {
 			const dictionary = expression.parent.parent;
 			if (!dictionary) {
 				return undefined;
 			}
-			const dictionaryDeclaredType = getDeclaredType(dictionary);
+			const dictionaryDeclaredType = getDeclaredResolvedType(dictionary);
 			if (!dictionaryDeclaredType) {
 				return undefined;
 			}
@@ -1927,15 +1919,11 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 			if (!nameString) {
 				return undefined;
 			}
-			const fieldType = dereferenceNameFromObject(nameString, dictionaryDeclaredType.dereferencedType);
-			// TODO? woher rawType?
+			const fieldType = dereferenceNameFromObject(nameString, dictionaryDeclaredType);
 			if (!fieldType) {
 				return undefined;
 			}
-			return {
-				rawType: fieldType,
-				dereferencedType: fieldType,
-			};
+			return { type: fieldType };
 		}
 		case undefined:
 			return undefined;
@@ -2028,10 +2016,9 @@ function getTypeMarkdown(
 	type: TypeInfo | undefined,
 	description: string | undefined,
 ): MarkupContent {
-	console.log(type);
 	const typeString = type
 		? `\`\`\`jul
-${typeToString(type.dereferencedType, 0, 0)}
+${typeToString(resolvePlaceholders(type.type), 0, 0)}
 \`\`\`
 `
 		: '';
