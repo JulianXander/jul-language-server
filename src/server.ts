@@ -929,7 +929,9 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 	switch (expression.type) {
 		case 'branching':
 			return [
-				...getDocumentSymbolsFromExpression(expression.value),
+				...(expression.args
+					? getDocumentSymbolsFromExpression(expression.args)
+					: []),
 				...getDocumentSymbolsFromExpressions(expression.branches),
 			];
 		case 'definition': {
@@ -1130,8 +1132,9 @@ function findExpressionInExpression(
 			return foundField ?? expression;
 		}
 		case 'branching': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
-				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
+			const args = expression.args;
+			if (args && isPositionInRange(rowIndex, columnIndex, args)) {
+				const foundValue = findExpressionInExpression(args, rowIndex, columnIndex, scopes);
 				return foundValue;
 			}
 			const foundBranch = findExpressionInExpressions(expression.branches, rowIndex, columnIndex, scopes);
@@ -1415,8 +1418,9 @@ function findAllOccurrencesInExpression(
 			// return findAllOccurrencesInExpression(expression.fields, name);
 			return [];
 		case 'branching': {
+			const args = expression.args;
 			const occurences = [
-				...findAllOccurrencesInExpression(expression.value, searchTerm),
+				...(args ? findAllOccurrencesInExpression(args, searchTerm) : []),
 				...findAllOccurrencesInExpressions(expression.branches, searchTerm),
 			];
 			return occurences;
