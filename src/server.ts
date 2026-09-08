@@ -40,6 +40,7 @@ import {
 	CompileTimeDictionary,
 	CompileTimeType,
 	DefinitionExpression,
+	forEachChild,
 	PositionedExpression,
 	Parameter,
 	ParseDestructuringField,
@@ -1138,233 +1139,23 @@ function findExpressionInExpression(
 	columnIndex: number,
 	scopes: SymbolTable[],
 ): PositionedExpression {
+	pushScope(expression, scopes);
+	const found = forEachChild(expression, child =>
+		isPositionInRange(rowIndex, columnIndex, child)
+			? findExpressionInExpression(child, rowIndex, columnIndex, scopes)
+			: undefined);
+	return found ?? expression;
+}
+
+/** Nur diese beiden bringen einen eigenen Scope mit. */
+function pushScope(expression: PositionedExpression, scopes: SymbolTable[]): void {
 	switch (expression.type) {
-		case 'binding':
-		case 'data': {
-			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
-			return foundField ?? expression;
-		}
-		case 'branching': {
-			const args = expression.args;
-			if (args && isPositionInRange(rowIndex, columnIndex, args)) {
-				const foundValue = findExpressionInExpression(args, rowIndex, columnIndex, scopes);
-				return foundValue;
-			}
-			const foundBranch = findExpressionInExpressions(expression.branches, rowIndex, columnIndex, scopes);
-			return foundBranch ?? expression;
-		}
-		case 'definition': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
-				return expression.name;
-			}
-			const typeGuard = expression.typeGuard;
-			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-				return foundType;
-			}
-			const value = expression.value;
-			if (value && isPositionInRange(rowIndex, columnIndex, value)) {
-				const foundValue = findExpressionInExpression(value, rowIndex, columnIndex, scopes);
-				return foundValue;
-			}
-			return expression;
-		}
-		case 'destructuring': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.fields)) {
-				const foundName = findExpressionInExpression(expression.fields, rowIndex, columnIndex, scopes);
-				return foundName;
-			}
-			const value = expression.value;
-			if (value && isPositionInRange(rowIndex, columnIndex, value)) {
-				const foundValue = findExpressionInExpression(value, rowIndex, columnIndex, scopes);
-				return foundValue;
-			}
-			return expression;
-		}
-		case 'destructuringField': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
-				return expression.name;
-			}
-			const typeGuard = expression.typeGuard;
-			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-				return foundType;
-			}
-			const source = expression.source;
-			if (source && isPositionInRange(rowIndex, columnIndex, source)) {
-				return source;
-			}
-			return expression;
-		}
-		case 'destructuringFields':
-		case 'dictionary':
-		case 'dictionaryType': {
-			const foundField = findExpressionInExpressions(expression.fields, rowIndex, columnIndex, scopes);
-			return foundField ?? expression;
-		}
-		case 'empty':
-			return expression;
-		case 'field': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.name)) {
-				return expression.name;
-			}
-			const typeGuard = expression.typeGuard;
-			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-				return foundType;
-			}
-			const assignedValue = expression.assignedValue;
-			if (assignedValue && isPositionInRange(rowIndex, columnIndex, assignedValue)) {
-				const foundAssignedValue = findExpressionInExpression(assignedValue, rowIndex, columnIndex, scopes);
-				return foundAssignedValue;
-			}
-			return expression;
-		}
-		case 'float':
-			return expression;
-		case 'fraction':
-			return expression;
-		case 'functionCall': {
-			if (expression.prefixArgument && isPositionInRange(rowIndex, columnIndex, expression.prefixArgument)) {
-				const foundPrefix = findExpressionInExpression(expression.prefixArgument, rowIndex, columnIndex, scopes);
-				return foundPrefix;
-			}
-			const functionExpression = expression.functionExpression;
-			if (functionExpression && isPositionInRange(rowIndex, columnIndex, functionExpression)) {
-				const foundFunction = findExpressionInExpression(functionExpression, rowIndex, columnIndex, scopes);
-				return foundFunction;
-			}
-			if (expression.arguments) {
-				const foundArguments = findExpressionInExpression(expression.arguments, rowIndex, columnIndex, scopes);
-				return foundArguments;
-			}
-			return expression;
-		}
-		case 'functionLiteral': {
+		case 'functionLiteral':
+		case 'functionTypeLiteral':
 			scopes.push(expression.symbols);
-			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
-				const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex, scopes);
-				return foundParams;
-			}
-			const returnType = expression.returnType;
-			if (returnType && isPositionInRange(rowIndex, columnIndex, returnType)) {
-				const foundReturnType = findExpressionInExpression(returnType, rowIndex, columnIndex, scopes);
-				return foundReturnType;
-			}
-			const foundBody = findExpressionInExpressions(expression.body, rowIndex, columnIndex, scopes);
-			return foundBody ?? expression;
-		}
-		case 'functionTypeLiteral': {
-			scopes.push(expression.symbols);
-			if (isPositionInRange(rowIndex, columnIndex, expression.params)) {
-				const foundParams = findExpressionInExpression(expression.params, rowIndex, columnIndex, scopes);
-				return foundParams;
-			}
-			const returnType = expression.returnType;
-			if (isPositionInRange(rowIndex, columnIndex, returnType)) {
-				const foundParams = findExpressionInExpression(returnType, rowIndex, columnIndex, scopes);
-				return foundParams;
-			}
-			return expression;
-		}
-		case 'index':
-			return expression;
-		case 'integer':
-			return expression;
-		case 'list': {
-			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
-			return foundValue ?? expression;
-		}
-		case 'name':
-			return expression;
-		case 'nestedReference': {
-			const nestedKey = expression.nestedKey;
-			if (nestedKey && isPositionInRange(rowIndex, columnIndex, nestedKey)) {
-				return nestedKey;
-			}
-			const source = expression.source;
-			if (isPositionInRange(rowIndex, columnIndex, source)) {
-				const foundSource = findExpressionInExpression(source, rowIndex, columnIndex, scopes);
-				return foundSource;
-			}
-			return expression;
-		}
-		case 'object': {
-			const foundValue = findExpressionInExpressions(expression.values, rowIndex, columnIndex, scopes);
-			return foundValue ?? expression;
-		}
-		case 'parameter': {
-			const name = expression.name;
-			if (isPositionInRange(rowIndex, columnIndex, name)) {
-				return name;
-			}
-			const typeGuard = expression.typeGuard;
-			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-				return foundType;
-			}
-			return expression;
-		}
-		case 'parameters': {
-			const foundField = findExpressionInExpressions(expression.singleFields, rowIndex, columnIndex, scopes);
-			if (foundField) {
-				return foundField;
-			}
-			const rest = expression.rest;
-			if (rest && isPositionInRange(rowIndex, columnIndex, rest)) {
-				const foundRest = findExpressionInExpression(rest, rowIndex, columnIndex, scopes);
-				return foundRest;
-			}
-			return expression;
-		}
-		case 'reference':
-			return expression;
-		case 'singleDictionaryField': {
-			const name = expression.name;
-			if (isPositionInRange(rowIndex, columnIndex, name)) {
-				return name;
-			}
-			const typeGuard = expression.typeGuard;
-			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-				return foundType;
-			}
-			const value = expression.value;
-			if (value && isPositionInRange(rowIndex, columnIndex, value)) {
-				const foundValue = findExpressionInExpression(value, rowIndex, columnIndex, scopes);
-				return foundValue;
-			}
-			return expression;
-		}
-		case 'singleDictionaryTypeField': {
-			const name = expression.name;
-			if (isPositionInRange(rowIndex, columnIndex, name)) {
-				return name;
-			}
-			const typeGuard = expression.typeGuard;
-			if (typeGuard && isPositionInRange(rowIndex, columnIndex, typeGuard)) {
-				const foundType = findExpressionInExpression(typeGuard, rowIndex, columnIndex, scopes);
-				return foundType;
-			}
-			return expression;
-		}
-		case 'spread': {
-			if (isPositionInRange(rowIndex, columnIndex, expression.value)) {
-				const foundValue = findExpressionInExpression(expression.value, rowIndex, columnIndex, scopes);
-				return foundValue;
-			}
-			return expression;
-		}
-		case 'text': {
-			const values = expression.values.filter((value): value is ParseValueExpression =>
-				value.type !== 'textToken');
-			const foundValue = findExpressionInExpressions(values, rowIndex, columnIndex, scopes);
-			return foundValue ?? expression;
-		}
-		default: {
-			const assertNever: never = expression;
-			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
-		}
+			return;
+		default:
+			return;
 	}
 }
 

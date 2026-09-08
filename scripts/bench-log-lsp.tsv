@@ -6,3 +6,10 @@
 2026-09-08 11:11:11	432f43e+	jul-compiler 78cb717+	ADV-DEV-56627	yugioh	completion	564	5.05	6.71	8.82	erste messung gegen yugioh
 2026-09-08 11:11:11	432f43e+	jul-compiler 78cb717+	ADV-DEV-56627	yugioh	signatureHelp	564	0.20	0.45	3.22	erste messung gegen yugioh
 2026-09-08 11:11:11	432f43e+	jul-compiler 78cb717+	ADV-DEV-56627	yugioh	documentSymbol	3	8.48	8.77	8.77	erste messung gegen yugioh
+2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	16.06	122.33	122.33	visitor umbau: findExpressionInExpression nutzt forEachChild
+2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	62.84	104.85	104.85	visitor umbau: findExpressionInExpression nutzt forEachChild
+2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	hover	564	0.11	0.26	2.84	visitor umbau: findExpressionInExpression nutzt forEachChild
+2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	definition	564	0.06	0.14	0.59	visitor umbau: findExpressionInExpression nutzt forEachChild
+2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	completion	564	2.07	2.75	3.57	visitor umbau: findExpressionInExpression nutzt forEachChild
+2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.15	0.35	visitor umbau: findExpressionInExpression nutzt forEachChild
+2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	documentSymbol	3	3.78	4.94	4.94	visitor umbau: findExpressionInExpression nutzt forEachChild
