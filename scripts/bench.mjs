@@ -1,4 +1,4 @@
-import { fork } from 'child_process';
+import { execFileSync, fork } from 'child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { basename, join, resolve } from 'path';
 import { pathToFileURL } from 'url';
@@ -21,7 +21,7 @@ import {
  * Wall-Clock Messung der Server-Latenzen über echtes LSP. Kein Test-Gate, nur Beleg für
  * Umbauten am Server. Misst, was der Editor merkt: Zeit bis Diagnostics und Antwortzeit der
  * positionsbasierten Features.
- * Aufruf: npm run bench [--save] [--note "grund"] [datei|ordner...]  (Default: jul-examples)
+ * Aufruf: npm run bench [--save] [--note "grund"] [datei|ordner...]
  * Mit --save wird die Messung an scripts/bench-log-lsp.tsv angehängt, ohne nur verglichen.
  * Setzt einen gebauten Server voraus (npm run build).
  */
@@ -34,6 +34,10 @@ const maxFileSize = 100000;
 
 const serverPath = resolve(import.meta.dirname, '../out/server.js');
 const logPath = resolve(import.meta.dirname, 'bench-log-lsp.tsv');
+const chartScript = resolve(import.meta.dirname, 'bench-chart.mjs');
+// jul-examples ist mit 886 Zeilen zu klein: dort schwankt der Median um mehr als die Alarmschwelle
+const preferredTarget = resolve('C:/Projects/privat/yugioh');
+const fallbackTarget = resolve(import.meta.dirname, '../../jul-examples');
 // gemessen wird größtenteils Compiler-Code, der eigene Commit erklärt die Zahlen allein nicht
 const compilerFolder = resolve(import.meta.dirname, '../../jul-compiler');
 
@@ -229,7 +233,7 @@ async function main() {
 	const { save, note, targets: targetArgs } = parseArgs(args);
 	const targets = targetArgs.length
 		? targetArgs.map(target => resolve(target))
-		: [resolve(import.meta.dirname, '../../jul-examples')];
+		: [existsSync(preferredTarget) ? preferredTarget : fallbackTarget];
 	const julFiles = targets
 		.flatMap(findJulFiles)
 		.filter(filePath => statSync(filePath).size <= maxFileSize);
@@ -319,6 +323,7 @@ async function main() {
 	if (save) {
 		appendEntries(logPath, results, target, note, deps);
 		console.log(`\nprotokolliert: ${logPath}`);
+		execFileSync(process.execPath, [chartScript], { stdio: 'inherit' });
 	}
 	else {
 		console.log('\nzum Protokollieren: npm run bench -- --save --note "grund"');
