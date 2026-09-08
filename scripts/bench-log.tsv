@@ -1,0 +1,8 @@
+# timestamp	commit	deps	machine	target	label	n	median	p95	max	note
+2026-09-08 10:26:35	e76335f+	jul-compiler d845b57+	ADV-DEV-56627	jul-examples	didOpen -> diagnostics	27	1.23	3.14	12.87	protokoll eingefuehrt
+2026-09-08 10:26:35	e76335f+	jul-compiler d845b57+	ADV-DEV-56627	jul-examples	didChange -> diagnostics	10	3.00	3.50	3.50	protokoll eingefuehrt
+2026-09-08 10:26:35	e76335f+	jul-compiler d845b57+	ADV-DEV-56627	jul-examples	hover	240	0.10	0.25	0.89	protokoll eingefuehrt
+2026-09-08 10:26:35	e76335f+	jul-compiler d845b57+	ADV-DEV-56627	jul-examples	definition	240	0.10	0.21	0.47	protokoll eingefuehrt
+2026-09-08 10:26:35	e76335f+	jul-compiler d845b57+	ADV-DEV-56627	jul-examples	completion	240	0.42	0.73	1.58	protokoll eingefuehrt
+2026-09-08 10:26:35	e76335f+	jul-compiler d845b57+	ADV-DEV-56627	jul-examples	signatureHelp	240	0.06	0.14	0.56	protokoll eingefuehrt
+2026-09-08 10:26:35	e76335f+	jul-compiler d845b57+	ADV-DEV-56627	jul-examples	documentSymbol	3	0.35	0.71	0.71	protokoll eingefuehrt
