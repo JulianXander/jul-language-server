@@ -22,6 +22,28 @@ symbols
   myValue kind=14 33:1
     field1 kind=8 37:2
       keine
+semanticTokens
+  1: 1+1 variable(declaration,readonly)
+  3: 2+2 property(declaration,readonly)
+  4: 2+2 property(declaration,readonly)
+  5: 2+2 property(declaration,readonly)
+  6: 3+3 function(defaultLibrary)
+  10: 1+1 variable(readonly)
+  12: 1+1 variable(readonly) 3+2 property(readonly)
+  14: 1+6 type(declaration)
+  16: 2+6 property(declaration,readonly) 10+7 type(defaultLibrary)
+  17: 2+14 property(declaration,readonly) 18+4 type(defaultLibrary)
+  18: 2+8 property(declaration,readonly) 18+4 type(defaultLibrary)
+  22: 1+4 function(declaration)
+  24: 2+4 parameter(declaration,readonly) 8+6 type
+  26: 2+4 parameter(declaration,readonly) 8+7 type(defaultLibrary)
+  29: 2+4 parameter(readonly)
+  31: 2+4 parameter(readonly) 7+6 property(readonly)
+  33: 1+7 variable(declaration,readonly) 10+6 type
+  37: 2+6 property(declaration,readonly)
+  40: 1+4 function
+  46: 1+4 function
+  49: 1+4 function
   1:3 hover: kein
   1:3 definition: kein
   1:3 completion: n=98 a,MyType,myFn
@@ -136,6 +158,37 @@ symbols
     keine
   b kind=13 71:3
     keine
+semanticTokens
+  2: 1+9 variable(declaration,readonly) 14+1 property(declaration,readonly) 20+1 property(declaration,readonly)
+  4: 1+10 variable(declaration,readonly)
+  7: 1+7 variable(declaration,readonly) 19+10 variable(readonly)
+  9: 1+12 variable(declaration,readonly)
+  10: 2+4 property(declaration,readonly)
+  11: 2+4 property(declaration,readonly)
+  12: 2+4 property(declaration,readonly)
+  13: 3+4 property(declaration,readonly)
+  14: 3+4 property(declaration,readonly)
+  16: 2+4 property(declaration,readonly)
+  17: 5+9 variable(readonly)
+  19: 5+10 variable(readonly)
+  22: 1+13 variable(declaration,readonly)
+  27: 5+9 variable(readonly)
+  35: 2+1 parameter(declaration,readonly) 4+1 parameter(declaration,readonly) 10+1 parameter(readonly)
+  38: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary) 10+1 parameter(declaration,readonly) 13+7 type(defaultLibrary) 25+1 parameter(readonly)
+  42: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary) 10+1 parameter(declaration,readonly) 13+4 type(defaultLibrary) 26+1 parameter(readonly)
+  45: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary) 10+1 parameter(declaration,readonly) 13+2 function(defaultLibrary) 19+7 type(defaultLibrary) 32+1 parameter(readonly)
+  48: 2+1 parameter(declaration,readonly) 4+1 parameter(declaration,readonly) 9+4 parameter(declaration,readonly) 18+1 parameter(readonly)
+  52: 2+1 variable(readonly) 7+4 variable(readonly) 12+1 variable(readonly) 18+1 variable(readonly)
+  56: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary)
+  57: 2+1 parameter(declaration,readonly) 5+5 type(defaultLibrary)
+  58: 2+1 parameter(declaration,readonly) 5+5 type(defaultLibrary)
+  59: 5+4 parameter(declaration,readonly) 11+4 function(defaultLibrary) 16+4 type(defaultLibrary)
+  60: 6+1 parameter(readonly)
+  63: 2+1 parameter(declaration,readonly) 8+3 function(defaultLibrary) 12+1 parameter(readonly)
+  66: 2+3 function(defaultLibrary)
+  69: 3+1 variable(readonly) 5+1 variable(readonly)
+  70: 3+1 parameter(declaration,readonly) 6+4 type(defaultLibrary)
+  71: 3+1 parameter(declaration,readonly) 6+4 type(defaultLibrary)
   2:13 hover: ```jul [ a: 1 b: 4 ] ```
   2:13 definition: kein
   2:13 completion: n=0 
@@ -246,6 +299,38 @@ symbols
   myFunction kind=12 57:1
     a kind=13 57:15
       keine
+semanticTokens
+  5: 1+5 variable(declaration,readonly)
+  9: 3+5 variable(readonly)
+  10: 9+3 function(defaultLibrary)
+  11: 9+3 function(defaultLibrary)
+  12: 8+3 function(defaultLibrary)
+  15: 3+5 variable(readonly)
+  16: 3+1 parameter(declaration,readonly) 12+3 function(defaultLibrary) 16+1 parameter(readonly)
+  17: 3+1 parameter(declaration,readonly) 6+7 type(defaultLibrary) 18+3 function(defaultLibrary) 22+1 parameter(readonly)
+  21: 3+5 variable(readonly)
+  22: 2+3 type(defaultLibrary) 9+3 function(defaultLibrary) 13+5 variable(readonly)
+  26: 2+5 type(defaultLibrary) 11+3 function(defaultLibrary)
+  29: 1+7 variable(declaration,readonly)
+  30: 3+7 variable(readonly)
+  31: 3+5 type(defaultLibrary) 13+3 function(defaultLibrary)
+  32: 8+3 function(defaultLibrary)
+  36: 11+3 function(defaultLibrary)
+  37: 3+1 parameter(declaration,readonly) 6+7 type(defaultLibrary) 14+1 parameter(declaration,readonly) 17+7 type(defaultLibrary) 29+3 function(defaultLibrary) 33+1 parameter(readonly) 35+1 parameter(readonly)
+  38: 8+3 function(defaultLibrary)
+  41: 3+1 property(declaration,readonly) 9+1 property(declaration,readonly)
+  42: 3+1 parameter(declaration,readonly) 5+1 parameter(declaration,readonly) 11+3 function(defaultLibrary) 15+1 parameter(readonly) 17+1 parameter(readonly)
+  43: 8+3 function(defaultLibrary)
+  46: 1+6 variable(declaration,readonly)
+  47: 6+6 variable(readonly)
+  48: 3+1 parameter(declaration,readonly) 6+7 type(defaultLibrary) 14+1 parameter(declaration,readonly) 17+7 type(defaultLibrary) 29+3 function(defaultLibrary) 33+1 parameter(readonly) 35+1 parameter(readonly)
+  49: 8+3 function(defaultLibrary)
+  52: 3+6 variable(readonly)
+  53: 3+1 parameter(declaration,readonly) 6+4 function(defaultLibrary) 11+7 type(defaultLibrary) 24+3 function(defaultLibrary) 28+1 parameter(readonly)
+  54: 8+3 function(defaultLibrary)
+  57: 1+10 function(declaration) 15+1 parameter(declaration,readonly) 18+7 type(defaultLibrary) 30+3 function(defaultLibrary) 34+1 parameter(readonly)
+  58: 1+10 function
+  60: 2+10 function
   5:5 hover: ```jul 6 ```
   5:5 definition: branching.jul:5:1
   5:5 completion: n=98 myVal,myEmpty,myList
@@ -319,6 +404,9 @@ symbols
 symbols
   cliArguments kind=14 1:1
     keine
+semanticTokens
+  1: 1+12 variable(declaration,readonly) 16+5 function(defaultLibrary)
+  2: 1+3 function(defaultLibrary) 5+12 variable(readonly)
   1:19 hover: ```jul (js: Text) :> Any ``` Führt den gegebenen Text als JavaScript aus und liefert dessen Rückgabe...
   1:19 definition: jul-core-lib:/core-lib.jul:1006:1
   1:19 completion: n=95 cliArguments,true,false
@@ -341,6 +429,23 @@ symbols
     keine
   moveJs kind=14 10:5
     keine
+semanticTokens
+  1: 1+7 variable(declaration,readonly,stream) 11+6 function(defaultLibrary)
+  2: 1+9 variable(declaration,readonly,stream) 13+7 variable(readonly,stream) 21+4 function(defaultLibrary) 27+5 parameter(declaration,readonly) 37+5 parameter(readonly) 43+13 function(defaultLibrary)
+  3: 1+9 variable(readonly,stream) 11+9 function(defaultLibrary)
+  4: 3+5 parameter(declaration,readonly)
+  5: 3+10 variable(declaration,readonly) 16+5 parameter(readonly) 22+7 function(defaultLibrary)
+  6: 5+10 variable(readonly)
+  7: 5+4 variable(defaultLibrary,readonly)
+  8: 5+7 variable(readonly,stream) 13+8 function(defaultLibrary)
+  9: 5+5 variable(defaultLibrary,readonly)
+  10: 5+6 variable(declaration,readonly) 16+5 parameter(readonly) 22+7 function(defaultLibrary)
+  11: 7+4 variable(defaultLibrary,readonly)
+  12: 7+5 variable(defaultLibrary,readonly)
+  13: 5+5 function(defaultLibrary)
+  15: 9+6 variable(readonly)
+  18: 31+5 parameter(readonly) 37+13 function(defaultLibrary)
+  19: 31+5 parameter(readonly)
   1:12 hover: ```jul (delayMs: Float) :> Stream(Float) ``` gibt alle delayMs die nächste Zahl aus, beginnend mit 1
   1:12 definition: jul-core-lib:/core-lib.jul:891:1
   1:12 completion: n=96 timer1$,progress$,true
@@ -428,6 +533,15 @@ symbols
     keine
   value kind=13 4:3
     keine
+semanticTokens
+  2: 1+8 variable(declaration,readonly,stream) 12+6 function(defaultLibrary)
+  3: 1+8 variable(readonly,stream) 10+9 function(defaultLibrary)
+  4: 3+5 parameter(declaration,readonly)
+  5: 3+3 function(defaultLibrary) 7+5 parameter(readonly)
+  6: 3+5 function(defaultLibrary)
+  7: 32+5 parameter(readonly)
+  10: 5+5 parameter(readonly)
+  11: 13+8 variable(readonly,stream) 22+8 function(defaultLibrary)
   2:13 hover: ```jul (delayMs: Float) :> Stream(Float) ``` gibt alle delayMs die nächste Zahl aus, beginnend mit 1
   2:13 definition: jul-core-lib:/core-lib.jul:891:1
   2:13 completion: n=95 counter$,true,false
@@ -487,6 +601,18 @@ symbols
       keine
   test kind=14 27:1
     keine
+semanticTokens
+  9: 1+15 function(declaration)
+  10: 2+9 parameter(declaration,readonly) 13+7 type(defaultLibrary)
+  11: 2+7 parameter(declaration,readonly) 11+7 type(defaultLibrary)
+  12: 2+8 parameter(declaration,readonly) 12+7 type(defaultLibrary)
+  14: 4+9 parameter(readonly)
+  15: 10+8 parameter(readonly)
+  16: 9+15 variable(readonly) 25+8 function(defaultLibrary) 34+9 parameter(readonly) 47+3 function(defaultLibrary) 51+7 parameter(readonly) 59+8 parameter(readonly) 69+7 parameter(readonly)
+  17: 1+9 function(declaration) 14+1 parameter(declaration,readonly) 17+7 type(defaultLibrary)
+  18: 2+15 function 18+1 parameter(readonly)
+  27: 1+4 variable(declaration,readonly) 8+9 function
+  28: 1+3 function(defaultLibrary) 5+4 variable(readonly)
   9:10 hover: ```jul ( countdown: Integer current: Integer previous: Integer ) :> Any ``` int fib(int term, int va...
   9:10 definition: fibonacci/fibonacci.jul:9:1
   9:10 completion: n=97 fibonacciHelper,fibonacci,test
@@ -548,6 +674,19 @@ symbols
       keine
     message kind=14 8:2
       keine
+semanticTokens
+  1: 1+11 function(declaration) 16+7 parameter(declaration,readonly) 25+14 type(defaultLibrary)
+  2: 3+8 parameter(declaration,readonly) 13+7 type(defaultLibrary) 25+8 parameter(readonly) 34+6 function(defaultLibrary) 41+7 parameter(readonly) 50+5 function(defaultLibrary)
+  4: 1+8 function(declaration) 13+5 parameter(declaration,readonly) 20+15 type(defaultLibrary)
+  5: 4+5 parameter(readonly)
+  7: 3+3 type(defaultLibrary) 10+8 variable(readonly) 19+5 parameter(readonly) 25+8 function(defaultLibrary)
+  8: 2+7 variable(declaration,readonly) 14+5 parameter(readonly)
+  9: 4+11 function
+  10: 4+11 function
+  11: 4+11 function
+  12: 3+3 type(defaultLibrary) 10+5 parameter(readonly)
+  13: 2+3 function(defaultLibrary) 6+7 variable(readonly)
+  15: 1+8 function
   1:22 hover: ```jul And(Integer Not(0)) ```
   1:22 definition: fizz-buzz/fizz-buzz-recursive.jul:1:16
   1:22 completion: n=97 divisibleBy,fizzBuzz,divisor
@@ -612,6 +751,18 @@ symbols
     keine
   message kind=14 10:3
     keine
+semanticTokens
+  3: 1+11 function(declaration) 16+7 parameter(declaration,readonly) 25+14 type(defaultLibrary)
+  4: 3+8 parameter(declaration,readonly) 13+7 type(defaultLibrary)
+  5: 3+8 parameter(readonly) 12+6 function(defaultLibrary) 19+7 parameter(readonly) 28+5 function(defaultLibrary)
+  7: 1+6 function(defaultLibrary)
+  9: 3+5 parameter(declaration,readonly)
+  10: 3+7 variable(declaration,readonly) 15+5 parameter(readonly)
+  11: 5+11 function
+  12: 5+11 function
+  13: 5+11 function
+  14: 4+3 type(defaultLibrary) 11+5 parameter(readonly)
+  15: 3+3 function(defaultLibrary) 7+7 variable(readonly)
   3:22 hover: ```jul And(Integer Not(0)) ```
   3:22 definition: fizz-buzz/fizz-buzz.jul:3:16
   3:22 completion: n=96 divisibleBy,divisor,true
@@ -747,6 +898,50 @@ symbols
       keine
     a kind=13 89:16
       keine
+semanticTokens
+  1: 1+10 function(declaration) 15+1 parameter(declaration,readonly) 17+1 parameter(declaration,readonly) 23+3 function(defaultLibrary) 27+1 parameter(readonly) 29+1 parameter(readonly)
+  4: 1+10 function
+  7: 1+10 function
+  8: 2+1 property(declaration,readonly)
+  9: 2+1 property(declaration,readonly)
+  13: 1+10 function
+  14: 2+1 property(declaration,readonly)
+  15: 2+1 property(declaration,readonly)
+  19: 1+6 variable(declaration,readonly)
+  20: 1+10 function 15+6 variable(readonly)
+  23: 1+12 variable(declaration,readonly)
+  24: 2+1 property(declaration,readonly)
+  25: 2+1 property(declaration,readonly)
+  27: 1+10 function 15+12 variable(readonly)
+  30: 1+13 variable(declaration,readonly)
+  31: 2+1 property(declaration,readonly)
+  32: 2+1 property(declaration,readonly)
+  34: 1+10 function 15+13 variable(readonly)
+  40: 1+6 type(declaration)
+  41: 2+1 property(declaration,readonly)
+  42: 2+1 property(declaration,readonly)
+  44: 1+11 function(declaration) 16+1 parameter(declaration,readonly) 19+6 type 30+3 function(defaultLibrary)
+  45: 1+11 function 14+1 property(declaration,readonly) 20+1 property(declaration,readonly)
+  47: 1+12 function(declaration) 16+6 type 26+3 function(defaultLibrary)
+  48: 1+12 function 15+1 property(declaration,readonly) 21+1 property(declaration,readonly)
+  50: 1+12 function 14+1 property(declaration,readonly) 20+1 property(declaration,readonly)
+  53: 1+21 function(declaration) 25+7 type(defaultLibrary) 36+3 function(defaultLibrary)
+  54: 1+21 function
+  58: 2+21 function
+  61: 1+12 function(declaration) 20+13 parameter(declaration,readonly) 38+3 function(defaultLibrary) 42+13 parameter(readonly)
+  63: 1+12 function
+  65: 1+12 function
+  67: 1+12 function
+  70: 1+12 function
+  71: 2+1 property(declaration,readonly)
+  72: 2+1 property(declaration,readonly)
+  78: 1+13 function(declaration) 21+13 parameter(declaration,readonly) 36+6 type 47+3 function(defaultLibrary)
+  80: 1+11 function(declaration) 16+1 parameter(declaration,readonly) 21+1 parameter(declaration,readonly) 30+3 function(defaultLibrary)
+  83: 1+7 function(declaration) 12+2 parameter(declaration,readonly) 16+7 type(defaultLibrary) 28+2 parameter(declaration,readonly) 39+3 function(defaultLibrary) 43+2 parameter(readonly)
+  84: 1+13 function(declaration) 18+2 parameter(declaration,readonly) 23+1 parameter(declaration,readonly) 26+7 type(defaultLibrary) 34+1 parameter(declaration,readonly) 37+4 type(defaultLibrary)
+  85: 1+13 function 15+7 function
+  88: 1+3 function(declaration) 8+1 parameter(declaration,readonly) 11+7 type(defaultLibrary) 19+1 parameter(declaration,readonly) 22+4 type(defaultLibrary)
+  89: 1+3 function(declaration) 8+1 parameter(declaration,readonly) 11+4 type(defaultLibrary) 16+1 parameter(declaration,readonly) 19+7 type(defaultLibrary)
   1:16 hover: ```jul Any ```
   1:16 definition: function-call.jul:1:15
   1:16 completion: n=111 myFunction,myList,myDictionary
@@ -851,6 +1046,8 @@ symbols
 === http-request/http-request.jul
 symbols
   keine
+semanticTokens
+  4: 1+16 function(defaultLibrary) 62+9 function(defaultLibrary) 72+3 function(defaultLibrary)
   4:38 hover: ```jul Text ```
   4:38 definition: kein
   4:38 completion: n=94 true,false,Any
@@ -858,6 +1055,8 @@ symbols
 
 === import/file1.jul
 symbols
+  keine
+semanticTokens
   keine
   1:2 hover: kein
   1:2 definition: kein
@@ -876,6 +1075,13 @@ symbols
       keine
   x kind=13 6:2
     keine
+semanticTokens
+  1: 1+8 variable(declaration,readonly)
+  2: 1+7 function(declaration) 12+5 parameter(declaration,readonly) 19+4 type(defaultLibrary) 28+3 function(defaultLibrary) 32+5 parameter(readonly)
+  3: 1+6 type(declaration)
+  4: 2+5 property(declaration,readonly) 9+7 type(defaultLibrary)
+  6: 2+1 parameter(declaration,readonly) 5+6 type
+  7: 2+1 parameter(readonly) 4+5 property(readonly)
   1:13 hover: ```jul §test token 1§ ```
   1:13 definition: kein
   1:13 completion: n=1 test token 1
@@ -930,6 +1136,28 @@ symbols
     keine
   javascriptImport kind=14 39:1
     keine
+semanticTokens
+  4: 1+11 namespace(declaration) 15+6 function(defaultLibrary)
+  5: 1+3 function(defaultLibrary) 5+11 namespace
+  9: 1+5 namespace(declaration) 9+6 function(defaultLibrary)
+  10: 1+3 function(defaultLibrary) 5+5 namespace 11+8 property(readonly)
+  14: 2+8 variable(declaration,readonly)
+  15: 2+5 variable(declaration,readonly) 10+7 property(readonly)
+  16: 2+6 variable(declaration,readonly)
+  17: 5+6 function(defaultLibrary)
+  18: 1+5 function 7+8 variable(readonly)
+  19: 2+1 parameter(declaration,readonly) 5+6 type
+  20: 2+1 parameter(readonly)
+  21: 1+5 variable(declaration,readonly) 8+6 type
+  22: 2+5 property(declaration,readonly)
+  27: 1+10 namespace(declaration) 14+6 function(defaultLibrary)
+  28: 1+3 function(defaultLibrary) 5+10 namespace
+  31: 1+10 namespace(declaration) 14+6 function(defaultLibrary)
+  32: 1+3 function(defaultLibrary) 5+10 namespace
+  35: 1+16 namespace(declaration) 20+6 function(defaultLibrary)
+  36: 1+3 function(defaultLibrary) 5+16 namespace
+  39: 1+16 namespace(declaration) 20+6 function(defaultLibrary)
+  40: 1+3 function(defaultLibrary) 5+16 namespace
   4:18 hover: ```jul (path: Text) :> Any ``` Supported file types: .jul .js .json .yaml
   4:18 definition: jul-core-lib:/core-lib.jul:978:1
   4:18 completion: n=104 valueImport,file2,someText
@@ -1079,6 +1307,33 @@ symbols
         keine
     c kind=8 64:2
       keine
+semanticTokens
+  4: 1+6 variable(declaration,readonly)
+  6: 1+7 variable(declaration,readonly)
+  17: 1+11 variable(declaration,readonly) 15+6 variable(readonly)
+  18: 1+12 variable(declaration,readonly) 16+7 variable(readonly)
+  23: 1+7 variable(declaration,readonly) 21+6 variable(readonly)
+  25: 1+7 variable(declaration,readonly)
+  28: 5+6 variable(readonly)
+  35: 1+12 variable(declaration,readonly) 17+1 property(declaration,readonly) 23+1 property(declaration,readonly) 29+1 property(declaration,readonly)
+  37: 1+13 variable(declaration,readonly)
+  38: 2+1 property(declaration,readonly)
+  39: 2+1 property(declaration,readonly)
+  40: 3+2 property(declaration,readonly)
+  41: 3+2 property(declaration,readonly)
+  42: 3+2 property(declaration,readonly)
+  44: 2+1 property(declaration,readonly)
+  48: 1+12 variable(declaration,readonly) 16+12 variable(readonly) 29+1 property(readonly)
+  49: 1+12 variable(declaration,readonly) 16+13 variable(readonly) 30+1 property(readonly) 32+2 property(readonly)
+  54: 1+13 variable(declaration,readonly) 18+1 property(declaration,readonly) 25+1 property(declaration,readonly) 35+12 variable(readonly) 48+1 property(declaration,readonly)
+  56: 1+13 variable(declaration,readonly)
+  57: 2+1 property(declaration,readonly)
+  58: 2+1 property(declaration,readonly)
+  59: 3+2 property(declaration,readonly)
+  60: 3+2 property(declaration,readonly)
+  61: 6+12 variable(readonly)
+  62: 3+2 property(declaration,readonly)
+  64: 2+1 property(declaration,readonly)
   4:9 hover: kein
   4:9 definition: kein
   4:9 completion: n=106 myList,myList2,myListValue
@@ -1184,6 +1439,20 @@ symbols
     keine
   x kind=13 14:22
     keine
+semanticTokens
+  1: 1+7 variable(declaration,readonly,stream) 11+6 function(defaultLibrary)
+  2: 1+7 variable(readonly,stream) 9+9 function(defaultLibrary)
+  3: 3+1 parameter(declaration,readonly)
+  4: 3+7 variable(readonly) 11+3 function(defaultLibrary) 25+1 parameter(readonly)
+  7: 1+8 variable(declaration,readonly,stream) 12+4 function(defaultLibrary) 17+7 variable(readonly,stream) 26+5 parameter(declaration,readonly) 36+5 parameter(readonly) 42+6 function(defaultLibrary)
+  8: 1+8 variable(readonly,stream) 10+9 function(defaultLibrary) 21+1 parameter(declaration,readonly) 27+7 variable(readonly) 35+3 function(defaultLibrary) 50+1 parameter(readonly)
+  10: 1+8 variable(declaration,readonly,stream) 12+4 function(defaultLibrary) 17+7 variable(readonly,stream) 26+5 parameter(declaration,readonly) 36+5 parameter(readonly) 42+6 function(defaultLibrary)
+  11: 1+8 variable(readonly,stream) 10+9 function(defaultLibrary) 21+1 parameter(declaration,readonly) 27+7 variable(readonly) 35+3 function(defaultLibrary) 50+1 parameter(readonly)
+  13: 1+9 variable(declaration,readonly,stream) 13+8 function(defaultLibrary) 22+7 variable(readonly,stream) 30+8 variable(readonly,stream) 39+8 variable(readonly,stream)
+  14: 1+9 variable(readonly,stream) 11+9 function(defaultLibrary) 22+1 parameter(declaration,readonly) 28+7 variable(readonly) 36+3 function(defaultLibrary) 51+1 parameter(readonly)
+  15: 1+9 variable(readonly,stream) 11+11 variable(readonly) 29+7 variable(readonly) 37+3 function(defaultLibrary)
+  17: 1+7 variable(readonly,stream) 9+8 function(defaultLibrary)
+  18: 1+8 variable(readonly,stream) 10+8 function(defaultLibrary)
   1:12 hover: ```jul (delayMs: Float) :> Stream(Float) ``` gibt alle delayMs die nächste Zahl aus, beginnend mit 1
   1:12 definition: jul-core-lib:/core-lib.jul:891:1
   1:12 completion: n=98 source$,mapped1$,mapped2$
@@ -1247,6 +1516,10 @@ symbols
     keine
   b kind=14 3:1
     keine
+semanticTokens
+  1: 1+8 function(defaultLibrary)
+  2: 1+1 variable(declaration,readonly)
+  3: 1+1 variable(declaration,readonly) 5+4 type(defaultLibrary)
   1:8 hover: ```jul ( minuend: Or(Integer Fraction) subtrahend: Or(Integer Fraction) ) :> Or(Integer Fraction) ``...
   1:8 definition: jul-core-lib:/core-lib.jul:235:1
   1:8 completion: n=96 a,b,true
@@ -1276,6 +1549,17 @@ symbols
     keine
   sql kind=14 27:1
     keine
+semanticTokens
+  1: 1+6 variable(declaration,readonly)
+  3: 1+16 variable(declaration,readonly) 32+6 variable(readonly)
+  5: 1+9 variable(declaration,readonly)
+  14: 8+16 variable(readonly)
+  19: 1+13 variable(declaration,readonly)
+  21: 11+6 variable(readonly)
+  25: 1+8 variable(declaration,readonly)
+  26: 1+5 variable(declaration,readonly)
+  27: 1+3 variable(declaration,readonly)
+  28: 15+8 variable(readonly) 34+5 variable(readonly)
   1:11 hover: ```jul §Hallo Welt§ ```
   1:11 definition: kein
   1:11 completion: n=1 Hallo Welt
@@ -1525,6 +1809,79 @@ symbols
       keine
   testDictionary3 kind=14 128:1
     keine
+semanticTokens
+  2: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
+  4: 1+10 type(declaration) 13+5 type(defaultLibrary) 21+5 type(defaultLibrary)
+  6: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
+  8: 1+17 variable(declaration,readonly)
+  10: 1+17 variable(declaration,readonly)
+  12: 1+17 variable(declaration,readonly)
+  14: 1+17 variable(declaration,readonly) 26+1 property(declaration,readonly)
+  16: 1+19 variable(declaration,readonly)
+  18: 1+19 variable(declaration,readonly)
+  20: 1+18 variable(declaration,readonly) 21+4 variable(defaultLibrary,readonly)
+  22: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary) 25+4 variable(defaultLibrary,readonly)
+  24: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary)
+  26: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary)
+  28: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary)
+  30: 1+19 variable(declaration,readonly) 22+14 type(defaultLibrary)
+  32: 1+19 variable(declaration,readonly) 22+14 type(defaultLibrary)
+  34: 1+19 variable(declaration,readonly) 22+14 type(defaultLibrary)
+  36: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
+  38: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
+  40: 1+9 variable(declaration,readonly) 12+4 type(defaultLibrary)
+  42: 1+9 variable(declaration,readonly) 12+4 type(defaultLibrary)
+  44: 1+9 variable(declaration,readonly) 12+4 type(defaultLibrary)
+  46: 1+7 variable(declaration,readonly) 10+2 function(defaultLibrary)
+  48: 1+7 variable(declaration,readonly) 10+2 function(defaultLibrary)
+  50: 1+7 variable(declaration,readonly) 10+2 function(defaultLibrary) 13+7 type(defaultLibrary)
+  52: 1+8 variable(declaration,readonly) 11+3 function(defaultLibrary)
+  54: 1+8 variable(declaration,readonly) 11+3 function(defaultLibrary)
+  56: 1+8 variable(declaration,readonly) 11+3 function(defaultLibrary)
+  58: 1+8 variable(declaration,readonly) 11+3 function(defaultLibrary)
+  59: 3+1 property(declaration,readonly)
+  60: 3+1 property(declaration,readonly)
+  62: 2+1 property(declaration,readonly)
+  63: 2+1 property(declaration,readonly)
+  66: 1+8 variable(declaration,readonly) 11+3 function(defaultLibrary)
+  67: 3+1 property(declaration,readonly)
+  68: 3+1 property(declaration,readonly)
+  70: 2+1 property(declaration,readonly)
+  71: 2+1 property(declaration,readonly)
+  74: 1+8 variable(declaration,readonly) 11+3 function(defaultLibrary) 15+4 variable(defaultLibrary,readonly) 23+4 variable(defaultLibrary,readonly)
+  76: 1+8 variable(declaration,readonly) 11+3 function(defaultLibrary) 15+4 variable(defaultLibrary,readonly) 23+5 variable(defaultLibrary,readonly)
+  77: 1+2 type(declaration) 6+7 type(defaultLibrary) 14+3 function(defaultLibrary) 18+4 variable(defaultLibrary,readonly)
+  78: 1+2 type(declaration) 6+7 type(defaultLibrary) 14+3 function(defaultLibrary) 18+3 function(defaultLibrary) 22+4 variable(defaultLibrary,readonly)
+  79: 1+2 type(declaration) 6+7 type(defaultLibrary) 14+7 function(defaultLibrary) 22+4 variable(defaultLibrary,readonly)
+  81: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary) 23+7 function(defaultLibrary) 31+4 variable(defaultLibrary,readonly) 39+5 variable(defaultLibrary,readonly)
+  82: 1+13 variable(declaration,readonly) 16+7 type(defaultLibrary) 24+3 function(defaultLibrary) 28+3 function(defaultLibrary) 32+4 variable(defaultLibrary,readonly) 41+5 variable(defaultLibrary,readonly)
+  84: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary) 23+7 function(defaultLibrary) 31+4 variable(defaultLibrary,readonly) 39+4 variable(defaultLibrary,readonly)
+  85: 1+13 variable(declaration,readonly) 16+7 type(defaultLibrary) 24+3 function(defaultLibrary) 28+3 function(defaultLibrary) 32+4 variable(defaultLibrary,readonly) 41+4 variable(defaultLibrary,readonly)
+  87: 1+10 variable(declaration,readonly) 14+5 type(defaultLibrary) 20+7 type(defaultLibrary)
+  89: 1+10 variable(declaration,readonly) 14+5 type(defaultLibrary)
+  91: 1+9 variable(declaration,readonly) 12+4 function(defaultLibrary) 17+4 type(defaultLibrary)
+  93: 1+9 variable(declaration,readonly) 12+4 function(defaultLibrary) 17+4 type(defaultLibrary)
+  95: 1+9 variable(declaration,readonly) 12+4 function(defaultLibrary) 17+4 type(defaultLibrary)
+  97: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 35+1 property(declaration,readonly)
+  99: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 35+1 property(declaration,readonly)
+  101: 1+22 variable(declaration,readonly)
+  102: 2+1 property(declaration,readonly)
+  103: 2+1 property(declaration,readonly)
+  105: 2+1 property(declaration,readonly)
+  106: 2+1 property(declaration,readonly)
+  109: 1+23 variable(declaration,readonly)
+  110: 2+1 property(declaration,readonly)
+  112: 2+1 property(declaration,readonly)
+  113: 2+1 property(declaration,readonly)
+  116: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 30+1 property(declaration,readonly) 40+1 property(declaration,readonly) 45+1 property(declaration,readonly)
+  118: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 30+1 property(declaration,readonly) 40+1 property(declaration,readonly) 45+1 property(declaration,readonly)
+  120: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 29+5 type(defaultLibrary) 39+1 property(declaration,readonly) 44+1 property(declaration,readonly)
+  122: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 29+5 type(defaultLibrary) 39+1 property(declaration,readonly)
+  124: 1+15 variable(declaration,readonly) 18+10 function(defaultLibrary) 29+4 type(defaultLibrary) 38+1 property(declaration,readonly)
+  126: 1+15 variable(declaration,readonly) 18+10 function(defaultLibrary) 29+4 type(defaultLibrary) 38+1 property(declaration,readonly)
+  128: 1+15 variable(declaration,readonly) 18+10 function(defaultLibrary) 29+4 type(defaultLibrary)
+  130: 3+8 function(defaultLibrary)
+  132: 4+8 function(defaultLibrary)
   2:12 hover: kein
   2:12 definition: kein
   2:12 completion: n=148 testEmpty1,testEmpty2,testEmpty3
@@ -1653,6 +2010,26 @@ symbols
     keine
   b kind=8 35:11
     keine
+semanticTokens
+  1: 1+8 type(declaration)
+  2: 2+1 property(declaration,readonly) 5+4 function(defaultLibrary) 10+4 type(defaultLibrary)
+  3: 2+1 property(declaration,readonly) 5+2 function(defaultLibrary) 11+4 type(defaultLibrary)
+  6: 1+11 function(declaration) 15+8 type
+  7: 1+10 variable(declaration,readonly)
+  9: 1+12 function(declaration) 17+1 parameter(declaration,readonly)
+  10: 2+9 property(declaration,readonly) 13+4 function(defaultLibrary) 18+4 type(defaultLibrary)
+  11: 2+10 property(declaration,readonly) 14+2 function(defaultLibrary) 20+4 type(defaultLibrary)
+  14: 1+10 function(declaration)
+  15: 2+9 parameter(declaration,readonly) 13+4 function(defaultLibrary) 18+4 type(defaultLibrary)
+  16: 2+10 parameter(declaration,readonly) 14+2 function(defaultLibrary) 20+4 type(defaultLibrary)
+  19: 2+4 variable(declaration,readonly) 14+1 variable(declaration,readonly) 20+1 property(declaration,readonly) 25+2 property(declaration,readonly) 32+2 property(declaration,readonly) 40+1 property(declaration,readonly)
+  20: 1+3 function(defaultLibrary) 5+4 variable(readonly)
+  21: 1+3 function(defaultLibrary) 5+1 variable(readonly)
+  24: 1+13 function(declaration) 18+7 parameter(declaration,readonly) 28+4 parameter(declaration,readonly) 34+4 type(defaultLibrary) 39+4 parameter(declaration,readonly) 45+7 type(defaultLibrary)
+  26: 1+4 variable(declaration,readonly) 8+4 variable(defaultLibrary,readonly)
+  27: 1+13 function 16+4 parameter(declaration,readonly) 28+6 parameter(declaration,readonly)
+  30: 2+1 property(declaration,readonly) 8+1 property(declaration,readonly)
+  35: 5+1 property(declaration,readonly) 11+1 property(declaration,readonly)
   1:7 hover: ```jul TypeOf([ a: List(Text) b: Or(Empty Text) ]) ```
   1:7 definition: type-function.jul:1:1
   1:7 completion: n=103 BlubType,typeFnShort,typeFnLong
@@ -1720,6 +2097,14 @@ symbols
     keine
   a kind=13 8:3
     keine
+semanticTokens
+  1: 1+7 variable(declaration,readonly)
+  3: 3+7 variable(readonly)
+  6: 3+6 variable(readonly) 14+3 function(defaultLibrary) 18+7 variable(readonly)
+  7: 3+5 parameter(declaration,readonly) 9+6 parameter(declaration,readonly) 20+3 function(defaultLibrary) 24+5 parameter(readonly) 30+6 parameter(readonly)
+  8: 3+1 parameter(declaration,readonly) 6+4 type(defaultLibrary)
+  9: 3+3 function(defaultLibrary) 7+1 parameter(readonly)
+  10: 3+1 parameter(readonly)
   1:7 hover: ```jul 32 ```
   1:7 definition: type-switch.jul:1:1
   1:7 completion: n=95 someVar,true,false
@@ -1809,6 +2194,34 @@ symbols
       keine
   Even kind=12 62:1
     keine
+semanticTokens
+  5: 1+5 variable(declaration,readonly) 8+4 type(defaultLibrary)
+  8: 1+5 variable(declaration,readonly) 8+4 type(defaultLibrary)
+  10: 1+5 variable(declaration,readonly)
+  11: 2+4 property(declaration,readonly) 9+9 variable(readonly)
+  12: 2+7 property(declaration,readonly)
+  15: 1+11 variable(declaration,readonly) 15+4 type(defaultLibrary) 20+5 variable(readonly)
+  18: 1+7 type(declaration)
+  19: 2+4 property(declaration,readonly) 8+4 type(defaultLibrary)
+  20: 2+5 property(declaration,readonly) 9+7 variable(readonly)
+  21: 2+5 property(declaration,readonly) 9+4 type(defaultLibrary)
+  24: 1+7 type
+  26: 1+6 variable(declaration,readonly) 10+2 function(defaultLibrary) 13+5 variable(readonly) 19+5 variable(readonly) 25+7 type(defaultLibrary) 33+5 type(defaultLibrary) 39+7 variable(readonly) 47+5 variable(readonly)
+  29: 1+5 variable(declaration,readonly)
+  30: 1+5 variable(declaration,readonly)
+  34: 1+7 type(declaration) 12+4 parameter(declaration,readonly) 18+1 variable(readonly) 20+4 parameter(declaration,readonly) 26+1 variable(readonly) 32+1 variable(readonly)
+  40: 1+7 function(declaration) 12+1 parameter(declaration,readonly) 15+6 variable(readonly)
+  41: 3+4 parameter(declaration,readonly) 9+1 parameter(readonly) 11+4 parameter(declaration,readonly) 17+1 parameter(readonly) 23+1 parameter(readonly)
+  42: 4+4 parameter(readonly) 9+4 parameter(readonly)
+  48: 1+12 variable(readonly) 14+1 property(declaration,readonly) 17+4 type(defaultLibrary)
+  53: 1+12 function(declaration) 17+9 parameter(declaration,readonly) 28+4 type(defaultLibrary)
+  54: 2+4 property(declaration,readonly) 8+9 parameter(readonly)
+  55: 2+6 property(declaration,readonly) 10+4 function(defaultLibrary) 15+4 type(defaultLibrary)
+  57: 1+12 function(declaration) 17+9 parameter(declaration,readonly) 28+4 type(defaultLibrary)
+  58: 2+1 variable(readonly)
+  59: 3+3 function(defaultLibrary) 7+9 parameter(readonly) 17+1 variable(readonly) 19+4 variable(readonly) 25+4 function(defaultLibrary) 30+4 type(defaultLibrary) 36+1 variable(readonly) 38+6 variable(readonly)
+  62: 1+4 function(declaration) 8+3 variable(readonly)
+  63: 2+5 function(defaultLibrary) 8+6 function(defaultLibrary) 15+3 variable(readonly)
   5:11 hover: ```jul TypeOf(Text) ``` sequence of characters (String)
   5:11 definition: jul-core-lib:/core-lib.jul:102:1
   5:11 completion: n=101 myVar,myVarIsText,Article
@@ -1902,6 +2315,17 @@ symbols
         keine
       onClick kind=8 11:7
         keine
+semanticTokens
+  2: 1+4 variable(readonly) 6+4 function(defaultLibrary)
+  3: 2+6 variable(readonly)
+  4: 3+5 property(declaration,readonly)
+  5: 3+7 property(declaration,readonly)
+  6: 4+12 variable(readonly)
+  7: 5+5 property(declaration,readonly)
+  8: 5+7 property(declaration,readonly) 15+10 variable(readonly)
+  9: 6+6 variable(readonly)
+  10: 7+5 property(declaration,readonly)
+  11: 7+7 property(declaration,readonly)
   2:6 hover: ```jul ( stream$: Stream(Any) value: Any ) :> Empty ```
   2:6 definition: jul-core-lib:/core-lib.jul:824:1
   2:6 completion: n=72 List,And,Or
@@ -1985,6 +2409,20 @@ symbols
     keine
   default kind=8 20:5
     keine
+semanticTokens
+  1: 2+4 variable(declaration,readonly) 7+10 variable(declaration,readonly) 18+5 variable(declaration,readonly) 24+9 variable(declaration,readonly) 34+11 variable(declaration,readonly) 46+12 variable(declaration,readonly) 59+6 variable(declaration,readonly) 66+11 variable(declaration,readonly) 81+6 function(defaultLibrary)
+  3: 1+4 variable(readonly) 6+4 function(defaultLibrary)
+  4: 2+10 variable(readonly)
+  5: 3+5 variable(readonly)
+  7: 4+9 variable(readonly)
+  9: 3+6 variable(readonly)
+  10: 4+11 variable(readonly)
+  11: 4+5 variable(readonly)
+  13: 5+11 variable(readonly)
+  16: 3+5 variable(readonly)
+  18: 4+12 variable(readonly)
+  19: 5+2 property(declaration,readonly)
+  20: 5+7 property(declaration,readonly) 15+4 variable(defaultLibrary,readonly)
   1:47 hover: kein
   1:47 definition: kein
   1:47 completion: n=0 
@@ -2114,6 +2552,29 @@ symbols
     keine
   onClick kind=8 31:4
     keine
+semanticTokens
+  1: 2+4 variable(declaration,readonly) 7+10 variable(declaration,readonly) 18+5 variable(declaration,readonly) 24+9 variable(declaration,readonly) 34+11 variable(declaration,readonly) 46+12 variable(declaration,readonly) 59+6 variable(declaration,readonly) 66+11 variable(declaration,readonly) 81+6 function(defaultLibrary)
+  3: 1+9 variable(declaration,readonly) 13+9 variable(readonly)
+  4: 1+8 variable(declaration,readonly) 12+11 variable(readonly)
+  5: 1+12 variable(declaration,readonly) 16+12 variable(readonly) 29+7 property(declaration,readonly) 39+4 variable(defaultLibrary,readonly)
+  6: 1+5 variable(declaration,readonly,stream) 9+8 function(defaultLibrary)
+  7: 2+4 property(declaration,readonly) 9+9 variable(readonly) 19+6 property(readonly)
+  8: 2+3 property(declaration,readonly) 8+8 variable(readonly) 17+6 property(readonly)
+  9: 2+7 property(declaration,readonly) 12+12 variable(readonly) 25+6 property(readonly)
+  12: 1+4 variable(readonly) 6+4 function(defaultLibrary)
+  13: 2+10 variable(readonly)
+  14: 3+5 variable(readonly)
+  16: 4+9 variable(readonly)
+  18: 3+6 variable(readonly)
+  19: 4+12 variable(readonly) 17+6 property(readonly)
+  20: 4+5 variable(readonly)
+  22: 5+8 variable(readonly)
+  25: 3+5 variable(readonly)
+  27: 4+8 variable(readonly)
+  29: 3+6 variable(readonly)
+  30: 4+5 property(declaration,readonly)
+  31: 4+7 property(declaration,readonly)
+  32: 5+3 function(defaultLibrary) 9+5 variable(readonly,stream) 15+5 property(readonly)
   1:47 hover: kein
   1:47 definition: kein
   1:47 completion: n=0 
@@ -2189,6 +2650,11 @@ symbols
     keine
   value kind=13 4:3
     keine
+semanticTokens
+  1: 2+10 variable(declaration,readonly) 16+6 function(defaultLibrary)
+  3: 1+6 function(defaultLibrary) 15+9 function(defaultLibrary)
+  4: 3+5 parameter(declaration,readonly)
+  5: 3+10 function 33+5 parameter(readonly)
   1:17 hover: ```jul (path: Text) :> Any ``` Supported file types: .jul .js .json .yaml
   1:17 definition: jul-core-lib:/core-lib.jul:978:1
   1:17 completion: n=95 addMessage,true,false
@@ -2224,6 +2690,17 @@ symbols
     keine
   event kind=13 16:10
     keine
+semanticTokens
+  2: 2+7 variable(declaration,readonly)
+  3: 2+13 variable(declaration,readonly)
+  4: 2+14 variable(declaration,readonly)
+  5: 5+6 function(defaultLibrary)
+  7: 1+12 variable(declaration,readonly)
+  15: 1+14 function
+  16: 3+6 parameter(declaration,readonly) 10+5 parameter(declaration,readonly)
+  17: 5+5 parameter(readonly)
+  18: 15+7 function 23+12 variable(readonly)
+  19: 18+13 function 32+6 parameter(readonly) 39+13 property(readonly)
   1:1 hover: kein
   1:1 definition: kein
   1:1 completion: n=0 

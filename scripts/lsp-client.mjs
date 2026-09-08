@@ -91,7 +91,7 @@ export function startServer() {
 }
 
 export async function initialize(client, rootPath) {
-	await client.request('initialize', {
+	const result = await client.request('initialize', {
 		processId: process.pid,
 		rootUri: pathToFileURL(rootPath).href,
 		capabilities: {
@@ -99,12 +99,19 @@ export async function initialize(client, rootPath) {
 				completion: { completionItem: { snippetSupport: false } },
 				hover: { contentFormat: ['markdown', 'plaintext'] },
 				publishDiagnostics: { relatedInformation: true },
+				semanticTokens: {
+					requests: { full: true },
+					tokenTypes: [],
+					tokenModifiers: [],
+					formats: ['relative'],
+				},
 				synchronization: { dynamicRegistration: false },
 			},
 		},
 		workspaceFolders: [{ uri: pathToFileURL(rootPath).href, name: 'jul' }],
 	});
 	client.notify('initialized', {});
+	return result;
 }
 
 /** öffnet die Datei und wartet, bis der Server sie verarbeitet hat */

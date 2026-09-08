@@ -168,6 +168,15 @@ async function main() {
 			symbolDurations.push(performance.now() - start);
 		}
 		results.push({ label: 'documentSymbol', values: stats(symbolDurations) });
+		const tokenDurations = [];
+		for (let run = 0; run < requestRunCount; run++) {
+			const start = performance.now();
+			await client.request('textDocument/semanticTokens/full', {
+				textDocument: { uri: pathToFileURL(largestFile).href },
+			});
+			tokenDurations.push(performance.now() - start);
+		}
+		results.push({ label: 'semanticTokens', values: stats(tokenDurations) });
 	}
 	finally {
 		client.stop();

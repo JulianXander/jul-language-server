@@ -20,3 +20,18 @@
 2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	completion	564	2.11	3.31	5.09	wiederholung nach visitor umbau, ruhiger rechner
 2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.15	0.52	wiederholung nach visitor umbau, ruhiger rechner
 2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	documentSymbol	3	4.23	6.20	6.20	wiederholung nach visitor umbau, ruhiger rechner
+2026-09-08 12:34:12	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	41.36	212.54	212.54	semantic tokens provider ergaenzt
+2026-09-08 12:34:12	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	136.93	165.06	165.06	semantic tokens provider ergaenzt
+2026-09-08 12:34:12	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	hover	564	0.42	1.26	7.29	semantic tokens provider ergaenzt
+2026-09-08 12:34:12	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	definition	564	0.25	0.84	2.77	semantic tokens provider ergaenzt
+2026-09-08 12:34:12	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	completion	564	5.10	6.28	13.75	semantic tokens provider ergaenzt
+2026-09-08 12:34:12	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	signatureHelp	564	0.24	0.69	3.21	semantic tokens provider ergaenzt
+2026-09-08 12:34:12	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	documentSymbol	3	7.73	11.17	11.17	semantic tokens provider ergaenzt
+2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	11.29	128.68	128.68	semantic tokens ohne resolvePlaceholders
+2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	64.96	102.93	102.93	semantic tokens ohne resolvePlaceholders
+2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	hover	564	0.14	0.33	1.30	semantic tokens ohne resolvePlaceholders
+2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	definition	564	0.07	0.18	0.79	semantic tokens ohne resolvePlaceholders
+2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	completion	564	2.17	3.26	5.01	semantic tokens ohne resolvePlaceholders
+2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.17	0.50	semantic tokens ohne resolvePlaceholders
+2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	documentSymbol	3	4.10	4.68	4.68	semantic tokens ohne resolvePlaceholders
+2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	semanticTokens	3	3.35	5.40	5.40	semantic tokens ohne resolvePlaceholders

@@ -91,6 +91,40 @@ function formatSymbols(symbols, indent = '') {
 	]);
 }
 
+/**
+ * Die Tokens kommen relativ kodiert (5 Zahlen je Token, jeweils als Abstand zum vorigen).
+ * Aufgelöst und je Quellzeile zusammengefasst, sonst zeigt der Snapshot Zahlenkolonnen statt
+ * der Aussage "dieser Bezeichner ist ein Typ".
+ */
+function formatSemanticTokens(tokens, legend, indent = '  ') {
+	const data = tokens?.data;
+	if (!data?.length) {
+		return [`${indent}keine`];
+	}
+	const byRow = new Map();
+	let line = 0;
+	let character = 0;
+	for (let index = 0; index < data.length; index += 5) {
+		const deltaLine = data[index];
+		const deltaCharacter = data[index + 1];
+		const length = data[index + 2];
+		line += deltaLine;
+		character = deltaLine === 0 ? character + deltaCharacter : deltaCharacter;
+		const modifiers = legend.tokenModifiers
+			.filter((_, modifierIndex) => data[index + 4] & (1 << modifierIndex));
+		const entry = `${character + 1}+${length} ${legend.tokenTypes[data[index + 3]]}`
+			+ (modifiers.length ? `(${modifiers.join(',')})` : '');
+		const row = byRow.get(line);
+		if (row) {
+			row.push(entry);
+		}
+		else {
+			byRow.set(line, [entry]);
+		}
+	}
+	return [...byRow].map(([row, entries]) => `${indent}${row + 1}: ${entries.join(' ')}`);
+}
+
 //#endregion antworten normalisieren
 
 /** ein fehlgeschlagener Request ist ein Befund und gehört in den Snapshot, nicht in einen Abbruch */
@@ -110,7 +144,7 @@ function stripPaths(text) {
 		.replaceAll(target.replaceAll('\\', '/'), '<examples>');
 }
 
-async function collectSnapshot(client, filePaths) {
+async function collectSnapshot(client, filePaths, legend) {
 	const lines = [];
 	for (const filePath of filePaths) {
 		const relativePath = relative(target, filePath).replaceAll('\\', '/');
@@ -123,6 +157,12 @@ async function collectSnapshot(client, filePaths) {
 			'textDocument/documentSymbol',
 			{ textDocument: { uri: uri } },
 			symbols => formatSymbols(symbols, '  ').join('\n')));
+		lines.push('semanticTokens');
+		lines.push(await describe(
+			client,
+			'textDocument/semanticTokens/full',
+			{ textDocument: { uri: uri } },
+			tokens => formatSemanticTokens(tokens, legend).join('\n')));
 		const positions = collectPositions(text.split('\n'), maxPositionCount);
 		for (const position of positions) {
 			const params = { textDocument: { uri: uri }, position: position };
@@ -186,8 +226,9 @@ async function main() {
 	const client = startServer();
 	let actual;
 	try {
-		await initialize(client, target);
-		actual = await collectSnapshot(client, julFiles);
+		const initializeResult = await initialize(client, target);
+		const legend = initializeResult.capabilities.semanticTokensProvider.legend;
+		actual = await collectSnapshot(client, julFiles, legend);
 	}
 	finally {
 		client.stop();
