@@ -3,6 +3,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "npx tsc",
+		"test": "node scripts/snapshot.mjs",
 		"bench": "node scripts/bench.mjs",
 		"bench-chart": "node scripts/bench-chart.mjs"
 	},

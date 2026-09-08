@@ -1,4 +1,4 @@
-import { readdirSync } from 'fs';
+import { readdirSync, statSync } from 'fs';
 import { dirname, extname, join } from 'path';
 import {
 	LanguageService,
@@ -311,11 +311,11 @@ connection.onCompletion(completionParams => {
 			let entryFolderPath = folderPath;
 			let entries;
 			if (rawImportedPath) {
-				entryFolderPath = join(folderPath, rawImportedPath);
-				try {
+				const importedFullPath = join(folderPath, rawImportedPath);
+				// ein vollständig getippter Dateipfad ist der Normalfall, kein Fehler
+				if (statSync(importedFullPath, { throwIfNoEntry: false })?.isDirectory()) {
+					entryFolderPath = importedFullPath;
 					entries = readdirSync(entryFolderPath, { withFileTypes: true });
-				} catch (error) {
-					console.error(error);
 				}
 			}
 			if (!entries) {
@@ -801,7 +801,7 @@ connection.onDefinition((definitionParams) => {
 	if (isImportPath(expression)) {
 		const { fullPath, error } = getPathFromImport(expression!.parent!.parent as ParseFunctionCall, folderPath);
 		if (error) {
-			console.log(error);
+			connection.console.log(error.message);
 			return;
 		}
 		if (!fullPath) {
@@ -1736,7 +1736,7 @@ function getImportedSymbol(
 			&& isImportFunctionCall(destructuring.value)) {
 			const { fullPath, error } = getPathFromImport(destructuring.value, folderPath);
 			if (error) {
-				console.log(error);
+				connection.console.log(error.message);
 				return;
 			}
 			if (!fullPath) {

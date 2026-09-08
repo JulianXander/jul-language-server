@@ -1,6 +1,6 @@
-import { execFileSync, fork } from 'child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
-import { basename, join, resolve } from 'path';
+import { execFileSync } from 'child_process';
+import { existsSync, readFileSync, statSync } from 'fs';
+import { basename, resolve } from 'path';
 import { pathToFileURL } from 'url';
 import {
 	alarmingDeviation,
@@ -16,6 +16,14 @@ import {
 	readPrevious,
 	stats,
 } from './bench-log.mjs';
+import {
+	collectPositions,
+	findJulFiles,
+	initialize,
+	maxFileSize,
+	serverPath,
+	startServer,
+} from './lsp-client.mjs';
 
 /**
  * Wall-Clock Messung der Server-Latenzen über echtes LSP. Kein Test-Gate, nur Beleg für
@@ -28,11 +36,7 @@ import {
 
 const requestRunCount = 3;
 const maxPositionCount = 200;
-const requestTimeout = 30000;
-// Der Server überspringt größere Dateien, sie würden nie Diagnostics senden
-const maxFileSize = 100000;
 
-const serverPath = resolve(import.meta.dirname, '../out/server.js');
 const logPath = resolve(import.meta.dirname, 'bench-log-lsp.tsv');
 const chartScript = resolve(import.meta.dirname, 'bench-chart.mjs');
 // jul-examples ist mit 886 Zeilen zu klein: dort schwankt der Median um mehr als die Alarmschwelle
@@ -41,123 +45,7 @@ const fallbackTarget = resolve(import.meta.dirname, '../../jul-examples');
 // gemessen wird größtenteils Compiler-Code, der eigene Commit erklärt die Zahlen allein nicht
 const compilerFolder = resolve(import.meta.dirname, '../../jul-compiler');
 
-//#region lsp client
-
-/** Minimaler LSP-Client über Node-IPC, nur so viel wie der Bench braucht. */
-function startServer() {
-	const child = fork(serverPath, ['--node-ipc'], { execArgv: [] });
-	const pendingRequests = new Map();
-	/** uri -> resolve, wird von publishDiagnostics bedient */
-	const pendingDiagnostics = new Map();
-	let nextId = 1;
-
-	child.on('message', (message) => {
-		if (message.id !== undefined && pendingRequests.has(message.id)) {
-			const resolveRequest = pendingRequests.get(message.id);
-			pendingRequests.delete(message.id);
-			resolveRequest(message.result);
-			return;
-		}
-		if (message.method === 'textDocument/publishDiagnostics') {
-			const uri = message.params.uri;
-			const resolveDiagnostics = pendingDiagnostics.get(uri);
-			if (resolveDiagnostics) {
-				pendingDiagnostics.delete(uri);
-				resolveDiagnostics(message.params.diagnostics);
-			}
-		}
-	});
-
-	function notify(method, params) {
-		child.send({ jsonrpc: '2.0', method: method, params: params });
-	}
-
-	function request(method, params) {
-		const id = nextId++;
-		return new Promise((resolveRequest, rejectRequest) => {
-			const timeout = setTimeout(() => {
-				pendingRequests.delete(id);
-				rejectRequest(new Error(`timeout bei ${method}`));
-			}, requestTimeout);
-			pendingRequests.set(id, (result) => {
-				clearTimeout(timeout);
-				resolveRequest(result);
-			});
-			child.send({ jsonrpc: '2.0', id: id, method: method, params: params });
-		});
-	}
-
-	/** muss vor der auslösenden Notification aufgerufen werden, sonst geht die Antwort verloren */
-	function waitForDiagnostics(uri) {
-		return new Promise((resolveDiagnostics, rejectDiagnostics) => {
-			const timeout = setTimeout(() => {
-				pendingDiagnostics.delete(uri);
-				rejectDiagnostics(new Error(`timeout bei diagnostics für ${uri}`));
-			}, requestTimeout);
-			pendingDiagnostics.set(uri, (diagnostics) => {
-				clearTimeout(timeout);
-				resolveDiagnostics(diagnostics);
-			});
-		});
-	}
-
-	return {
-		notify: notify,
-		request: request,
-		waitForDiagnostics: waitForDiagnostics,
-		stop: () => child.kill(),
-	};
-}
-
-async function initialize(client, rootPath) {
-	await client.request('initialize', {
-		processId: process.pid,
-		rootUri: pathToFileURL(rootPath).href,
-		capabilities: {
-			textDocument: {
-				completion: { completionItem: { snippetSupport: false } },
-				hover: { contentFormat: ['markdown', 'plaintext'] },
-				publishDiagnostics: { relatedInformation: true },
-				synchronization: { dynamicRegistration: false },
-			},
-		},
-		workspaceFolders: [{ uri: pathToFileURL(rootPath).href, name: 'bench' }],
-	});
-	client.notify('initialized', {});
-}
-
-//#endregion lsp client
-
 //#region messung
-
-function findJulFiles(target) {
-	if (!existsSync(target)) {
-		return [];
-	}
-	if (!statSync(target).isDirectory()) {
-		return target.endsWith('.jul') ? [target] : [];
-	}
-	return readdirSync(target).flatMap(entry => {
-		if (entry === 'out' || entry === 'node_modules' || entry === '.git') {
-			return [];
-		}
-		return findJulFiles(join(target, entry));
-	});
-}
-
-/** verteilt Positionen über alle nicht leeren Zeilen, jeweils in der Mitte des Zeileninhalts */
-function collectPositions(rows) {
-	const positions = [];
-	rows.forEach((row, rowIndex) => {
-		const trimmed = row.trim();
-		if (!trimmed || trimmed.startsWith('#')) {
-			return;
-		}
-		positions.push({ line: rowIndex, character: Math.floor(row.length / 2) });
-	});
-	const step = Math.max(1, Math.ceil(positions.length / maxPositionCount));
-	return positions.filter((_position, index) => index % step === 0);
-}
 
 async function measureOpen(client, filePaths) {
 	const durations = [];
@@ -246,7 +134,7 @@ async function main() {
 	const largestFile = julFiles.reduce((largest, filePath) =>
 		statSync(filePath).size > statSync(largest).size ? filePath : largest);
 	const rows = readFileSync(largestFile, { encoding: 'utf8' }).split('\n');
-	const positions = collectPositions(rows);
+	const positions = collectPositions(rows, maxPositionCount);
 
 	const client = startServer();
 	const results = [];
