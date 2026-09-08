@@ -19,6 +19,7 @@ import {
 	Range,
 	SignatureHelp,
 	SymbolKind,
+	TextDocumentIdentifier,
 	TextDocuments,
 	TextDocumentSyncKind,
 } from 'vscode-languageserver';
@@ -776,6 +777,32 @@ function getFunctionSymbolFromFunctionCall(functionCall: ParseFunctionCall, scop
 	}
 }
 //#endregion function signature help
+
+//#region empty literals
+// Das Empty-Literal [] ist ein eigener Wert, wird im Editor aber wie ein leeres Klammernpaar
+// gefärbt: die bracket pair colorization übermalt jede Farbe aus Grammatik und Semantic Tokens.
+// Nur eine Decoration liegt darüber, und die braucht diese Positionen. Siehe extension.ts.
+connection.onRequest('jul/emptyLiterals', (params: TextDocumentIdentifier) => {
+	const parsedFile = getParsedFileByUri(params.uri);
+	const expressions = parsedFile?.checked?.expressions;
+	if (!expressions) {
+		return [];
+	}
+	const ranges: Range[] = [];
+	expressions.forEach(expression => collectEmptyLiterals(expression, ranges));
+	return ranges;
+});
+
+function collectEmptyLiterals(expression: PositionedExpression, ranges: Range[]): void {
+	if (expression.type === 'empty') {
+		ranges.push(positionedToRange(expression));
+	}
+	forEachChild(expression, child => {
+		collectEmptyLiterals(child, ranges);
+		return undefined;
+	});
+}
+//#endregion empty literals
 
 //#region go to definition
 // Go to definition auf builtIns führt in die core-lib. Statt die kompilierte Kopie in out/

@@ -13,3 +13,10 @@
 2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	completion	564	2.07	2.75	3.57	visitor umbau: findExpressionInExpression nutzt forEachChild
 2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.15	0.35	visitor umbau: findExpressionInExpression nutzt forEachChild
 2026-09-08 11:45:21	d0b734f+	jul-compiler 700b265	ADV-DEV-56627	yugioh	documentSymbol	3	3.78	4.94	4.94	visitor umbau: findExpressionInExpression nutzt forEachChild
+2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	11.52	131.27	131.27	wiederholung nach visitor umbau, ruhiger rechner
+2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	63.72	97.83	97.83	wiederholung nach visitor umbau, ruhiger rechner
+2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	hover	564	0.10	0.24	0.96	wiederholung nach visitor umbau, ruhiger rechner
+2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	definition	564	0.06	0.16	0.49	wiederholung nach visitor umbau, ruhiger rechner
+2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	completion	564	2.11	3.31	5.09	wiederholung nach visitor umbau, ruhiger rechner
+2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.15	0.52	wiederholung nach visitor umbau, ruhiger rechner
+2026-09-08 11:50:57	1f444cf+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	documentSymbol	3	4.23	6.20	6.20	wiederholung nach visitor umbau, ruhiger rechner
