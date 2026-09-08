@@ -22,7 +22,7 @@ import {
  * Umbauten am Server. Misst, was der Editor merkt: Zeit bis Diagnostics und Antwortzeit der
  * positionsbasierten Features.
  * Aufruf: npm run bench [--save] [--note "grund"] [datei|ordner...]  (Default: jul-examples)
- * Mit --save wird die Messung an scripts/bench-log.tsv angehängt, ohne nur verglichen.
+ * Mit --save wird die Messung an scripts/bench-log-lsp.tsv angehängt, ohne nur verglichen.
  * Setzt einen gebauten Server voraus (npm run build).
  */
 
@@ -33,7 +33,7 @@ const requestTimeout = 30000;
 const maxFileSize = 100000;
 
 const serverPath = resolve(import.meta.dirname, '../out/server.js');
-const logPath = resolve(import.meta.dirname, 'bench-log.tsv');
+const logPath = resolve(import.meta.dirname, 'bench-log-lsp.tsv');
 // gemessen wird größtenteils Compiler-Code, der eigene Commit erklärt die Zahlen allein nicht
 const compilerFolder = resolve(import.meta.dirname, '../../jul-compiler');
 
