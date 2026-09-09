@@ -74,7 +74,7 @@ import {
 	isTypeOfType,
 	ParsedDocuments,
 	typeToString,
-} from 'jul-compiler/out/checker.js';
+} from 'jul-compiler/out/checker/checker.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 
 /**
