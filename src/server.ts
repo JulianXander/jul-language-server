@@ -1087,8 +1087,10 @@ connection.onHover((hoverParams) => {
 	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
+		// Der Typ gehört der Stelle, nicht dem Namen: in einem branch ist er hier verengt.
+		// Die Beschreibung steht dagegen nur an der Definition.
 		return {
-			contents: getTypeMarkdown(symbol.typeInfo, symbol.description),
+			contents: getTypeMarkdown(('typeInfo' in expression && expression.typeInfo) || symbol.typeInfo, symbol.description),
 		};
 	}
 
