@@ -66,14 +66,14 @@ function renderCell(label, entries, offsetX, offsetY) {
 	const getY = value => padding.top + plotHeight - (value / maxValue) * plotHeight;
 	const points = entries.map((entry, index) => `${getX(index).toFixed(1)},${getY(entry.median).toFixed(1)}`);
 	const dots = entries.map((entry, index) =>
-		`<circle cx="${getX(index).toFixed(1)}" cy="${getY(entry.median).toFixed(1)}" r="2.5" fill="#2b7bb9">`
+		`<circle cx="${getX(index).toFixed(1)}" cy="${getY(entry.median).toFixed(1)}" r="2.5" fill="#5aa9e6">`
 		+ `<title>${escapeText(`${entry.timestamp}\n${entry.commit}${entry.deps === '-' ? '' : `, ${entry.deps}`}\n${entry.median.toFixed(2)} ms`)}</title>`
 		+ '</circle>').join('');
 	const gridLines = [0, 0.5, 1].map(fraction => {
 		const value = maxValue * fraction;
 		const y = getY(value).toFixed(1);
-		return `<line x1="${padding.left}" y1="${y}" x2="${padding.left + plotWidth}" y2="${y}" stroke="#e0e0e0"/>`
-			+ `<text x="${padding.left - 6}" y="${y}" text-anchor="end" dominant-baseline="middle" font-size="9" fill="#888">${value.toFixed(2)}</text>`;
+		return `<line x1="${padding.left}" y1="${y}" x2="${padding.left + plotWidth}" y2="${y}" stroke="#3a3a3a"/>`
+			+ `<text x="${padding.left - 6}" y="${y}" text-anchor="end" dominant-baseline="middle" font-size="9" fill="#999">${value.toFixed(2)}</text>`;
 	}).join('');
 	const first = entries[0];
 	const last = entries[entries.length - 1];
@@ -82,16 +82,16 @@ function renderCell(label, entries, offsetX, offsetY) {
 		: '';
 	const axisY = padding.top + plotHeight;
 	const dateLabels = entries.length > 1
-		? `<text x="${padding.left}" y="${axisY + 14}" font-size="9" fill="#888">${first.timestamp.slice(0, 10)}</text>`
-		+ `<text x="${padding.left + plotWidth}" y="${axisY + 14}" text-anchor="end" font-size="9" fill="#888">${last.timestamp.slice(0, 10)}</text>`
+		? `<text x="${padding.left}" y="${axisY + 14}" font-size="9" fill="#999">${first.timestamp.slice(0, 10)}</text>`
+		+ `<text x="${padding.left + plotWidth}" y="${axisY + 14}" text-anchor="end" font-size="9" fill="#999">${last.timestamp.slice(0, 10)}</text>`
 		: '';
 	return `<g transform="translate(${offsetX} ${offsetY})">`
-		+ `<rect x="6" y="4" width="${cellWidth - 12}" height="${cellHeight - 12}" fill="none" stroke="#f0f0f0"/>`
-		+ `<text x="${padding.left}" y="20" font-size="11" font-weight="bold" fill="#333">${escapeText(label)}</text>`
-		+ `<text x="${padding.left}" y="33" font-size="9" fill="#888">${escapeText(`${last.median.toFixed(2)} ms${trend}`)}</text>`
+		+ `<rect x="6" y="4" width="${cellWidth - 12}" height="${cellHeight - 12}" fill="none" stroke="#333"/>`
+		+ `<text x="${padding.left}" y="20" font-size="11" font-weight="bold" fill="#e8e8e8">${escapeText(label)}</text>`
+		+ `<text x="${padding.left}" y="33" font-size="9" fill="#999">${escapeText(`${last.median.toFixed(2)} ms${trend}`)}</text>`
 		+ gridLines
 		+ dateLabels
-		+ `<polyline fill="none" stroke="#2b7bb9" stroke-width="1.5" points="${points.join(' ')}"/>`
+		+ `<polyline fill="none" stroke="#5aa9e6" stroke-width="1.5" points="${points.join(' ')}"/>`
 		+ dots
 		+ '</g>';
 }
@@ -127,9 +127,9 @@ else {
 		)).join('');
 		const measurementCount = entries.length / labels.length;
 		const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" font-family="sans-serif">`
-			+ `<rect width="${width}" height="${height}" fill="#fff"/>`
-			+ `<text x="${padding.left}" y="22" font-size="13" font-weight="bold" fill="#333">${escapeText(`${chosenTarget} auf ${machine}`)}</text>`
-			+ `<text x="${width - 12}" y="22" text-anchor="end" font-size="10" fill="#888">${Math.round(measurementCount)} Messungen, Median in ms</text>`
+			+ `<rect width="${width}" height="${height}" fill="#1e1e1e"/>`
+			+ `<text x="${padding.left}" y="22" font-size="13" font-weight="bold" fill="#e8e8e8">${escapeText(`${chosenTarget} auf ${machine}`)}</text>`
+			+ `<text x="${width - 12}" y="22" text-anchor="end" font-size="10" fill="#999">${Math.round(measurementCount)} Messungen, Median in ms</text>`
 			+ cells
 			+ '</svg>';
 		const chartPath = outPath
