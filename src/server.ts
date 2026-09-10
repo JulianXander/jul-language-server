@@ -160,24 +160,17 @@ documents.onDidChangeContent(change => {
 			message: error.message,
 			source: 'jul'
 		};
-		// if (hasDiagnosticRelatedInformationCapability) {
-		// 	diagnostic.relatedInformation = [
-		// 		{
-		// 			location: {
-		// 				uri: textDocument.uri,
-		// 				range: Object.assign({}, diagnostic.range)
-		// 			},
-		// 			message: 'Spelling matters'
-		// 		},
-		// 		{
-		// 			location: {
-		// 				uri: textDocument.uri,
-		// 				range: Object.assign({}, diagnostic.range)
-		// 			},
-		// 			message: 'Particularly for names'
-		// 		}
-		// 	];
-		// }
+		if (hasDiagnosticRelatedInformationCapability && error.relatedInformation) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: positionedToRange(error.relatedInformation),
+					},
+					message: error.relatedInformation.message,
+				},
+			];
+		}
 		return diagnostic;
 	});
 	// Send the computed diagnostics to VSCode.
