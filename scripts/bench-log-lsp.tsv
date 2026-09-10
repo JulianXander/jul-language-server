@@ -35,3 +35,11 @@
 2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.17	0.50	semantic tokens ohne resolvePlaceholders
 2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	documentSymbol	3	4.10	4.68	4.68	semantic tokens ohne resolvePlaceholders
 2026-09-08 12:42:54	9f2f286+	jul-compiler 700b265+	ADV-DEV-56627	yugioh	semanticTokens	3	3.35	5.40	5.40	semantic tokens ohne resolvePlaceholders
+2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	38.69	394.77	394.77	dark mode chart farben
+2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	197.12	241.45	241.45	dark mode chart farben
+2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	hover	564	0.37	0.64	4.00	dark mode chart farben
+2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	definition	564	0.27	0.42	1.68	dark mode chart farben
+2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	completion	564	4.58	7.30	8.94	dark mode chart farben
+2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	signatureHelp	564	0.08	0.19	0.52	dark mode chart farben
+2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	documentSymbol	3	5.29	5.83	5.83	dark mode chart farben
+2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	semanticTokens	3	5.38	6.58	6.58	dark mode chart farben
