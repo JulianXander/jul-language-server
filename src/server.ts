@@ -79,7 +79,7 @@ import {
 } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, isTypeSymbol } from './completion.js';
 import { getParameterIndex, getPrefixArgumentDeclaredType, getResolvedType } from './util.js';
 
 function getDeclaredResolvedType(expression: PositionedExpression): CompileTimeType | undefined {
@@ -399,7 +399,8 @@ connection.onCompletion(completionParams => {
 
 	// Get symbols from containing scopes
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
-	const positionKind = getExpectedPositionKind(expression);
+	const positionKind = getExpectedPositionKind(expression)
+		?? getArgumentPositionKind(expression, rowIndex, columnIndex);
 
 	//#region embbeded language
 	const embeddedLanguage = expression?.type === 'text' && expression.language;

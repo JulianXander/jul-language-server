@@ -2,10 +2,10 @@ import { expect } from 'chai';
 import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
-import { ParsedFile } from 'jul-compiler/out/syntax-tree.js';
+import { ParsedFile, ParseFunctionCall } from 'jul-compiler/out/syntax-tree.js';
 import { getResolvedType } from './util.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
-import { getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -117,6 +117,79 @@ describe('getFirstArgumentSymbolFilter', () => {
 		const parsed = parse('f = (b: Integer) :> Integer => b\n');
 		const filter = getFirstArgumentSymbolFilter(undefined);
 		expect(filter(parsed.checked!.symbols['f']!)).to.equal(false);
+	});
+});
+
+describe('getExpectedArgumentType', () => {
+	/** liefert den functionCall aus der Definition in der angegebenen Zeile */
+	function getCallFromDefinition(code: string, rowIndex: number): ParseFunctionCall {
+		const parsed = parse(code);
+		const definition = parsed.checked!.expressions![rowIndex];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'functionCall') {
+			throw new Error(`Erwartet definition mit functionCall value, bekommen ${definition?.type}`);
+		}
+		return definition.value;
+	}
+
+	// Realer Fall: in `Or([] )` wird an der Cursorposition ein Typ erwartet (Rest-Parameter
+	// "...ChoiceTypes: List(Type)" in core-lib.jul), trotzdem standen Werte weiter oben.
+	it('liefert bei einem Rest-Parameter den Elementtyp, nicht den Listentyp', () => {
+		const functionCall = getCallFromDefinition('x = Or([] )\n', 0);
+		// Cursor hinter dem Leerzeichen, also im zweiten Argument
+		expect(getExpectedArgumentType(functionCall, 0, 10)?.julType).to.equal('type');
+	});
+
+	it('liefert den Typ des Parameters an der Cursorposition', () => {
+		const code = 'f = (a: Integer b: Text) :> Integer => a\nx = f(1 )\n';
+		const functionCall = getCallFromDefinition(code, 1);
+		// Cursor im zweiten Argument, dort wird Text erwartet
+		expect(getExpectedArgumentType(functionCall, 1, 8)?.julType).to.equal('text');
+	});
+});
+
+describe('getPositionKindForExpectedType', () => {
+	it('macht aus einem erwarteten Typ eine Typ-Position', () => {
+		const typeType = getResolvedType(builtInSymbols['Type']?.typeInfo);
+		expect(getPositionKindForExpectedType(typeType)).to.equal('type');
+	});
+
+	it('macht aus einem erwarteten Wert-Typ eine Wert-Position', () => {
+		const integerType = getResolvedType(builtInSymbols['Integer']?.typeInfo);
+		// Integer ist als Symbol ein Typ-Wert; erwartet wird hier aber ein Integer-*Wert*
+		expect(getPositionKindForExpectedType({ julType: 'integer' })).to.equal('value');
+		expect(integerType).to.exist;
+	});
+
+	it('liefert undefined, wenn kein Typ bekannt ist', () => {
+		expect(getPositionKindForExpectedType(undefined)).to.equal(undefined);
+	});
+});
+
+describe('getArgumentPositionKind', () => {
+	it('erkennt Or([] <Cursor>) als Typ-Position (Realfall aus der Session)', () => {
+		const parsed = parse('x = Or([] )\n');
+		const definition = parsed.checked!.expressions![0];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'functionCall') {
+			throw new Error('Erwartet definition mit functionCall value');
+		}
+		const list = definition.value.arguments;
+		expect(getArgumentPositionKind(list, 0, 10)).to.equal('type');
+	});
+
+	it('erkennt einen Wert-Parameter als Wert-Position, auch wenn schon ein Argument getippt ist', () => {
+		const parsed = parse('f = (a: Integer b: Text) :> Integer => a\nx = f(1 )\n');
+		const definition = parsed.checked!.expressions![1];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'functionCall') {
+			throw new Error('Erwartet definition mit functionCall value');
+		}
+		const list = definition.value.arguments;
+		expect(getArgumentPositionKind(list, 1, 8)).to.equal('value');
+	});
+
+	it('liefert undefined außerhalb einer Argumentliste', () => {
+		const parsed = parse('a: Integer = 5\n');
+		const expression = parsed.checked!.expressions![0];
+		expect(getArgumentPositionKind(expression, 0, 0)).to.equal(undefined);
 	});
 });
 

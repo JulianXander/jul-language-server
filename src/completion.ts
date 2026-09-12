@@ -7,7 +7,7 @@ import {
 	isTypeOfType,
 } from 'jul-compiler/out/checker/checker.js';
 import { CompileTimeType, ParseFunctionCall, PositionedExpression, SymbolDefinition } from 'jul-compiler/out/syntax-tree.js';
-import { getResolvedType } from './util.js';
+import { getParameterIndex, getResolvedType } from './util.js';
 
 /**
  * Erkennt den Infix-Aufruf (`a.f(...)`, `prefixArgument` gesetzt), wenn die Cursorposition
@@ -116,6 +116,85 @@ export function getExpectedPositionKind(
 		default:
 			return undefined;
 	}
+}
+
+/**
+ * Erwarteter Typ des Arguments an der Cursorposition. Bei einem Rest-Parameter ist das der
+ * Elementtyp, nicht der Listentyp - ein einzelnes Argument wird gegen das Element geprüft.
+ */
+export function getExpectedArgumentType(
+	functionCall: ParseFunctionCall,
+	rowIndex: number,
+	columnIndex: number,
+): CompileTimeType | undefined {
+	const functionExpression = functionCall.functionExpression;
+	if (!functionExpression) {
+		return undefined;
+	}
+	const functionType = getResolvedType(functionExpression.typeInfo);
+	if (!functionType || !isFunctionType(functionType)) {
+		return undefined;
+	}
+	const paramsType = functionType.ParamsType;
+	if (!isParametersType(paramsType)) {
+		return undefined;
+	}
+	const parameterCount = paramsType.singleNames.length + (paramsType.rest ? 1 : 0);
+	const parameterIndex = getParameterIndex(functionCall, rowIndex, columnIndex, parameterCount);
+	if (parameterIndex < paramsType.singleNames.length) {
+		return paramsType.singleNames[parameterIndex]?.type;
+	}
+	const restType = paramsType.rest?.type;
+	if (isListType(restType)) {
+		return restType.ElementType;
+	}
+	if (isTupleType(restType)) {
+		return restType.ElementTypes[0];
+	}
+	return undefined;
+}
+
+/**
+ * Übersetzt den erwarteten Typ an einer Position in die Sortier-Seite: wird dort ein Typ erwartet
+ * (`Type`, `TypeOf(...)`, z.B. in `Or([] )`), gehören Typ-Symbole nach vorne, sonst Wert-Symbole.
+ */
+export function getPositionKindForExpectedType(
+	expectedType: CompileTimeType | undefined,
+): 'type' | 'value' | undefined {
+	if (!expectedType) {
+		return undefined;
+	}
+	return (expectedType.julType === 'type' || isTypeOfType(expectedType))
+		? 'type'
+		: 'value';
+}
+
+/**
+ * Sortier-Seite an einer Argument-Position in einem Funktionsaufruf (z.B. `Or([] )`) - deckt
+ * beide Fälle ab: `expression` ist die Argumentliste selbst (Cursor nach dem letzten Argument,
+ * noch nichts getippt) oder ein bereits angefangener Argumentwert darin (`expression.parent`
+ * ist die Liste).
+ */
+export function getArgumentPositionKind(
+	expression: PositionedExpression | undefined,
+	rowIndex: number,
+	columnIndex: number,
+): 'type' | 'value' | undefined {
+	if (!expression) {
+		return undefined;
+	}
+	const list = expression.type === 'list' ? expression
+		: expression.parent?.type === 'list' ? expression.parent
+			: undefined;
+	if (!list) {
+		return undefined;
+	}
+	const functionCall = list.parent;
+	if (functionCall?.type !== 'functionCall' || functionCall.arguments !== list) {
+		return undefined;
+	}
+	const expectedType = getExpectedArgumentType(functionCall, rowIndex, columnIndex);
+	return getPositionKindForExpectedType(expectedType);
 }
 
 /**
