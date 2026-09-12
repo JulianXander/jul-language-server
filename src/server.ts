@@ -1338,28 +1338,43 @@ connection.onRenameRequest(renameParams => {
 //#endregion rename
 
 //#region codeAction
+function spaceIndentationTextEdit(range: Range, expectedIndent: number): TextEdit {
+	return {
+		range,
+		newText: '\t'.repeat(expectedIndent),
+	};
+}
+
 connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
 	const documentUri = params.textDocument.uri;
-	return params.context.diagnostics
-		.filter(diagnostic => diagnostic.code === ErrorCode.spaceIndentation)
-		.map((diagnostic): CodeAction => {
-			const expectedIndent = (diagnostic.data as { expectedIndent: number; } | undefined)?.expectedIndent ?? 0;
-			const textEdit: TextEdit = {
-				range: diagnostic.range,
-				newText: '\t'.repeat(expectedIndent),
-			};
-			return {
-				title: 'Convert indentation to tabs',
-				kind: CodeActionKind.QuickFix,
-				isPreferred: true,
-				diagnostics: [diagnostic],
-				edit: {
-					changes: {
-						[documentUri]: [textEdit],
-					},
-				},
-			};
-		});
+	const hasSpaceIndentationHere = params.context.diagnostics
+		.some(diagnostic => diagnostic.code === ErrorCode.spaceIndentation);
+	if (!hasSpaceIndentationHere) {
+		return [];
+	}
+	// Eine Zeile einzeln zu fixen bringt wenig - Space-Einrückung tritt praktisch immer gebündelt
+	// auf (ein ganzer eingefügter Block oder eine ganze Datei). Deshalb nur ein Fix für alle
+	// Stellen der Datei, aus dem zuletzt geprüften Stand geholt statt aus params.context.diagnostics
+	// (das ist auf die angefragte Range beschränkt).
+	const parsedFile = getParsedFileByUri(documentUri);
+	const spaceIndentationErrors = parsedFile?.checked?.errors
+		.filter((error): error is typeof error & { expectedIndent: number; } =>
+			error.code === ErrorCode.spaceIndentation && error.expectedIndent !== undefined)
+		?? [];
+	if (!spaceIndentationErrors.length) {
+		return [];
+	}
+	return [{
+		title: `Convert indentation to tabs (${spaceIndentationErrors.length} Stellen in dieser Datei)`,
+		kind: CodeActionKind.QuickFix,
+		isPreferred: true,
+		edit: {
+			changes: {
+				[documentUri]: spaceIndentationErrors.map(error =>
+					spaceIndentationTextEdit(positionedToRange(error), error.expectedIndent)),
+			},
+		},
+	}];
 });
 //#endregion codeAction
 
