@@ -2,8 +2,10 @@
 	"name": "jul-lsp-server",
 	"type": "module",
 	"scripts": {
-		"build": "npx tsc",
-		"test": "node scripts/snapshot.mjs",
+		"build": "npx tsc -p tsconfig.build.json",
+		"test": "mocha --import=tsx \"src/**/*.test.ts\"",
+		"test-snapshot": "node scripts/snapshot.mjs",
+		"typecheck": "tsc -p tsconfig.json",
 		"bench": "node scripts/bench.mjs",
 		"bench-chart": "node scripts/bench-chart.mjs"
 	},
@@ -15,7 +17,12 @@
 		"vscode-uri": "^3.2.0"
 	},
 	"devDependencies": {
+		"@types/chai": "^5.2.3",
+		"@types/mocha": "^10.0.10",
 		"@types/node": "^24.13.3",
+		"chai": "^6.2.2",
+		"mocha": "12.0.0",
+		"tsx": "^4.23.13",
 		"typescript": "^6.0.3"
 	}
 }

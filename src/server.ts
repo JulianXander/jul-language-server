@@ -81,6 +81,7 @@ import {
 } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { getParameterIndex } from './util.js';
 
 /**
  * Der Server zeigt und prüft Typen, verarbeitet sie aber nicht weiter - hier ist die aufgelöste
@@ -2076,30 +2077,6 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
  * Ermittelt den Index des Parameters, für den das Argument ist, das an der Position liegt.
  * Position muss in arguments liegen.
  */
-function getParameterIndex(
-	functionCall: ParseFunctionCall,
-	rowIndex: number,
-	columnIndex: number,
-	parameterCount: number,
-) {
-	const argsExpression = functionCall.arguments;
-	// TODO parameter index ermitteln bei function call mit dictionary Argument
-	let parameterIndex = functionCall.prefixArgument ? 1 : 0;
-	if (argsExpression?.type === 'list') {
-		argsExpression.values.forEach(value => {
-			// values vor der aktuellen Position zählen
-			if ((value.endRowIndex < rowIndex ||
-				(value.endRowIndex === rowIndex && value.endColumnIndex < columnIndex))
-				// TODO was wenn mehr values als Parameter (ohne Rest Parameter)?
-				&& parameterIndex < parameterCount - 1
-			) {
-				parameterIndex++;
-			}
-		});
-	}
-	return parameterIndex;
-}
-
 function isImportPath(expression: PositionedExpression | undefined): boolean {
 	if (expression
 		&& expression.type === 'text'

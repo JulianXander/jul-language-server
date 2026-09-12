@@ -1,17 +1,9 @@
 {
+	"extends": "./tsconfig.build.json",
 	"compilerOptions": {
-		"target": "ESNext",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"types": ["node"],
-		"outDir": "out",
-		"rootDir": "src",
-		"strict": true,
-		"noUncheckedIndexedAccess": true,
-		"sourceMap": true,
-		"allowSyntheticDefaultImports": true
+		"types": ["node", "mocha"],
+		"noEmit": true
 	},
-	"files": [
-		"src/server.ts"
-	]
+	"files": [],
+	"include": ["src/**/*.ts"]
 }
