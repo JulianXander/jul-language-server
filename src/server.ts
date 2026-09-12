@@ -148,12 +148,26 @@ function getTransitiveDependents(filePath: string): Set<string> {
 let hasDiagnosticRelatedInformationCapability = false;
 let htmlLanguageService: LanguageService;
 
+/**
+ * Wurzelordner des Workspace, aus params.workspaceFolders (bzw. dem älteren rootUri als Fallback).
+ * Wird in onInitialized für den initialen Workspace-weiten Scan gebraucht - Rename/Find-All-
+ * References über den ReferenceIndex kennen nur Dateien, die je geparst wurden, und ohne diesen
+ * Scan wären das ausschließlich geöffnete Dateien plus deren Importe.
+ */
+let workspaceFolderPaths: string[] = [];
+
 connection.onInitialize((params: InitializeParams) => {
 	htmlLanguageService = getHtmlLanguageService();
 
 	const capabilities = params.capabilities;
 
 	hasDiagnosticRelatedInformationCapability = !!capabilities.textDocument?.publishDiagnostics?.relatedInformation;
+
+	workspaceFolderPaths = params.workspaceFolders
+		? params.workspaceFolders.map(folder => uriToPath(folder.uri))
+		: params.rootUri
+			? [uriToPath(params.rootUri)]
+			: [];
 
 	const result: InitializeResult = {
 		capabilities: {
@@ -183,6 +197,42 @@ connection.onInitialize((params: InitializeParams) => {
 		},
 	};
 	return result;
+});
+
+/**
+ * Alle Dateien mit importierbarer Extension unterhalb folder, rekursiv - node_modules/out
+ * ausgenommen, analog zu findJulFiles in den Test-/Bench-Skripten.
+ */
+function findIndexableFiles(folder: string): string[] {
+	let entries;
+	try {
+		entries = readdirSync(folder, { withFileTypes: true });
+	} catch {
+		return [];
+	}
+	return entries.flatMap(entry => {
+		if (entry.isDirectory()) {
+			return entry.name === 'node_modules' || entry.name === 'out'
+				? []
+				: findIndexableFiles(join(folder, entry.name));
+		}
+		return isValidExtension(extname(entry.name))
+			? [join(folder, entry.name)]
+			: [];
+	});
+}
+
+/**
+ * Parst+checkt den gesamten Workspace einmal beim Start. Ohne das kennt der ReferenceIndex nur
+ * geöffnete Dateien plus deren Importe - Rename/Find-All-References würden Importeure übersehen,
+ * die nie geöffnet wurden und auch nicht transitiv von einer geöffneten Datei importiert werden.
+ */
+connection.onInitialized(() => {
+	workspaceFolderPaths.forEach(folderPath => {
+		findIndexableFiles(folderPath).forEach(filePath => {
+			parseDocumentByPath(filePath);
+		});
+	});
 });
 
 //#region diagnostics
