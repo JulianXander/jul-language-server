@@ -1630,10 +1630,10 @@ function getSymbolDefinition(
 		case 'reference': {
 			const name = expression.name.name;
 			const definition = findSymbolInScopesWithBuiltIns(name, scopes);
-			return definition && {
+			return definition && resolveThroughImports({
 				...definition,
 				name: name,
-			};
+			}, folderPath);
 		}
 		case 'definition': {
 			// TODO GoToDefinition: bei import: go to source file symbol?
@@ -1656,12 +1656,12 @@ function getSymbolDefinition(
 			switch (parent?.type) {
 				case 'destructuringField': {
 					const importedSymbol = getImportedSymbol(parent, folderPath);
-					return importedSymbol?.symbol && {
+					return importedSymbol?.symbol && resolveThroughImports({
 						name: name,
 						isBuiltIn: false,
 						symbol: importedSymbol.symbol,
 						filePath: importedSymbol.filePath,
-					};
+					}, dirname(importedSymbol.filePath));
 				}
 				case 'nestedReference': {
 					const declaredSourceType = getDeclaredType(parent.source);
@@ -1677,10 +1677,10 @@ function getSymbolDefinition(
 				}
 				default: {
 					const definition = findSymbolInScopesWithBuiltIns(name, scopes);
-					return definition && {
+					return definition && resolveThroughImports({
 						...definition,
 						name: name,
-					};
+					}, folderPath);
 				}
 			}
 		}
@@ -1783,6 +1783,32 @@ function getImportedSymbol(
 				};
 			}
 		}
+	}
+}
+
+// Löst Verweise auf importierte Symbole direkt bis zur tatsächlichen Deklaration auf, statt bei
+// jedem Hop erneut an der lokalen Import-Zeile stehen zu bleiben (auch über mehrere Re-Exports).
+function resolveThroughImports(symbolInfo: SymbolInfo, folderPath: string): SymbolInfo {
+	let current = symbolInfo;
+	let currentFolderPath = folderPath;
+	const visitedFilePaths = new Set<string>();
+	for (; ;) {
+		const definition = current.symbol.definition;
+		if (definition?.type !== 'destructuringField') {
+			return current;
+		}
+		const imported = getImportedSymbol(definition, currentFolderPath);
+		if (!imported?.symbol || visitedFilePaths.has(imported.filePath)) {
+			return current;
+		}
+		visitedFilePaths.add(imported.filePath);
+		current = {
+			name: current.name,
+			isBuiltIn: false,
+			symbol: imported.symbol,
+			filePath: imported.filePath,
+		};
+		currentFolderPath = dirname(imported.filePath);
 	}
 }
 
