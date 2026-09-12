@@ -77,7 +77,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
-import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
+import { ReferenceIndex, getFieldSymbolsFromDictionaryType, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { getArgumentPositionKind, getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, isTypeSymbol } from './completion.js';
 import { getParameterIndex, getPrefixArgumentDeclaredType, getResolvedType } from './util.js';
@@ -1788,35 +1788,14 @@ function getSymbolFromDictionaryType(
 	dictionaryType: CompileTimeType,
 	name: string,
 ): SymbolInfo | undefined {
-	switch (dictionaryType.julType) {
-		case 'dictionaryLiteral': {
-			const declaration = dictionaryType.declaration;
-			if (!declaration) {
-				return undefined;
-			}
-			const foundSymbol = declaration.expression.symbols[name];
-			return foundSymbol && {
-				name: name,
-				isBuiltIn: declaration.filePath === '',
-				symbol: foundSymbol,
-				filePath: declaration.filePath,
-			};
-		}
-		case 'or': {
-			// TODO return list of Symbols?
-			for (const choiceType of dictionaryType.ChoiceTypes) {
-				const choiceSymbol = getSymbolFromDictionaryType(choiceType, name);
-				if (choiceSymbol) {
-					return choiceSymbol;
-				}
-			}
-			return undefined;
-		}
-		case 'typeOf':
-			return getSymbolFromDictionaryType(dictionaryType.value, name);
-		default:
-			return undefined;
-	}
+	// TODO bei Union: Liste aller Treffer liefern statt nur des ersten?
+	const found = getFieldSymbolsFromDictionaryType(dictionaryType, name)[0];
+	return found && {
+		name: name,
+		isBuiltIn: found.filePath === '',
+		symbol: found.symbol,
+		filePath: found.filePath,
+	};
 }
 
 function getImportedSymbol(
