@@ -868,6 +868,14 @@ function addSemanticToken(
 ): void {
 	switch (expression.type) {
 		case 'reference': {
+			// true/false bekommen keinen Semantic Token: sie sollen wie Literale gefärbt werden
+			// (Grammatik-Scope constant.language.boolean.jul), nicht wie eine eingebaute Variable
+			// oder ein Typ-Pattern (z.B. [true] => ...  löst als TypeOf(booleanLiteral) auf).
+			const referencedType = expression.typeInfo?.type;
+			if (referencedType?.julType === 'booleanLiteral'
+				|| (isTypeOfType(referencedType) && referencedType.value.julType === 'booleanLiteral')) {
+				return;
+			}
 			const found = findSymbolInScopesWithBuiltIns(expression.name.name, scopes);
 			pushSemanticToken(
 				tokens,
