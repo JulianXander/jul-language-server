@@ -4,6 +4,7 @@ import {
 	isListType,
 	isParametersType,
 	isTupleType,
+	isTypeOfType,
 } from 'jul-compiler/out/checker/checker.js';
 import { CompileTimeType, ParseFunctionCall, PositionedExpression, SymbolDefinition } from 'jul-compiler/out/syntax-tree.js';
 import { getResolvedType } from './util.js';
@@ -115,6 +116,21 @@ export function getExpectedPositionKind(
 		default:
 			return undefined;
 	}
+}
+
+/**
+ * Ob ein Symbol zur Typ-Seite gehört: entweder ist sein Wert selbst ein Typ (`Integer`, `MyType`),
+ * oder es ist ein Typkonstruktor, also eine Funktion die einen Typ liefert (`And`, `Or`, `List`).
+ */
+export function isTypeSymbol(symbolType: CompileTimeType | undefined): boolean {
+	if (isTypeOfType(symbolType)) {
+		return true;
+	}
+	if (isFunctionType(symbolType)) {
+		const returnType = symbolType.ReturnType;
+		return returnType.julType === 'type' || isTypeOfType(returnType);
+	}
+	return false;
 }
 
 /**

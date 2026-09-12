@@ -79,7 +79,7 @@ import {
 } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall } from './completion.js';
+import { getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, isTypeSymbol } from './completion.js';
 import { getParameterIndex, getPrefixArgumentDeclaredType, getResolvedType } from './util.js';
 
 function getDeclaredResolvedType(expression: PositionedExpression): CompileTimeType | undefined {
@@ -756,7 +756,7 @@ function symbolsToCompletionItems(
 				}
 				const symbolType = getResolvedType(symbol.typeInfo);
 				const isFunction = isFunctionType(symbolType);
-				const sortText = getCompletionSortText(name, isTypeOfType(symbolType), positionKind);
+				const sortText = getCompletionSortText(name, isTypeSymbol(symbolType), positionKind);
 				const completionItem: CompletionItem = {
 					label: name,
 					kind: isFunction

@@ -4,7 +4,8 @@ import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { ParsedFile } from 'jul-compiler/out/syntax-tree.js';
 import { getResolvedType } from './util.js';
-import { getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter } from './completion.js';
+import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
+import { getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -116,5 +117,36 @@ describe('getFirstArgumentSymbolFilter', () => {
 		const parsed = parse('f = (b: Integer) :> Integer => b\n');
 		const filter = getFirstArgumentSymbolFilter(undefined);
 		expect(filter(parsed.checked!.symbols['f']!)).to.equal(false);
+	});
+});
+
+describe('isTypeSymbol', () => {
+	it('erkennt ein Symbol, dessen Wert selbst ein Typ ist', () => {
+		expect(isTypeSymbol(getResolvedType(builtInSymbols['Integer']?.typeInfo))).to.equal(true);
+	});
+
+	// Realer Fall: bei "decks." standen And/Or/List zwischen den Wert-Funktionen (all, assume),
+	// weil ihr eigener Typ ein Funktionstyp ist und nicht TypeOf(...). Sie liefern aber einen Typ
+	// (core-lib.jul: "(...ChoiceTypes: List(Type)) :> Type") und gehören damit auf die Typ-Seite.
+	it('erkennt einen Typkonstruktor, also eine Funktion die einen Typ liefert', () => {
+		expect(isTypeSymbol(getResolvedType(builtInSymbols['And']?.typeInfo))).to.equal(true);
+	});
+
+	it('erkennt eine normale Wertfunktion nicht als Typ-Symbol', () => {
+		expect(isTypeSymbol(getResolvedType(builtInSymbols['log']?.typeInfo))).to.equal(false);
+	});
+});
+
+describe('getInfixFunctionCall', () => {
+	// Realer Fall aus C:\Projects\privat\yugioh\src\ui\main-menu.jul:23 - "decks." während des
+	// Tippens: der functionCall hat nur prefixArgument, functionExpression fehlt noch komplett.
+	it('erkennt einen unvollständigen Infix-Aufruf ohne Funktionsname (nur prefixArgument)', () => {
+		const parsed = parse('decks: Or([] List(Integer)) = []\ndecks.\n');
+		const functionCall = parsed.checked!.expressions![1];
+		if (functionCall?.type !== 'functionCall') {
+			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);
+		}
+		expect(functionCall.functionExpression).to.equal(undefined);
+		expect(getInfixFunctionCall(functionCall)).to.equal(functionCall);
 	});
 });
