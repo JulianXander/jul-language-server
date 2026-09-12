@@ -12,6 +12,7 @@ import {
 	CompletionItemKind,
 	Diagnostic,
 	DiagnosticSeverity,
+	DocumentHighlight,
 	DocumentSymbol,
 	InitializeParams,
 	InitializeResult,
@@ -184,6 +185,7 @@ connection.onInitialize((params: InitializeParams) => {
 				triggerCharacters: ['.', '/'],
 			},
 			definitionProvider: true,
+			documentHighlightProvider: true,
 			documentSymbolProvider: true,
 			hoverProvider: true,
 			referencesProvider: true,
@@ -1409,6 +1411,35 @@ connection.onReferences(referenceParams => {
 	return locations;
 });
 //#endregion references
+
+//#region document highlight
+connection.onDocumentHighlight(highlightParams => {
+	const documentUri = highlightParams.textDocument.uri;
+	const parsedFile = getParsedFileByUri(documentUri);
+	if (!parsedFile) {
+		return;
+	}
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, highlightParams.position.line, highlightParams.position.character);
+	if (!expression) {
+		return;
+	}
+	const documentPath = uriToPath(documentUri);
+	const folderPath = dirname(documentPath);
+	const canonical = resolveRenameTarget(expression, scopes, documentPath, folderPath);
+	if (!canonical) {
+		return;
+	}
+	// Anders als bei Find-All-References/Rename: nur Vorkommen in genau diesem Dokument, kein
+	// Cross-File-Ergebnis - Document Highlight ist die stille Markierung im aktuell offenen Editor.
+	const highlights: DocumentHighlight[] = referenceIndex.getReferences(canonical.symbol, canonical.filePath)
+		.filter(location => location.filePath === documentPath)
+		.map(location => ({ range: positionedToRange(location) }));
+	if (canonical.filePath === documentPath) {
+		highlights.push({ range: positionedToRange(canonical.symbol) });
+	}
+	return highlights;
+});
+//#endregion document highlight
 
 //#region document symbols
 connection.onDocumentSymbol(documentSymbolParams => {
