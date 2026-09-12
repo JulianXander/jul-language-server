@@ -1,4 +1,33 @@
-import { ParseFunctionCall } from 'jul-compiler/out/syntax-tree.js';
+import { isFunctionType, isParametersType, resolvePlaceholders } from 'jul-compiler/out/checker/checker.js';
+import { CompileTimeType, ParseFunctionCall, TypeInfo } from 'jul-compiler/out/syntax-tree.js';
+
+/**
+ * Der Server zeigt und prüft Typen, verarbeitet sie aber nicht weiter - hier ist die aufgelöste
+ * Form also durchgängig die richtige.
+ */
+export function getResolvedType(typeInfo: TypeInfo | undefined): CompileTimeType | undefined {
+	return typeInfo && resolvePlaceholders(typeInfo.type);
+}
+
+/**
+ * Erwarteter Typ des `prefixArgument` bei einem Infix-Aufruf (`a.f(...)`) - der erste Parameter
+ * von `f`. Wird von getDeclaredType (Hover, Completion, ...) genutzt, nicht nur von Completion.
+ */
+export function getPrefixArgumentDeclaredType(functionCall: ParseFunctionCall): CompileTimeType | undefined {
+	const functionExpression = functionCall.functionExpression;
+	if (!functionExpression) {
+		return undefined;
+	}
+	const functionType = getResolvedType(functionExpression.typeInfo);
+	if (!functionType || !isFunctionType(functionType)) {
+		return undefined;
+	}
+	const paramsType = functionType.ParamsType;
+	if (!isParametersType(paramsType)) {
+		return undefined;
+	}
+	return paramsType.singleNames[0]?.type ?? paramsType.rest?.type;
+}
 
 /**
  * Ermittelt den Index des Parameters, in dem der Cursor bei einem Funktionsaufruf steht -

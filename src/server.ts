@@ -68,29 +68,19 @@ import {
 	dereferenceNameFromObject,
 	findSymbolInScopesWithBuiltIns,
 	getStreamGetValueType,
-	getTypeError,
 	isDictionaryLiteralType,
 	isFunctionType,
-	isListType,
 	isParameterReference,
 	isParametersType,
 	isTextLiteralType,
-	isTupleType,
 	isTypeOfType,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
-import { getParameterIndex } from './util.js';
-
-/**
- * Der Server zeigt und prüft Typen, verarbeitet sie aber nicht weiter - hier ist die aufgelöste
- * Form also durchgängig die richtige.
- */
-function getResolvedType(typeInfo: TypeInfo | undefined): CompileTimeType | undefined {
-	return typeInfo && resolvePlaceholders(typeInfo.type);
-}
+import { getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall } from './completion.js';
+import { getParameterIndex, getPrefixArgumentDeclaredType, getResolvedType } from './util.js';
 
 function getDeclaredResolvedType(expression: PositionedExpression): CompileTimeType | undefined {
 	return getResolvedType(getDeclaredType(expression));
@@ -409,6 +399,7 @@ connection.onCompletion(completionParams => {
 
 	// Get symbols from containing scopes
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
+	const positionKind = getExpectedPositionKind(expression);
 
 	//#region embbeded language
 	const embeddedLanguage = expression?.type === 'text' && expression.language;
@@ -509,23 +500,6 @@ connection.onCompletion(completionParams => {
 		: [...scopes, builtInSymbols];
 	let symbolFilter: ((symbol: SymbolDefinition, name: string) => boolean) | undefined = undefined;
 	//#region infix function call (bei infix function reference)
-	function getInfixFunctionCall(expression: PositionedExpression | undefined): ParseFunctionCall | undefined {
-		if (!expression) {
-			return undefined;
-		}
-		if (expression.type === 'functionCall'
-			&& expression.prefixArgument) {
-			return expression;
-		}
-		if (
-			expression.type === 'reference'
-			&& expression.parent?.type === 'functionCall'
-			&& expression.parent.prefixArgument
-			&& expression === expression.parent.functionExpression) {
-			return expression.parent;
-		}
-		return undefined;
-	}
 	const infixFunctionCall = getInfixFunctionCall(expression);
 	if (infixFunctionCall) {
 		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.typeInfo!.type;
@@ -538,38 +512,11 @@ connection.onCompletion(completionParams => {
 			prefixArgumentType = prefixArgumentTypeRaw;
 		}
 
-		symbolFilter = symbol => {
-			if (!prefixArgumentType) {
-				return false;
-			}
-			const symbolType = getResolvedType(symbol.typeInfo);
-			if (isFunctionType(symbolType)) {
-				const paramsType = symbolType.ParamsType;
-				if (isParametersType(paramsType)) {
-					let firstParameterType: CompileTimeType | undefined;
-					if (paramsType.singleNames.length) {
-						firstParameterType = paramsType.singleNames[0]?.type;
-					}
-					else if (paramsType.rest) {
-						const restType = paramsType.rest?.type;
-						if (isListType(restType)) {
-							firstParameterType = restType.ElementType;
-						}
-						else if (isTupleType(restType)) {
-							firstParameterType = restType.ElementTypes[0];
-						}
-					}
-					if (!firstParameterType) {
-						return false;
-					}
-					const typeError = getTypeError(undefined, prefixArgumentType, firstParameterType);
-					return !typeError;
-				}
-			}
-			return false;
-		};
+		symbolFilter = getFirstArgumentSymbolFilter(prefixArgumentType);
 
-		return symbolsToCompletionItems(allScopes, symbolFilter);
+		// hier wird immer eine Funktion ausgewählt (nie ein Typ) - unabhängig davon, ob
+		// `expression` die Referenz selbst oder der ganze Aufruf ist (siehe getInfixFunctionCall)
+		return symbolsToCompletionItems(allScopes, symbolFilter, 'value');
 	}
 	//#endregion infix function call (bei infix function reference)
 
@@ -624,7 +571,7 @@ connection.onCompletion(completionParams => {
 			switch (destructuredValue?.type) {
 				case 'dictionary':
 				case 'dictionaryType':
-					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter);
+					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter, positionKind);
 				default: {
 					const dereferencedType = getResolvedType(destructuredValue?.typeInfo);
 					if (isDictionaryLiteralType(dereferencedType)) {
@@ -663,7 +610,7 @@ connection.onCompletion(completionParams => {
 	}
 	//#endregion function literal parameter name
 
-	return symbolsToCompletionItems(allScopes);
+	return symbolsToCompletionItems(allScopes, undefined, positionKind);
 });
 
 //#region create CompletionItems
@@ -797,6 +744,7 @@ function dictionaryTypeToCompletionItems(
 function symbolsToCompletionItems(
 	scopes: SymbolTable[],
 	symbolFilter?: (symbol: SymbolDefinition, name: string) => boolean,
+	positionKind?: 'type' | 'value',
 ): CompletionItem[] {
 	return scopes.flatMap(symbols => {
 		return map(
@@ -808,6 +756,7 @@ function symbolsToCompletionItems(
 				}
 				const symbolType = getResolvedType(symbol.typeInfo);
 				const isFunction = isFunctionType(symbolType);
+				const sortText = getCompletionSortText(name, isTypeOfType(symbolType), positionKind);
 				const completionItem: CompletionItem = {
 					label: name,
 					kind: isFunction
@@ -815,6 +764,7 @@ function symbolsToCompletionItems(
 						: CompletionItemKind.Constant,
 					detail: symbolType && typeToString(symbolType, 0, 0),
 					documentation: symbol.description,
+					sortText: sortText,
 				};
 				return completionItem;
 			}).filter(isDefined);
@@ -2026,8 +1976,11 @@ function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined
 			return { type: functionLiteralDeclaredType.ParamsType };
 		}
 		case 'functionCall': {
+			if (expression.parent.prefixArgument === expression) {
+				const prefixArgumentType = getPrefixArgumentDeclaredType(expression.parent);
+				return prefixArgumentType && { type: prefixArgumentType };
+			}
 			// function call arg
-			// TODO handle prefix arg
 			if (expression.parent.arguments !== expression) {
 				return undefined;
 			}

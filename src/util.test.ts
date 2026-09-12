@@ -3,7 +3,7 @@ import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { ParseFunctionCall } from 'jul-compiler/out/syntax-tree.js';
-import { getParameterIndex } from './util.js';
+import { getParameterIndex, getPrefixArgumentDeclaredType } from './util.js';
 
 /** parst code und liefert den zweiten Top-Level-Ausdruck als functionCall zurück */
 function getFunctionCall(code: string): ParseFunctionCall {
@@ -33,5 +33,20 @@ describe('getParameterIndex', () => {
 		// Cursor auf dem zweiten Feld "b = 2"
 		const parameterIndex = getParameterIndex(functionCall, 1, 21, 2);
 		expect(parameterIndex).to.equal(1);
+	});
+});
+
+describe('getPrefixArgumentDeclaredType', () => {
+	it('liefert den deklarierten Typ des ersten Parameters für das prefixArgument eines Infix-Aufrufs', () => {
+		const path = 'prefix-argument.test.jul';
+		const code = 'a: Integer = 1\nf = (b: Integer) :> Integer => b\na.f()\n';
+		const parsed = parseCode(code, path);
+		const documents: ParsedDocuments = { [path]: parsed };
+		checkTypes(parsed, documents, new ReferenceIndex());
+		const functionCall = parsed.checked!.expressions![2];
+		if (functionCall?.type !== 'functionCall') {
+			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);
+		}
+		expect(getPrefixArgumentDeclaredType(functionCall)?.julType).to.equal('integer');
 	});
 });
