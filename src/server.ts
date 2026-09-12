@@ -876,6 +876,12 @@ function addSemanticToken(
 				|| (isTypeOfType(referencedType) && referencedType.value.julType === 'booleanLiteral')) {
 				return;
 			}
+			// import bekommt ebenfalls keinen Semantic Token: es ist nur als direkter Aufruf
+			// unterstützt (JUL3040), soll also wie ein Keyword gefärbt werden (Grammatik-Scope
+			// keyword.control.import.jul), nicht wie eine eingebaute Funktion/Variable.
+			if (expression.name.name === 'import') {
+				return;
+			}
 			const found = findSymbolInScopesWithBuiltIns(expression.name.name, scopes);
 			pushSemanticToken(
 				tokens,
@@ -884,13 +890,24 @@ function addSemanticToken(
 				getSemanticTokenModifiers(expression.typeInfo, found?.isBuiltIn));
 			return;
 		}
-		case 'definition':
+		case 'definition': {
+			// Die Deklarationen von import/true/false in core-lib.jul bekommen ebenfalls keinen
+			// Semantic Token, aus demselben Grund wie an der jeweiligen Referenzstelle oben.
+			if (expression.name.name === 'import') {
+				return;
+			}
+			const definedType = expression.typeInfo?.type;
+			if (definedType?.julType === 'booleanLiteral'
+				|| (isTypeOfType(definedType) && definedType.value.julType === 'booleanLiteral')) {
+				return;
+			}
 			pushSemanticToken(
 				tokens,
 				expression.name,
 				getSemanticTokenType(expression.typeInfo, findSymbolInScopes(expression.name.name, scopes)),
 				['declaration', ...getSemanticTokenModifiers(expression.typeInfo, false)]);
 			return;
+		}
 		case 'parameter':
 			pushSemanticToken(tokens, expression.name, 'parameter', ['declaration']);
 			return;
