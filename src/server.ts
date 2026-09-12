@@ -5,6 +5,9 @@ import {
 	getLanguageService as getHtmlLanguageService,
 } from 'vscode-html-languageservice';
 import {
+	CodeAction,
+	CodeActionKind,
+	CodeActionParams,
 	CompletionItem,
 	CompletionItemKind,
 	Diagnostic,
@@ -38,7 +41,7 @@ import {
 	parseCode
 } from 'jul-compiler/out/parser/parser.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
-import { CompilerErrorSeverity, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
+import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
 	CompileTimeDictionary,
 	CompileTimeType,
@@ -171,6 +174,9 @@ connection.onInitialize((params: InitializeParams) => {
 
 	const result: InitializeResult = {
 		capabilities: {
+			codeActionProvider: {
+				codeActionKinds: [CodeActionKind.QuickFix],
+			},
 			// Tell the client that this server supports code completion.
 			completionProvider: {
 				resolveProvider: true,
@@ -253,6 +259,9 @@ function sendDiagnosticsForFile(uri: string, parsed: ParsedFile): void {
 			message: error.message,
 			source: 'jul'
 		};
+		if (error.expectedIndent !== undefined) {
+			diagnostic.data = { expectedIndent: error.expectedIndent };
+		}
 		if (hasDiagnosticRelatedInformationCapability && error.relatedInformation) {
 			diagnostic.relatedInformation = [
 				{
@@ -1327,6 +1336,32 @@ connection.onRenameRequest(renameParams => {
 	return { changes: Object.fromEntries(changesByUri) };
 });
 //#endregion rename
+
+//#region codeAction
+connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
+	const documentUri = params.textDocument.uri;
+	return params.context.diagnostics
+		.filter(diagnostic => diagnostic.code === ErrorCode.spaceIndentation)
+		.map((diagnostic): CodeAction => {
+			const expectedIndent = (diagnostic.data as { expectedIndent: number; } | undefined)?.expectedIndent ?? 0;
+			const textEdit: TextEdit = {
+				range: diagnostic.range,
+				newText: '\t'.repeat(expectedIndent),
+			};
+			return {
+				title: 'Convert indentation to tabs',
+				kind: CodeActionKind.QuickFix,
+				isPreferred: true,
+				diagnostics: [diagnostic],
+				edit: {
+					changes: {
+						[documentUri]: [textEdit],
+					},
+				},
+			};
+		});
+});
+//#endregion codeAction
 
 //#region references
 connection.onReferences(referenceParams => {
