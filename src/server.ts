@@ -23,6 +23,7 @@ import {
 	TextDocumentIdentifier,
 	TextDocuments,
 	TextDocumentSyncKind,
+	TextEdit,
 } from 'vscode-languageserver';
 import { createConnection } from 'vscode-languageserver/node';
 import {
@@ -75,6 +76,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
+import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 
 /**
@@ -99,6 +101,49 @@ const connection = createConnection(ProposedFeatures.all);
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 const parsedDocuments: ParsedDocuments = {};
+// Projektweiter Referenz-Index für Rename/Find-All-References, siehe
+// jul-compiler/docs/cross-file-reference-index.md. Lebt so lange wie der Serverprozess, wird pro
+// Datei bei jedem Recheck geleert und neu befüllt (siehe checkTypes-Aufrufe unten).
+const referenceIndex = new ReferenceIndex();
+// Reverse-Dependency-Map (wer importiert diese Datei, auch transitiv) für Invalidierung über
+// Re-Export-Ketten hinweg - ParsedFile.dependencies kennt nur die Vorwärtsrichtung.
+const dependents = new Map<string, Set<string>>();
+
+function registerDependencies(filePath: string, dependencyPaths: string[] | undefined): void {
+	dependencyPaths?.forEach(dependencyPath => {
+		let dependentSet = dependents.get(dependencyPath);
+		if (!dependentSet) {
+			dependentSet = new Set();
+			dependents.set(dependencyPath, dependentSet);
+		}
+		dependentSet.add(filePath);
+	});
+}
+
+function unregisterDependencies(filePath: string, dependencyPaths: string[] | undefined): void {
+	dependencyPaths?.forEach(dependencyPath => {
+		dependents.get(dependencyPath)?.delete(filePath);
+	});
+}
+
+/**
+ * Alle Dateien, die filePath direkt oder über Re-Export-Ketten importieren - müssen mit invalidiert
+ * werden, wenn sich filePath ändert (Visited-Set schützt vor zyklischen Importen).
+ */
+function getTransitiveDependents(filePath: string): Set<string> {
+	const result = new Set<string>();
+	const queue = [filePath];
+	while (queue.length) {
+		const current = queue.shift()!;
+		dependents.get(current)?.forEach(dependentPath => {
+			if (!result.has(dependentPath)) {
+				result.add(dependentPath);
+				queue.push(dependentPath);
+			}
+		});
+	}
+	return result;
+}
 
 let hasDiagnosticRelatedInformationCapability = false;
 let htmlLanguageService: LanguageService;
@@ -120,6 +165,7 @@ connection.onInitialize((params: InitializeParams) => {
 			definitionProvider: true,
 			documentSymbolProvider: true,
 			hoverProvider: true,
+			referencesProvider: true,
 			renameProvider: {
 				prepareProvider: true,
 			},
@@ -140,17 +186,14 @@ connection.onInitialize((params: InitializeParams) => {
 });
 
 //#region diagnostics
-// This event is emitted when the text document first opened or when its content has changed.
-// parse document, fill parsedDocuments and sendDiagnostics
-documents.onDidChangeContent(change => {
-	const textDocument = change.document;
-	const uri = textDocument.uri;
-	const text = textDocument.getText();
-	if (text.length > maxFileSize) {
-		return;
-	}
-	const path = uriToPath(uri);
-	const parsed = parseDocumentByCode(text, path);
+
+/**
+ * uri wird bewusst vom Aufrufer übergeben statt aus dem Dateipfad neu gebaut: URI.file(path)
+ * normalisiert unter Windows die Laufwerksbuchstaben-Schreibweise anders als die vom Client
+ * gesendete URI (z.B. "C:" -> "c:") - ein Roundtrip über den Pfad würde die URI-Strings
+ * auseinanderlaufen lassen, unter denen der Client seine offenen Dokumente führt.
+ */
+function sendDiagnosticsForFile(uri: string, parsed: ParsedFile): void {
 	const { errors } = parsed.checked!;
 	const diagnostics: Diagnostic[] = errors.map(error => {
 		const diagnostic: Diagnostic = {
@@ -164,7 +207,7 @@ documents.onDidChangeContent(change => {
 			diagnostic.relatedInformation = [
 				{
 					location: {
-						uri: textDocument.uri,
+						uri,
 						range: positionedToRange(error.relatedInformation),
 					},
 					message: error.relatedInformation.message,
@@ -173,8 +216,38 @@ documents.onDidChangeContent(change => {
 		}
 		return diagnostic;
 	});
-	// Send the computed diagnostics to VSCode.
-	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+	connection.sendDiagnostics({ uri, diagnostics });
+}
+
+/**
+ * Rechecked alle (transitiven) Dateien, die filePath importieren, und sendet für jede aktualisierte
+ * Diagnostics - nötig, weil sich ihre inferierten Importtypen bzw. der Referenz-Index geändert
+ * haben können.
+ */
+function recheckDependents(filePath: string): void {
+	getTransitiveDependents(filePath).forEach(dependentPath => {
+		const dependentParsed = parsedDocuments[dependentPath];
+		if (!dependentParsed) {
+			return;
+		}
+		checkTypes(dependentParsed, parsedDocuments, referenceIndex);
+		sendDiagnosticsForFile(pathToUri(dependentPath), dependentParsed);
+	});
+}
+
+// This event is emitted when the text document first opened or when its content has changed.
+// parse document, fill parsedDocuments and sendDiagnostics
+documents.onDidChangeContent(change => {
+	const textDocument = change.document;
+	const text = textDocument.getText();
+	if (text.length > maxFileSize) {
+		return;
+	}
+	const path = uriToPath(textDocument.uri);
+	const parsed = parseDocumentByCode(text, path);
+	sendDiagnosticsForFile(textDocument.uri, parsed);
+	// Andere Dateien importieren evtl. diese - ihre Typen/Referenzen müssen neu berechnet werden.
+	recheckDependents(path);
 });
 
 /**
@@ -184,16 +257,16 @@ documents.onDidChangeContent(change => {
  * checks types
  */
 function parseDocumentByCode(text: string, path: string): ParsedFile {
+	const oldDependencies = parsedDocuments[path]?.dependencies;
 	const parsed = parseCode(text, path);
 	parsedDocuments[path] = parsed;
+	unregisterDependencies(path, oldDependencies);
+	registerDependencies(path, parsed.dependencies);
 	// recursively parse imported files
 	parsed.dependencies?.forEach(importedPath => {
 		parseDocumentByPath(importedPath);
 	});
-	// TODO invalidate imported inferred types of this file in other files (that reference this file)?
-	// oder nur in onDidChangeWatchedFiles bei file save?
-	// infertypes, typecheck
-	checkTypes(parsed, parsedDocuments);
+	checkTypes(parsed, parsedDocuments, referenceIndex);
 	return parsed;
 }
 
@@ -203,7 +276,7 @@ function parseDocumentByPath(path: string): void {
 		if (oldParsed.checked) {
 			return;
 		}
-		checkTypes(oldParsed, parsedDocuments);
+		checkTypes(oldParsed, parsedDocuments, referenceIndex);
 		return;
 	}
 	const code = tryReadTextFile(path);
@@ -219,43 +292,36 @@ function parseDocumentByPath(path: string): void {
 
 connection.onDidChangeWatchedFiles(changeParams => {
 	// Monitored files have change in VSCode
-	// connection.console.log('We received a file change event');
-
-	// reparse changedFiles
 	const changedFilePaths = changeParams.changes
 		.map(fileChange => uriToPath(fileChange.uri))
 		.filter(path => {
 			return !!parsedDocuments[path];
 		});
-	// update dependendent files
-	// for each file in parsedDocuments:
-	// if depenency has changed (ie: file.dependencies contains a file in changeParams)
-	// then recalculate types (checkTypes)
-	const invalidatedFiles = map(
-		parsedDocuments,
-		(parsedDocument, path) => {
-			const fileChanged = changedFilePaths.includes(path);
-			if (fileChanged) {
-				return undefined;
-			}
-			const dependencyChanged = parsedDocument.dependencies?.some(dependency => changedFilePaths.includes(dependency));
-			if (dependencyChanged) {
-				return parsedDocument;
-			}
-		}).filter(isDefined);
-	// clean invalidated data
-	invalidatedFiles.forEach((parsedDocument) => {
-		parsedDocument.checked = undefined;
+
+	// Transitiv betroffene Dateien (über dependents, auch über Re-Export-Ketten) VOR dem
+	// Neu-Parsen ermitteln - danach kennen wir die alten Import-Kanten nicht mehr.
+	const transitivelyAffected = new Set<string>();
+	changedFilePaths.forEach(path => {
+		getTransitiveDependents(path).forEach(dependentPath => transitivelyAffected.add(dependentPath));
 	});
+	changedFilePaths.forEach(path => transitivelyAffected.delete(path));
+
+	// clean invalidated data
 	changedFilePaths.forEach((path) => {
+		unregisterDependencies(path, parsedDocuments[path]?.dependencies);
 		delete parsedDocuments[path];
 	});
 	// recalculate data
 	changedFilePaths.forEach((path) => {
 		parseDocumentByPath(path);
 	});
-	invalidatedFiles.forEach((parsedDocument) => {
-		checkTypes(parsedDocument, parsedDocuments);
+	transitivelyAffected.forEach(dependentPath => {
+		const dependentParsed = parsedDocuments[dependentPath];
+		if (!dependentParsed) {
+			return;
+		}
+		checkTypes(dependentParsed, parsedDocuments, referenceIndex);
+		sendDiagnosticsForFile(pathToUri(dependentPath), dependentParsed);
 	});
 });
 
@@ -1142,38 +1208,106 @@ connection.onPrepareRename(prepareRenameParams => {
 
 	return positionedToRange(expression);
 });
+/**
+ * Löst ein Rename-/Find-All-References-Ziel auf die kanonische Identität auf (siehe
+ * jul-compiler/docs/cross-file-reference-index.md): ein Alias-Binding
+ * (`local = source` in einer destructuring-Import-Zeile) ist dabei bewusst eine eigene Identität,
+ * unabhängig vom Ursprung - Cursor auf dem lokalen Alias-Namen darf den Ursprung nicht mitziehen,
+ * Cursor auf dem source-Token (bzw. dem Namen ohne Alias) zeigt dagegen auf den Ursprung.
+ */
+function resolveRenameTarget(
+	expression: PositionedExpression,
+	scopes: SymbolTable[],
+	documentPath: string,
+	folderPath: string,
+): { symbol: SymbolDefinition; filePath: string; } | undefined {
+	if (expression.type === 'name' && expression.parent?.type === 'destructuringField') {
+		const field = expression.parent;
+		if (field.source && expression === field.name) {
+			const localSymbol = field.parent?.type === 'destructuringFields'
+				? field.parent.symbols[field.name.name]
+				: undefined;
+			return localSymbol && {
+				symbol: localSymbol,
+				filePath: documentPath,
+			};
+		}
+		return resolveImportBinding(field, documentPath, parsedDocuments);
+	}
+	const raw = getRawSymbolDefinition(expression, scopes, folderPath);
+	if (!raw || raw.isBuiltIn) {
+		return undefined;
+	}
+	return resolveCanonicalSymbol(raw.symbol, raw.filePath ?? documentPath, parsedDocuments);
+}
+
 connection.onRenameRequest(renameParams => {
 	const documentUri = renameParams.textDocument.uri;
 	const parsedFile = getParsedFileByUri(documentUri);
 	if (!parsedFile) {
 		return;
 	}
-
-	// TODO rename across multiple files
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, renameParams.position.line, renameParams.position.character);
 	if (!expression) {
 		return;
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
-	if (!foundSymbol || foundSymbol.isBuiltIn || !foundSymbol.symbol.definition) {
+	const canonical = resolveRenameTarget(expression, scopes, documentPath, folderPath);
+	if (!canonical) {
 		return;
 	}
-	const searchTerm = foundSymbol.name;
-	const occurences = findAllOccurrencesInParsedFile(parsedFile, foundSymbol.symbol.definition, searchTerm);
-	return {
-		changes: {
-			[documentUri]: occurences.map(innerExpression => {
-				return {
-					range: positionedToRange(innerExpression),
-					newText: renameParams.newName,
-				};
-			})
+	const changesByUri = new Map<string, TextEdit[]>();
+	function addEdit(filePath: string, position: Positioned): void {
+		const uri = pathToUri(filePath);
+		let edits = changesByUri.get(uri);
+		if (!edits) {
+			edits = [];
+			changesByUri.set(uri, edits);
 		}
-	};
+		edits.push({
+			range: positionedToRange(position),
+			newText: renameParams.newName,
+		});
+	}
+	addEdit(canonical.filePath, canonical.symbol);
+	referenceIndex.getReferences(canonical.symbol, canonical.filePath).forEach(location => {
+		addEdit(location.filePath, location);
+	});
+	return { changes: Object.fromEntries(changesByUri) };
 });
 //#endregion rename
+
+//#region references
+connection.onReferences(referenceParams => {
+	const documentUri = referenceParams.textDocument.uri;
+	const parsedFile = getParsedFileByUri(documentUri);
+	if (!parsedFile) {
+		return;
+	}
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, referenceParams.position.line, referenceParams.position.character);
+	if (!expression) {
+		return;
+	}
+	const documentPath = uriToPath(documentUri);
+	const folderPath = dirname(documentPath);
+	const canonical = resolveRenameTarget(expression, scopes, documentPath, folderPath);
+	if (!canonical) {
+		return;
+	}
+	const locations: Location[] = referenceIndex.getReferences(canonical.symbol, canonical.filePath).map(location => ({
+		uri: pathToUri(location.filePath),
+		range: positionedToRange(location),
+	}));
+	if (referenceParams.context.includeDeclaration) {
+		locations.push({
+			uri: pathToUri(canonical.filePath),
+			range: positionedToRange(canonical.symbol),
+		});
+	}
+	return locations;
+});
+//#endregion references
 
 //#region document symbols
 connection.onDocumentSymbol(documentSymbolParams => {
@@ -1428,202 +1562,9 @@ function isPositionInRange(
 
 //#endregion findExpression
 
-//#region findAllOccurrences
-
-function findAllOccurrencesInParsedFile(
-	parsedFile: ParsedFile,
-	definition: DefinitionExpression,
-	searchTerm: string,
-): PositionedExpression[] {
-	const expressions = parsedFile.checked?.expressions;
-	if (!expressions) {
-		return [];
-	}
-	const parent = definition.parent;
-	if (!parent) {
-		// definition im root scope: alles umbenennen
-		return findAllOccurrencesInExpressions(expressions, searchTerm);
-	}
-	switch (parent.type) {
-		case 'dictionary':
-			// TODO rename field
-			return [];
-		case 'functionLiteral':
-			return findAllOccurrencesInExpressions(parent.body, searchTerm);
-		// TODO other types?
-		default:
-			return [];
-	}
-}
-
-function findAllOccurrencesInExpressions(
-	expressions: PositionedExpression[],
-	searchTerm: string,
-): PositionedExpression[] {
-	return expressions.flatMap(expression => {
-		return findAllOccurrencesInExpression(expression, searchTerm);
-	});
-}
-
-function findAllOccurrencesInExpression(
-	expression: PositionedExpression | undefined,
-	searchTerm: string,
-): PositionedExpression[] {
-	if (!expression) {
-		return [];
-	}
-	switch (expression.type) {
-		case 'binding':
-		case 'data':
-			// return findAllOccurrencesInExpression(expression.fields, name);
-			return [];
-		case 'branching': {
-			const args = expression.args;
-			const occurences = [
-				...(args ? findAllOccurrencesInExpression(args, searchTerm) : []),
-				...findAllOccurrencesInExpressions(expression.branches, searchTerm),
-			];
-			return occurences;
-		}
-		case 'definition': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.name, searchTerm),
-				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
-				...findAllOccurrencesInExpression(expression.value, searchTerm),
-			];
-			return occurences;
-		}
-		case 'destructuring': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.fields, searchTerm),
-				...findAllOccurrencesInExpression(expression.value, searchTerm),
-			];
-			return occurences;
-		}
-		case 'destructuringField': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.name, searchTerm),
-				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
-				...findAllOccurrencesInExpression(expression.source, searchTerm),
-			];
-			return occurences;
-		}
-		case 'destructuringFields':
-		case 'dictionary':
-		case 'dictionaryType': {
-			const occurences = findAllOccurrencesInExpressions(expression.fields, searchTerm);
-			return occurences;
-		}
-		case 'empty':
-			return [];
-		case 'field':
-			// TODO check name range, source, typeGuard
-			// return expression;
-			return [];
-		case 'float':
-			return [];
-		case 'fraction':
-			return [];
-		case 'functionCall': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.prefixArgument, searchTerm),
-				...findAllOccurrencesInExpression(expression.functionExpression, searchTerm),
-				...findAllOccurrencesInExpression(expression.arguments, searchTerm),
-			];
-			return occurences;
-		}
-		case 'functionLiteral': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.params, searchTerm),
-				...findAllOccurrencesInExpression(expression.returnType, searchTerm),
-				...findAllOccurrencesInExpressions(expression.body, searchTerm),
-			];
-			return occurences;
-		}
-		case 'functionTypeLiteral': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.params, searchTerm),
-				...findAllOccurrencesInExpression(expression.returnType, searchTerm),
-			];
-			return occurences;
-		}
-		case 'index':
-			return [];
-		case 'integer':
-			return [];
-		case 'list':
-			return findAllOccurrencesInExpressions(expression.values, searchTerm);
-		case 'name':
-			return expression.name === searchTerm
-				? [expression]
-				: [];
-		case 'nestedReference': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.source, searchTerm),
-			];
-			// TODO rename field
-			// const nestedKey = expression.nestedKey;
-			// if (nestedKey) {
-			// 	occurences.push(...findAllOccurrencesInExpression(nestedKey, searchTerm));
-			// }
-			return occurences;
-		}
-		case 'object':
-			return findAllOccurrencesInExpressions(expression.values, searchTerm);
-		case 'parameter': {
-			const occurences = [
-				...findAllOccurrencesInExpression(expression.name, searchTerm),
-				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
-			];
-			return occurences;
-		}
-		case 'parameters': {
-			const occurences = [
-				...findAllOccurrencesInExpressions(expression.singleFields, searchTerm),
-				...findAllOccurrencesInExpression(expression.rest, searchTerm),
-			];
-			return occurences;
-		}
-		case 'reference': {
-			const referenceName = expression.name;
-			return referenceName.name === searchTerm
-				? [referenceName]
-				: [];
-		}
-		case 'singleDictionaryField': {
-			const occurences = [
-				// TODO rename field
-				// ...findAllOccurrencesInExpression(expression.name, searchTerm),
-				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
-				...findAllOccurrencesInExpression(expression.value, searchTerm),
-			];
-			return occurences;
-		}
-		case 'singleDictionaryTypeField': {
-			const occurences = [
-				// TODO rename field
-				// ...findAllOccurrencesInExpression(expression.name, searchTerm),
-				...findAllOccurrencesInExpression(expression.typeGuard, searchTerm),
-			];
-			return occurences;
-		}
-		case 'spread': {
-			const occurences = findAllOccurrencesInExpression(expression.value, searchTerm);
-			return occurences;
-		}
-		case 'text': {
-			const values = expression.values.filter((value): value is ParseValueExpression =>
-				value.type !== 'textToken');
-			return findAllOccurrencesInExpressions(values, searchTerm);
-		}
-		default: {
-			const assertNever: never = expression;
-			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
-		}
-	}
-}
-
-//#endregion findAllOccurrences
+// Rename/Find-All-References laufen über den ReferenceIndex (siehe oben, Region "rename"/
+// "references") statt über eine Textsuche pro Datei - der Index kennt die tatsächlich aufgelösten
+// Bindungen (inkl. Scope/Shadowing/Cross-File), eine Textsuche wäre hier nur eine Annäherung.
 
 //#region get Symbol
 
@@ -1638,7 +1579,14 @@ interface SymbolInfo {
 	filePath?: string;
 }
 
-function getSymbolDefinition(
+/**
+ * Löst den Ausdruck auf das lokal gebundene Symbol auf, ohne durch Importe hindurchzufolgen.
+ * Für Go-to-Definition/Hover wird das Ergebnis über `resolveThroughImports` weitergereicht
+ * (siehe `getSymbolDefinition`); Rename/Find-All-References brauchen dagegen genau diese
+ * ungefolgte, lokale Bindung, um sie alias-bewusst über `resolveCanonicalSymbol` (jul-compiler)
+ * aufzulösen - ein Alias darf dort nicht wie beim Go-to-Definition blind mitgezogen werden.
+ */
+function getRawSymbolDefinition(
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	folderPath: string,
@@ -1647,10 +1595,10 @@ function getSymbolDefinition(
 		case 'reference': {
 			const name = expression.name.name;
 			const definition = findSymbolInScopesWithBuiltIns(name, scopes);
-			return definition && resolveThroughImports({
+			return definition && {
 				...definition,
 				name: name,
-			}, folderPath);
+			};
 		}
 		case 'definition': {
 			// TODO GoToDefinition: bei import: go to source file symbol?
@@ -1673,12 +1621,12 @@ function getSymbolDefinition(
 			switch (parent?.type) {
 				case 'destructuringField': {
 					const importedSymbol = getImportedSymbol(parent, folderPath);
-					return importedSymbol?.symbol && resolveThroughImports({
+					return importedSymbol?.symbol && {
 						name: name,
 						isBuiltIn: false,
 						symbol: importedSymbol.symbol,
 						filePath: importedSymbol.filePath,
-					}, dirname(importedSymbol.filePath));
+					};
 				}
 				case 'nestedReference': {
 					const declaredSourceType = getDeclaredType(parent.source);
@@ -1694,10 +1642,10 @@ function getSymbolDefinition(
 				}
 				default: {
 					const definition = findSymbolInScopesWithBuiltIns(name, scopes);
-					return definition && resolveThroughImports({
+					return definition && {
 						...definition,
 						name: name,
-					}, folderPath);
+					};
 				}
 			}
 		}
@@ -1732,6 +1680,25 @@ function getSymbolDefinition(
 			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
 		}
 	}
+}
+
+/**
+ * Für Go-to-Definition/Hover: wie `getRawSymbolDefinition`, folgt aber zusätzlich durch Importe
+ * (auch Aliase) bis zur tatsächlichen Deklaration durch, siehe `resolveThroughImports`.
+ */
+function getSymbolDefinition(
+	expression: PositionedExpression,
+	scopes: SymbolTable[],
+	folderPath: string,
+): SymbolInfo | undefined {
+	const raw = getRawSymbolDefinition(expression, scopes, folderPath);
+	if (!raw) {
+		return undefined;
+	}
+	const rawFolderPath = raw.filePath
+		? dirname(raw.filePath)
+		: folderPath;
+	return resolveThroughImports(raw, rawFolderPath);
 }
 
 function getSymbolFromDictionaryType(

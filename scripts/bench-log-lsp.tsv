@@ -43,3 +43,11 @@
 2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	signatureHelp	564	0.08	0.19	0.52	dark mode chart farben
 2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	documentSymbol	3	5.29	5.83	5.83	dark mode chart farben
 2026-09-10 17:20:41	e7da33a	jul-compiler 7ed9a84	ADV-DEV-56627	yugioh	semanticTokens	3	5.38	6.58	6.58	dark mode chart farben
+2026-09-12 13:24:31	eb48d46+	jul-compiler 68c1f99+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	25.42	309.90	309.90	cross-file reference-index (rename/find-references)
+2026-09-12 13:24:31	eb48d46+	jul-compiler 68c1f99+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	194.83	209.07	209.07	cross-file reference-index (rename/find-references)
+2026-09-12 13:24:31	eb48d46+	jul-compiler 68c1f99+	ADV-DEV-56627	yugioh	hover	564	0.12	0.26	52.07	cross-file reference-index (rename/find-references)
+2026-09-12 13:24:31	eb48d46+	jul-compiler 68c1f99+	ADV-DEV-56627	yugioh	definition	564	0.06	0.16	0.27	cross-file reference-index (rename/find-references)
+2026-09-12 13:24:31	eb48d46+	jul-compiler 68c1f99+	ADV-DEV-56627	yugioh	completion	564	3.32	4.33	7.31	cross-file reference-index (rename/find-references)
+2026-09-12 13:24:31	eb48d46+	jul-compiler 68c1f99+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.13	0.58	cross-file reference-index (rename/find-references)
+2026-09-12 13:24:31	eb48d46+	jul-compiler 68c1f99+	ADV-DEV-56627	yugioh	documentSymbol	3	3.77	4.32	4.32	cross-file reference-index (rename/find-references)
+2026-09-12 13:24:31	eb48d46+	jul-compiler 68c1f99+	ADV-DEV-56627	yugioh	semanticTokens	3	3.36	5.05	5.05	cross-file reference-index (rename/find-references)
