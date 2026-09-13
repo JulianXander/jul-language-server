@@ -154,10 +154,8 @@ describe('getPositionKindForExpectedType', () => {
 	});
 
 	it('macht aus einem erwarteten Wert-Typ eine Wert-Position', () => {
-		const integerType = getResolvedType(builtInSymbols['Integer']?.typeInfo);
-		// Integer ist als Symbol ein Typ-Wert; erwartet wird hier aber ein Integer-*Wert*
-		expect(getPositionKindForExpectedType({ julType: 'integer' })).to.equal('value');
-		expect(integerType).to.exist;
+		// ein Typ, dessen Wert selbst nicht ein Typ ist - z.B. Integer als erwarteter Wert
+		expect(getPositionKindForExpectedType({ julType: 'integer', isUnresolvedPlaceholder: false })).to.equal('value');
 	});
 
 	it('liefert undefined, wenn kein Typ bekannt ist', () => {

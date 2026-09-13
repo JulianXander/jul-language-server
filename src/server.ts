@@ -79,6 +79,7 @@ import {
 } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, getFieldSymbolsFromDictionaryType, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { createImportEdit, findImportCandidates } from './auto-import.js';
 import { getArgumentPositionKind, getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, isTypeSymbol } from './completion.js';
 import { getParameterIndex, getPrefixArgumentDeclaredType, getResolvedType } from './util.js';
 
@@ -1299,8 +1300,11 @@ function spaceIndentationTextEdit(range: Range, expectedIndent: number): TextEdi
 	};
 }
 
-connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
-	const documentUri = params.textDocument.uri;
+function getSpaceIndentationCodeActions(
+	documentUri: string,
+	parsedFile: ParsedFile,
+	params: CodeActionParams,
+): CodeAction[] {
 	const hasSpaceIndentationHere = params.context.diagnostics
 		.some(diagnostic => diagnostic.code === ErrorCode.spaceIndentation);
 	if (!hasSpaceIndentationHere) {
@@ -1310,8 +1314,7 @@ connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
 	// auf (ein ganzer eingefügter Block oder eine ganze Datei). Deshalb nur ein Fix für alle
 	// Stellen der Datei, aus dem zuletzt geprüften Stand geholt statt aus params.context.diagnostics
 	// (das ist auf die angefragte Range beschränkt).
-	const parsedFile = getParsedFileByUri(documentUri);
-	const spaceIndentationErrors = parsedFile?.checked?.errors
+	const spaceIndentationErrors = parsedFile.checked?.errors
 		.filter((error): error is typeof error & { expectedIndent: number; } =>
 			error.code === ErrorCode.spaceIndentation && error.expectedIndent !== undefined)
 		?? [];
@@ -1329,6 +1332,62 @@ connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
 			},
 		},
 	}];
+}
+
+/**
+ * Bietet für jedes unbekannte Symbol die Dateien des Projekts an, die es definieren.
+ * Anders als beim Einrückungsfix ist die Beschränkung auf params.context.diagnostics hier richtig:
+ * es geht um genau die Stelle, an der der Nutzer steht.
+ */
+function getAutoImportCodeActions(
+	documentUri: string,
+	parsedFile: ParsedFile,
+	params: CodeActionParams,
+): CodeAction[] {
+	const documentPath = uriToPath(documentUri);
+	return params.context.diagnostics.flatMap(diagnostic => {
+		if (diagnostic.code !== ErrorCode.notDefined) {
+			return [];
+		}
+		const start = diagnostic.range.start;
+		// Name aus dem Baum holen, nicht aus der Fehlermeldung parsen
+		const { expression } = findExpressionInParsedFile(parsedFile, start.line, start.character);
+		if (expression?.type !== 'reference') {
+			return [];
+		}
+		const name = expression.name.name;
+		const candidates = findImportCandidates(name, documentPath, parsedDocuments);
+		return candidates.map(candidate => {
+			const textEdit = createImportEdit(parsedFile, candidate, name, start.line);
+			if (!textEdit) {
+				return undefined;
+			}
+			const codeAction: CodeAction = {
+				title: `Import '${name}' from '${candidate.importPath}'`,
+				kind: CodeActionKind.QuickFix,
+				isPreferred: candidates.length === 1,
+				diagnostics: [diagnostic],
+				edit: {
+					changes: {
+						[documentUri]: [textEdit],
+					},
+				},
+			};
+			return codeAction;
+		}).filter(isDefined);
+	});
+}
+
+connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
+	const documentUri = params.textDocument.uri;
+	const parsedFile = getParsedFileByUri(documentUri);
+	if (!parsedFile) {
+		return [];
+	}
+	return [
+		...getSpaceIndentationCodeActions(documentUri, parsedFile, params),
+		...getAutoImportCodeActions(documentUri, parsedFile, params),
+	];
 });
 //#endregion codeAction
 
