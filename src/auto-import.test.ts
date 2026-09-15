@@ -177,4 +177,28 @@ describe('findImportCandidates', () => {
 		});
 		expect(findImportCandidates('cardEffects', mainPath, documents)).to.deep.equal([]);
 	});
+
+	it('schlägt bei einem unaliasierten Re-Export nur die ursprüngliche Quelle vor', () => {
+		const documents = parseAll({
+			'main.jul': 'x = cardEffects\n',
+			'source.jul': 'cardEffects = 1\n',
+			'reexport.jul': '(cardEffects) = import(§./source.jul§)\n',
+		});
+		const candidates = findImportCandidates('cardEffects', mainPath, documents);
+		expect(candidates.map(candidate => candidate.importPath)).to.deep.equal([
+			'./source.jul',
+		]);
+	});
+
+	it('schlägt bei einem aliasierten Re-Export den Alias vor, da nur er den Namen führt', () => {
+		const documents = parseAll({
+			'main.jul': 'x = effects\n',
+			'source.jul': 'cardEffects = 1\n',
+			'reexport.jul': '(effects = cardEffects) = import(§./source.jul§)\n',
+		});
+		const candidates = findImportCandidates('effects', mainPath, documents);
+		expect(candidates.map(candidate => candidate.importPath)).to.deep.equal([
+			'./reexport.jul',
+		]);
+	});
 });
