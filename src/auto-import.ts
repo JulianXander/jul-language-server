@@ -2,6 +2,7 @@ import { dirname, relative, sep } from 'path';
 import { TextEdit } from 'vscode-languageserver';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { getPathFromImport, isCoreLibPath, isImportFunctionCall } from 'jul-compiler/out/parser/parser.js';
+import { resolveCanonicalSymbol } from 'jul-compiler/out/checker/reference-index.js';
 import {
 	ParseDestructuringDefinition,
 	ParsedFile,
@@ -62,7 +63,13 @@ export function findImportCandidates(
 			|| parsedFile.extension === Extension.yaml) {
 			continue;
 		}
-		if (!parsedFile.checked?.symbols[name]) {
+		const symbol = parsedFile.checked?.symbols[name];
+		if (!symbol) {
+			continue;
+		}
+		// nur die ursprüngliche Quelle vorschlagen, nicht Dateien, die das Symbol bloß re-importieren
+		const canonical = resolveCanonicalSymbol(symbol, filePath, parsedDocuments);
+		if (canonical.filePath !== filePath) {
 			continue;
 		}
 		candidates.push({

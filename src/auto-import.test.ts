@@ -1,4 +1,6 @@
 import { expect } from 'chai';
+import { mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
@@ -178,27 +180,59 @@ describe('findImportCandidates', () => {
 		expect(findImportCandidates('cardEffects', mainPath, documents)).to.deep.equal([]);
 	});
 
-	it('schlägt bei einem unaliasierten Re-Export nur die ursprüngliche Quelle vor', () => {
-		const documents = parseAll({
-			'main.jul': 'x = cardEffects\n',
-			'source.jul': 'cardEffects = 1\n',
-			'reexport.jul': '(cardEffects) = import(§./source.jul§)\n',
-		});
-		const candidates = findImportCandidates('cardEffects', mainPath, documents);
-		expect(candidates.map(candidate => candidate.importPath)).to.deep.equal([
-			'./source.jul',
-		]);
-	});
+	// resolveCanonicalSymbol (jul-compiler) folgt Import-Hops nur, wenn getPathFromImport die
+	// Zieldatei tatsächlich auf der Platte findet - dafür braucht es hier echte Dateien statt der
+	// virtuellen parseAll()-Dokumente.
+	describe('mit Re-Exporten auf der Platte', () => {
+		let realFolder: string;
+		let realMainPath: string;
+		let documents: ParsedDocuments;
 
-	it('schlägt bei einem aliasierten Re-Export den Alias vor, da nur er den Namen führt', () => {
-		const documents = parseAll({
-			'main.jul': 'x = effects\n',
-			'source.jul': 'cardEffects = 1\n',
-			'reexport.jul': '(effects = cardEffects) = import(§./source.jul§)\n',
+		beforeEach(() => {
+			realFolder = mkdtempSync(join(tmpdir(), 'jul-auto-import-test-'));
+			realMainPath = join(realFolder, 'main.jul');
 		});
-		const candidates = findImportCandidates('effects', mainPath, documents);
-		expect(candidates.map(candidate => candidate.importPath)).to.deep.equal([
-			'./reexport.jul',
-		]);
+
+		afterEach(() => {
+			rmSync(realFolder, { recursive: true, force: true });
+		});
+
+		function parseAndCheckAll(files: { [fileName: string]: string; }): ParsedDocuments {
+			documents = {};
+			const referenceIndex = new ReferenceIndex();
+			for (const fileName in files) {
+				const path = join(realFolder, fileName);
+				writeFileSync(path, files[fileName]!);
+				documents[path] = parseCode(files[fileName]!, path);
+			}
+			for (const path in documents) {
+				checkTypes(documents[path]!, documents, referenceIndex);
+			}
+			return documents;
+		}
+
+		it('schlägt bei einem unaliasierten Re-Export nur die ursprüngliche Quelle vor', () => {
+			const docs = parseAndCheckAll({
+				'main.jul': 'x = cardEffects\n',
+				'source.jul': 'cardEffects = 1\n',
+				'reexport.jul': '(cardEffects) = import(§./source.jul§)\n',
+			});
+			const candidates = findImportCandidates('cardEffects', realMainPath, docs);
+			expect(candidates.map(candidate => candidate.importPath)).to.deep.equal([
+				'./source.jul',
+			]);
+		});
+
+		it('schlägt bei einem aliasierten Re-Export den Alias vor, da nur er den Namen führt', () => {
+			const docs = parseAndCheckAll({
+				'main.jul': 'x = effects\n',
+				'source.jul': 'cardEffects = 1\n',
+				'reexport.jul': '(effects = cardEffects) = import(§./source.jul§)\n',
+			});
+			const candidates = findImportCandidates('effects', realMainPath, docs);
+			expect(candidates.map(candidate => candidate.importPath)).to.deep.equal([
+				'./reexport.jul',
+			]);
+		});
 	});
 });
