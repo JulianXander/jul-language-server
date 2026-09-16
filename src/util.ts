@@ -5,6 +5,7 @@ import {
 	isFunctionType,
 	isParametersType,
 	isTypeOfType,
+	resolveAlias,
 	resolvePlaceholders,
 	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
@@ -250,12 +251,15 @@ export function getDeclaredType(expression: PositionedExpression): TypeInfo | un
 }
 
 export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileTimeType): CompletionItem[] | undefined {
-	switch (declaredType.julType) {
+	const resolvedType = declaredType.julType === 'alias'
+		? resolveAlias(declaredType)
+		: declaredType;
+	switch (resolvedType.julType) {
 		case 'dictionaryLiteral':
-			return dictionaryTypeToCompletionItems(declaredType.Fields);
+			return dictionaryTypeToCompletionItems(resolvedType.Fields);
 		case 'or': {
 			const allCompletionItems: CompletionItem[] = [];
-			declaredType.ChoiceTypes.forEach(choiceType => {
+			resolvedType.ChoiceTypes.forEach(choiceType => {
 				const completionItems = getDictionaryFieldCompletionItemsFromType(choiceType);
 				completionItems?.forEach(newCompletionItem => {
 					// Duplikate vermeiden
@@ -268,7 +272,7 @@ export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileT
 		}
 		case 'parameters': {
 			// function call arg
-			const allCompletionItems = declaredType.singleNames.map((singleName, index) => {
+			const allCompletionItems = resolvedType.singleNames.map((singleName, index) => {
 				return parameterToCompletionItem(singleName, index, false);
 			});
 			return allCompletionItems;

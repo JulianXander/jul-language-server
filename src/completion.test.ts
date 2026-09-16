@@ -215,7 +215,7 @@ describe('getDictionaryFieldCompletionItemsFromType', () => {
 		const parsed = parse('MyType = [f1: Integer]\nx: MyType = []\n');
 		const definition = parsed.checked!.expressions![1];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
-			throw new Error(`Erwartet definition mit empty value, bekommen ${definition?.value?.type}`);
+			throw new Error('Erwartet definition mit empty value');
 		}
 		const declaredType = getDeclaredResolvedType(definition.value);
 		const completionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
