@@ -248,7 +248,7 @@ export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileT
 		: declaredType;
 	switch (resolvedType.julType) {
 		case 'dictionaryLiteral':
-			return dictionaryTypeToCompletionItems(resolvedType.Fields);
+			return dictionaryTypeToCompletionItems(resolvedType.Fields).map(withFieldAssignmentInsertText);
 		case 'or': {
 			const allCompletionItems: CompletionItem[] = [];
 			resolvedType.ChoiceTypes.forEach(choiceType => {
@@ -265,13 +265,24 @@ export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileT
 		case 'parameters': {
 			// function call arg
 			const allCompletionItems = resolvedType.singleNames.map((singleName, index) => {
-				return parameterToCompletionItem(singleName, index, false);
+				return withFieldAssignmentInsertText(parameterToCompletionItem(singleName, index, false));
 			});
 			return allCompletionItems;
 		}
 		default:
 			return undefined;
 	}
+}
+
+/**
+ * Ein Feld eines Dictionary-Literals (Wert, nicht Typ) braucht immer einen zugewiesenen Wert -
+ * anders als im Dictionary-Typ ist `f1: Integer` ohne `= ...` hier kein gültiger Ausdruck.
+ */
+function withFieldAssignmentInsertText(completionItem: CompletionItem): CompletionItem {
+	return {
+		...completionItem,
+		insertText: completionItem.label + ' = ',
+	};
 }
 
 function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {

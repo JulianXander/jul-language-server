@@ -221,6 +221,20 @@ describe('getDictionaryFieldCompletionItemsFromType', () => {
 		const completionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 		expect(completionItems?.map(item => item.label)).to.include('f1');
 	});
+
+	// Ein Dictionary-Literal (Wert) braucht für jedes Feld immer einen zugewiesenen Wert - anders
+	// als der Dictionary-Typ, wo `f1: Integer` ohne `=` steht.
+	it('hängt an den vorgeschlagenen Feldnamen " = " an, da ein Feld im Literal immer einen Wert braucht', () => {
+		const parsed = parse('MyType = [f1: Integer]\nx: MyType = []\n');
+		const definition = parsed.checked!.expressions![1];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
+			throw new Error('Erwartet definition mit empty value');
+		}
+		const declaredType = getDeclaredResolvedType(definition.value);
+		const completionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
+		const f1CompletionItem = completionItems?.find(item => item.label === 'f1');
+		expect(f1CompletionItem?.insertText).to.equal('f1 = ');
+	});
 });
 
 describe('getDictionaryLiteralFieldCompletionItems', () => {
