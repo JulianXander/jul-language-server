@@ -291,23 +291,33 @@ function parameterToCompletionItem(parameter: Parameter, index: number, isRest: 
  * erwarteter Typ (declaredType) Felder vorschreibt.
  */
 export function getDictionaryLiteralFieldCompletionItems(expression: PositionedExpression | undefined): CompletionItem[] | undefined {
-	if (expression?.type !== 'empty'
-		&& expression?.type !== 'dictionary'
-		&& expression?.type !== 'object') {
+	if (expression?.type === 'empty'
+		|| expression?.type === 'dictionary'
+		|| expression?.type === 'object') {
+		const declaredType = getDeclaredResolvedType(expression);
+		const allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
+		if (!allCompletionItems) {
+			return undefined;
+		}
+		// schon definierte Felder ausschließen
+		if (expression.type === 'dictionary') {
+			return allCompletionItems.filter(completionItem => {
+				return !expression.symbols[completionItem.label];
+			});
+		}
+		return allCompletionItems;
+	}
+	// Ein angefangener Feldname (z.B. `[f]`) parst noch nicht als dictionary, sondern als list mit
+	// einer bloßen reference darin - der Parser erkennt "Dictionary-Feld" erst an einem `=`/`:`
+	// danach. Ohne diesen Zweig verschwindet die Vervollständigung, sobald der erste Buchstabe steht.
+	const list = expression?.type === 'list' ? expression
+		: expression?.parent?.type === 'list' ? expression.parent
+			: undefined;
+	if (!list) {
 		return undefined;
 	}
-	const declaredType = getDeclaredResolvedType(expression);
-	const allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
-	if (!allCompletionItems) {
-		return undefined;
-	}
-	// schon definierte Felder ausschließen
-	if (expression.type === 'dictionary') {
-		return allCompletionItems.filter(completionItem => {
-			return !expression.symbols[completionItem.label];
-		});
-	}
-	return allCompletionItems;
+	const declaredType = getDeclaredResolvedType(list);
+	return declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 }
 
 export function dictionaryTypeToCompletionItems(
