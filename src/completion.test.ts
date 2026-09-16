@@ -3,9 +3,9 @@ import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { ParsedFile, ParseFunctionCall } from 'jul-compiler/out/syntax-tree.js';
-import { getDeclaredResolvedType, getDictionaryFieldCompletionItemsFromType, getResolvedType } from './util.js';
+import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
-import { getArgumentPositionKind, getCompletionSortText, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getDictionaryLiteralFieldCompletionItems, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -219,6 +219,35 @@ describe('getDictionaryFieldCompletionItemsFromType', () => {
 		}
 		const declaredType = getDeclaredResolvedType(definition.value);
 		const completionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
+		expect(completionItems?.map(item => item.label)).to.include('f1');
+	});
+});
+
+describe('getDictionaryLiteralFieldCompletionItems', () => {
+	it('schlägt bei einem leeren Dictionary-Literal die Felder des erwarteten Typs vor', () => {
+		const parsed = parse('MyType = [f1: Integer]\nx: MyType = []\n');
+		const definition = parsed.checked!.expressions![1];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
+			throw new Error('Erwartet definition mit empty value');
+		}
+		const completionItems = getDictionaryLiteralFieldCompletionItems(definition.value);
+		expect(completionItems?.map(item => item.label)).to.include('f1');
+	});
+
+	// Realer Fall: sobald der erste Buchstabe eines Feldnamens getippt ist, parst `[f]` nicht mehr
+	// als leeres/dictionary-Literal, sondern als list mit einer reference darin - die Vervollständigung
+	// verschwindet dadurch komplett.
+	it('schlägt beim Tippen eines Feldnamens weiterhin die Felder des erwarteten Typs vor', () => {
+		const parsed = parse('MyType = [f1: Integer]\nx: MyType = [f]\n');
+		const definition = parsed.checked!.expressions![1];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'list') {
+			throw new Error('Erwartet definition mit list value');
+		}
+		const reference = definition.value.values[0];
+		if (reference?.type !== 'reference') {
+			throw new Error(`Erwartet reference, bekommen ${reference?.type}`);
+		}
+		const completionItems = getDictionaryLiteralFieldCompletionItems(reference);
 		expect(completionItems?.map(item => item.label)).to.include('f1');
 	});
 });

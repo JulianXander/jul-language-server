@@ -1,24 +1,18 @@
-import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import {
 	dereferenceIndexFromObject,
 	dereferenceNameFromObject,
 	isFunctionType,
 	isParametersType,
 	isTypeOfType,
-	resolveAlias,
 	resolvePlaceholders,
-	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import {
-	CompileTimeDictionary,
 	CompileTimeType,
-	Parameter,
 	ParseFunctionCall,
 	PositionedExpression,
 	TypeInfo,
 } from 'jul-compiler/out/syntax-tree.js';
-import { map } from 'jul-compiler/out/util.js';
 
 /**
  * Der Server zeigt und prüft Typen, verarbeitet sie aber nicht weiter - hier ist die aufgelöste
@@ -250,61 +244,3 @@ export function getDeclaredType(expression: PositionedExpression): TypeInfo | un
 	}
 }
 
-export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileTimeType): CompletionItem[] | undefined {
-	const resolvedType = declaredType.julType === 'alias'
-		? resolveAlias(declaredType)
-		: declaredType;
-	switch (resolvedType.julType) {
-		case 'dictionaryLiteral':
-			return dictionaryTypeToCompletionItems(resolvedType.Fields);
-		case 'or': {
-			const allCompletionItems: CompletionItem[] = [];
-			resolvedType.ChoiceTypes.forEach(choiceType => {
-				const completionItems = getDictionaryFieldCompletionItemsFromType(choiceType);
-				completionItems?.forEach(newCompletionItem => {
-					// Duplikate vermeiden
-					if (!allCompletionItems?.some(existingCompletionItem => existingCompletionItem.label === newCompletionItem.label)) {
-						allCompletionItems?.push(newCompletionItem);
-					}
-				});
-			});
-			return allCompletionItems;
-		}
-		case 'parameters': {
-			// function call arg
-			const allCompletionItems = resolvedType.singleNames.map((singleName, index) => {
-				return parameterToCompletionItem(singleName, index, false);
-			});
-			return allCompletionItems;
-		}
-		default:
-			return undefined;
-	}
-}
-
-function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {
-	const completionItem: CompletionItem = {
-		label: (isRest ? '...' : '') + parameter.name,
-		kind: CompletionItemKind.Constant,
-		detail: parameter.type
-			? typeToString(parameter.type, 0, 0)
-			: undefined,
-		sortText: '' + index,
-	};
-	return completionItem;
-}
-
-export function dictionaryTypeToCompletionItems(
-	fields: CompileTimeDictionary,
-): CompletionItem[] {
-	return map(
-		fields,
-		(type, name) => {
-			const completionItem: CompletionItem = {
-				label: name,
-				kind: CompletionItemKind.Constant,
-				detail: typeToString(type, 0, 0),
-			};
-			return completionItem;
-		});
-}

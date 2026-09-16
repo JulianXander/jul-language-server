@@ -77,12 +77,19 @@ import {
 import { ReferenceIndex, getFieldSymbolsFromDictionaryType, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
-import { getArgumentPositionKind, getCompletionSortText, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, isTypeSymbol } from './completion.js';
 import {
 	dictionaryTypeToCompletionItems,
+	getArgumentPositionKind,
+	getCompletionSortText,
+	getDictionaryLiteralFieldCompletionItems,
+	getExpectedPositionKind,
+	getFirstArgumentSymbolFilter,
+	getInfixFunctionCall,
+	isTypeSymbol,
+} from './completion.js';
+import {
 	getDeclaredResolvedType,
 	getDeclaredType,
-	getDictionaryFieldCompletionItemsFromType,
 	getParameterIndex,
 	getResolvedType,
 } from './util.js';
@@ -530,21 +537,9 @@ connection.onCompletion(completionParams => {
 	//#endregion / field reference
 
 	//#region dictionary literal field
-	if (expression?.type === 'empty'
-		|| expression?.type === 'dictionary'
-		|| expression?.type === 'object') {
-		const declaredType = getDeclaredResolvedType(expression);
-		const allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
-		if (allCompletionItems) {
-			// schon definierte Felder ausschließen
-			if (expression.type === 'dictionary') {
-				const filtered = allCompletionItems.filter(completionItem => {
-					return !expression.symbols[completionItem.label];
-				});
-				return filtered;
-			}
-			return allCompletionItems;
-		}
+	const dictionaryLiteralFieldCompletionItems = getDictionaryLiteralFieldCompletionItems(expression);
+	if (dictionaryLiteralFieldCompletionItems) {
+		return dictionaryLiteralFieldCompletionItems;
 	}
 	//#endregion dictionary literal field
 
