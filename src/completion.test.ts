@@ -3,7 +3,7 @@ import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { ParsedFile, ParseFunctionCall } from 'jul-compiler/out/syntax-tree.js';
-import { getResolvedType } from './util.js';
+import { getDeclaredResolvedType, getDictionaryFieldCompletionItemsFromType, getResolvedType } from './util.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
 import { getArgumentPositionKind, getCompletionSortText, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
@@ -205,6 +205,21 @@ describe('isTypeSymbol', () => {
 
 	it('erkennt eine normale Wertfunktion nicht als Typ-Symbol', () => {
 		expect(isTypeSymbol(getResolvedType(builtInSymbols['log']?.typeInfo))).to.equal(false);
+	});
+});
+
+describe('getDictionaryFieldCompletionItemsFromType', () => {
+	// Realer Fall: `MyType = [f1: Integer]` gefolgt von `x: MyType = []` - beim Tippen im leeren
+	// Dictionary-Literal sollte `f1` als Feld vorgeschlagen werden.
+	it('schlägt die Felder eines per Namen referenzierten Dictionary-Typs vor', () => {
+		const parsed = parse('MyType = [f1: Integer]\nx: MyType = []\n');
+		const definition = parsed.checked!.expressions![1];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
+			throw new Error(`Erwartet definition mit empty value, bekommen ${definition?.value?.type}`);
+		}
+		const declaredType = getDeclaredResolvedType(definition.value);
+		const completionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
+		expect(completionItems?.map(item => item.label)).to.include('f1');
 	});
 });
 
