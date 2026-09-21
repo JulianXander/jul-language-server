@@ -609,7 +609,7 @@ semanticTokens
   18: 2+15 function 18+1 parameter(readonly)
   27: 1+4 variable(declaration,readonly) 8+9 function
   28: 1+3 function(defaultLibrary) 5+4 variable(readonly)
-  9:10 hover: ```jul ( countdown: Integer current: Integer previous: Integer ) :> Any ``` int fib(int term, int va...
+  9:10 hover: ```jul ( countdown: Integer current: Integer previous: Integer ) -> Any ``` int fib(int term, int va...
   9:10 definition: fibonacci/fibonacci.jul:9:1
   9:10 completion: n=104 fibonacciHelper,fibonacci,test
   9:10 signatureHelp: kein
@@ -625,7 +625,7 @@ semanticTokens
   12:10 definition: fibonacci/fibonacci.jul:12:2
   12:10 completion: n=107 fibonacciHelper,fibonacci,test
   12:10 signatureHelp: kein
-  13:3 hover: ```jul ( countdown: Integer current: Integer previous: Integer ) :> Any ```
+  13:3 hover: ```jul ( countdown: Integer current: Integer previous: Integer ) -> Any ```
   13:3 definition: kein
   13:3 completion: n=107 fibonacciHelper,fibonacci,test
   13:3 signatureHelp: kein
@@ -645,15 +645,15 @@ semanticTokens
   17:14 definition: fibonacci/fibonacci.jul:17:14
   17:14 completion: n=105 fibonacciHelper,fibonacci,test
   17:14 signatureHelp: kein
-  18:12 hover: ```jul ( countdown: Integer current: Integer previous: Integer ) :> Any ``` int fib(int term, int va...
+  18:12 hover: ```jul ( countdown: Integer current: Integer previous: Integer ) -> Any ``` int fib(int term, int va...
   18:12 definition: fibonacci/fibonacci.jul:9:1
   18:12 completion: n=105 fibonacciHelper,fibonacci,test
-  18:12 signatureHelp: ( countdown: Integer current: Integer previous: Integer ) :> Any param=0
-  27:11 hover: ```jul (x: Integer) :> Any ```
+  18:12 signatureHelp: ( countdown: Integer current: Integer previous: Integer ) -> Any param=0
+  27:11 hover: ```jul (x: Integer) -> Any ```
   27:11 definition: fibonacci/fibonacci.jul:17:1
   27:11 completion: n=104 fibonacciHelper,fibonacci,test
-  27:11 signatureHelp: (x: Integer) :> Any param=0
-  28:5 hover: ```jul Any ```
+  27:11 signatureHelp: (x: Integer) -> Any param=0
+  28:5 hover: ```jul 144 ```
   28:5 definition: fibonacci/fibonacci.jul:27:1
   28:5 completion: n=0 
   28:5 signatureHelp: kein
@@ -1507,47 +1507,84 @@ semanticTokens
 
 === test1.jul
 symbols
-  a kind=14 1:1
-    keine
-  b kind=14 2:1
-    keine
-  MyType kind=14 4:1
-    f1 kind=8 4:11
+  myFn kind=12 1:1
+    a kind=13 1:9
       keine
-  x kind=14 6:1
-    f1 kind=8 6:14
+    c kind=14 2:2
+      value kind=13 2:19
+        keine
+    b kind=14 4:2
+      value kind=13 4:24
+        keine
+  x kind=14 7:1
+    value kind=13 8:3
       keine
-  y kind=14 8:1
-    value kind=13 8:20
-      keine
-    index kind=13 8:26
+  f kind=12 13:1
+    value kind=13 13:6
       keine
 semanticTokens
-  1: 1+1 variable(declaration,readonly) 7+10 function(defaultLibrary)
-  2: 1+1 variable(declaration,readonly) 7+3 function(defaultLibrary)
-  4: 1+6 type(declaration) 11+2 property(declaration,readonly) 15+7 type(defaultLibrary)
-  6: 1+1 variable(declaration,readonly) 4+6 type 14+2 property(declaration,readonly)
-  8: 1+1 variable(declaration,readonly) 12+6 function(defaultLibrary) 20+5 parameter(declaration,readonly) 26+5 parameter(declaration,readonly)
-  1:10 hover: ```jul (...args: List(Integer)) -> Integer ``` Liefert die Summe der args.
-  1:10 definition: jul-core-lib:/core-lib.jul:325:1
-  1:10 completion: n=32 List,And,Or
-  1:10 signatureHelp: (...args: List(Integer)) -> Integer param=1
-  2:7 hover: ```jul (...args: List(Rational)) -> Rational ``` Liefert die Summe der args.
-  2:7 definition: jul-core-lib:/core-lib.jul:296:1
-  2:7 completion: n=32 List,And,Or
-  2:7 signatureHelp: (...args: List(Rational)) -> Rational param=1
-  4:12 hover: ```jul Integer ```
-  4:12 definition: test1.jul:4:11
-  4:12 completion: n=106 a,b,MyType
-  4:12 signatureHelp: kein
-  6:11 hover: kein
-  6:11 definition: kein
-  6:11 completion: n=106 a,b,MyType
-  6:11 signatureHelp: kein
-  8:21 hover: ```jul Or(1 Empty) ```
-  8:21 definition: test1.jul:8:20
-  8:21 completion: n=108 a,b,MyType
-  8:21 signatureHelp: kein
+  1: 1+4 function(declaration) 9+1 parameter(declaration,readonly) 12+4 function(defaultLibrary) 17+2 function(defaultLibrary) 23+7 type(defaultLibrary)
+  2: 2+1 variable(declaration,readonly) 6+1 parameter(readonly) 8+9 function(defaultLibrary) 19+5 parameter(declaration,readonly) 29+5 parameter(readonly)
+  4: 2+1 variable(declaration,readonly) 10+1 parameter(readonly) 13+9 function(defaultLibrary) 24+5 parameter(declaration,readonly) 34+5 parameter(readonly)
+  7: 1+1 variable(declaration,readonly) 23+6 function(defaultLibrary)
+  8: 3+5 parameter(declaration,readonly)
+  9: 5+5 parameter(readonly)
+  10: 5+7 type(defaultLibrary)
+  13: 1+1 function(declaration) 6+5 parameter(declaration,readonly)
+  14: 4+5 parameter(readonly)
+  15: 4+7 type(defaultLibrary)
+  1:18 hover: ```jul (...ChoiceTypes: List(Type)) -> Type ``` UnionType
+  1:18 definition: jul-core-lib:/core-lib.jul:34:1
+  1:18 completion: n=107 myFn,x,f
+  1:18 signatureHelp: (...ChoiceTypes: List(Type)) -> Type param=0
+  2:18 hover: ```jul ( value: Any index: PositiveInteger ) ```
+  2:18 definition: kein
+  2:18 completion: n=1 index
+  2:18 signatureHelp: kein
+  4:20 hover: ```jul ( values: Or(Empty List(Any)) callback: ( value: Any index: PositiveInteger ) :> Any ) -> Or(...
+  4:20 definition: jul-core-lib:/core-lib.jul:694:1
+  4:20 completion: n=37 myFn,f,List
+  4:20 signatureHelp: ( values: Or(Empty List(Any)) callback: ( value: Any index: PositiveInteger ) :> Any ) -> Or(Empty L... param=1
+  7:15 hover: ```jul Any ```
+  7:15 definition: kein
+  7:15 completion: n=0 
+  7:15 signatureHelp: kein
+  8:6 hover: ```jul Or(1 2 3 Empty §asdf§) ```
+  8:6 definition: test1.jul:8:3
+  8:6 completion: n=105 myFn,x,f
+  8:6 signatureHelp: kein
+  9:6 hover: ```jul Or(1 2 3 Empty §asdf§) ```
+  9:6 definition: test1.jul:8:3
+  9:6 completion: n=105 myFn,x,f
+  9:6 signatureHelp: kein
+  10:11 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
+  10:11 definition: jul-core-lib:/core-lib.jul:75:1
+  10:11 completion: n=105 myFn,x,f
+  10:11 signatureHelp: kein
+  11:8 hover: kein
+  11:8 definition: kein
+  11:8 completion: n=105 myFn,x,f
+  11:8 signatureHelp: kein
+  12:1 hover: ```jul ( values: Or(Empty List(Any)) predicate: ( value: Any index: PositiveInteger ) :> Boolean ) `...
+  12:1 definition: kein
+  12:1 completion: n=2 values,predicate
+  12:1 signatureHelp: ( values: Or(Empty List(Any)) predicate: ( value: Any index: PositiveInteger ) :> Boolean ) -> Or(Em... param=1
+  13:8 hover: ```jul Any ```
+  13:8 definition: test1.jul:13:6
+  13:8 completion: n=105 myFn,x,f
+  13:8 signatureHelp: kein
+  14:5 hover: ```jul Any ```
+  14:5 definition: test1.jul:13:6
+  14:5 completion: n=105 myFn,x,f
+  14:5 signatureHelp: kein
+  15:10 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
+  15:10 definition: jul-core-lib:/core-lib.jul:75:1
+  15:10 completion: n=105 myFn,x,f
+  15:10 signatureHelp: kein
+  16:7 hover: kein
+  16:7 definition: kein
+  16:7 completion: n=105 myFn,x,f
+  16:7 signatureHelp: kein
 
 === text-example.jul
 symbols

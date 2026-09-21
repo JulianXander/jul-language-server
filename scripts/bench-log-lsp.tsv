@@ -59,3 +59,11 @@
 2026-09-17 13:15:07	9ab188a+	jul-compiler 0fbf0cf+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.12	0.28	nach pure inference Schritt 1-4 (jul-compiler), Snapshot enthaelt zusaetzlich angesammelte Drift aus vorherigen Sessions
 2026-09-17 13:15:07	9ab188a+	jul-compiler 0fbf0cf+	ADV-DEV-56627	yugioh	documentSymbol	3	4.73	4.73	4.73	nach pure inference Schritt 1-4 (jul-compiler), Snapshot enthaelt zusaetzlich angesammelte Drift aus vorherigen Sessions
 2026-09-17 13:15:07	9ab188a+	jul-compiler 0fbf0cf+	ADV-DEV-56627	yugioh	semanticTokens	3	3.85	5.13	5.13	nach pure inference Schritt 1-4 (jul-compiler), Snapshot enthaelt zusaetzlich angesammelte Drift aus vorherigen Sessions
+2026-09-21 09:37:48	7d4ed54+	jul-compiler 2836862+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	49.10	342.61	342.61	nach constant folding fuer Nutzerfunktionen (jul-compiler, Schritte 1-4 + Purity-Fix)
+2026-09-21 09:37:48	7d4ed54+	jul-compiler 2836862+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	169.94	186.99	186.99	nach constant folding fuer Nutzerfunktionen (jul-compiler, Schritte 1-4 + Purity-Fix)
+2026-09-21 09:37:48	7d4ed54+	jul-compiler 2836862+	ADV-DEV-56627	yugioh	hover	564	0.10	0.26	44.45	nach constant folding fuer Nutzerfunktionen (jul-compiler, Schritte 1-4 + Purity-Fix)
+2026-09-21 09:37:48	7d4ed54+	jul-compiler 2836862+	ADV-DEV-56627	yugioh	definition	564	0.06	0.13	0.28	nach constant folding fuer Nutzerfunktionen (jul-compiler, Schritte 1-4 + Purity-Fix)
+2026-09-21 09:37:48	7d4ed54+	jul-compiler 2836862+	ADV-DEV-56627	yugioh	completion	564	1.34	2.06	3.81	nach constant folding fuer Nutzerfunktionen (jul-compiler, Schritte 1-4 + Purity-Fix)
+2026-09-21 09:37:48	7d4ed54+	jul-compiler 2836862+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.08	0.23	nach constant folding fuer Nutzerfunktionen (jul-compiler, Schritte 1-4 + Purity-Fix)
+2026-09-21 09:37:48	7d4ed54+	jul-compiler 2836862+	ADV-DEV-56627	yugioh	documentSymbol	3	4.37	4.62	4.62	nach constant folding fuer Nutzerfunktionen (jul-compiler, Schritte 1-4 + Purity-Fix)
+2026-09-21 09:37:48	7d4ed54+	jul-compiler 2836862+	ADV-DEV-56627	yugioh	semanticTokens	3	3.47	4.78	4.78	nach constant folding fuer Nutzerfunktionen (jul-compiler, Schritte 1-4 + Purity-Fix)
