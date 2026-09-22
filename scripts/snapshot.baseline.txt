@@ -715,14 +715,14 @@ semanticTokens
   9:17 definition: kein
   9:17 completion: n=1 divisor
   9:17 signatureHelp: kein
-  10:15 hover: ```jul (divisor: NonZeroInteger) -> (dividend: Integer) :> Boolean ```
+  10:15 hover: ```jul (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean ```
   10:15 definition: fizz-buzz/fizz-buzz-recursive.jul:1:1
   10:15 completion: n=105 divisibleBy,fizzBuzz,index
-  10:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) :> Boolean param=0
-  11:15 hover: ```jul (divisor: NonZeroInteger) -> (dividend: Integer) :> Boolean ```
+  10:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean param=0
+  11:15 hover: ```jul (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean ```
   11:15 definition: fizz-buzz/fizz-buzz-recursive.jul:1:1
   11:15 completion: n=105 divisibleBy,fizzBuzz,index
-  11:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) :> Boolean param=0
+  11:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean param=0
   12:8 hover: kein
   12:8 definition: kein
   12:8 completion: n=105 divisibleBy,fizzBuzz,index
@@ -791,14 +791,14 @@ semanticTokens
   11:18 definition: kein
   11:18 completion: n=1 divisor
   11:18 signatureHelp: kein
-  12:15 hover: ```jul (divisor: NonZeroInteger) -> (dividend: Integer) :> Boolean ``` jul node out/bundle
+  12:15 hover: ```jul (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean ``` jul node out/bundle
   12:15 definition: fizz-buzz/fizz-buzz.jul:3:1
   12:15 completion: n=104 divisibleBy,index,message
-  12:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) :> Boolean param=0
-  13:15 hover: ```jul (divisor: NonZeroInteger) -> (dividend: Integer) :> Boolean ``` jul node out/bundle
+  12:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean param=0
+  13:15 hover: ```jul (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean ``` jul node out/bundle
   13:15 definition: fizz-buzz/fizz-buzz.jul:3:1
   13:15 completion: n=104 divisibleBy,index,message
-  13:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) :> Boolean param=0
+  13:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean param=0
   14:8 hover: kein
   14:8 definition: kein
   14:8 completion: n=104 divisibleBy,index,message
@@ -1541,10 +1541,10 @@ semanticTokens
   2:18 definition: kein
   2:18 completion: n=1 index
   2:18 signatureHelp: kein
-  4:20 hover: ```jul ( values: Or(Empty List(Any)) callback: ( value: Any index: PositiveInteger ) :> Any ) -> Or(...
+  4:20 hover: ```jul ( values: Or(Empty List(Any)) callback: ( value: Any index: PositiveInteger ) :> Any ) :> Or(...
   4:20 definition: jul-core-lib:/core-lib.jul:694:1
   4:20 completion: n=37 myFn,f,List
-  4:20 signatureHelp: ( values: Or(Empty List(Any)) callback: ( value: Any index: PositiveInteger ) :> Any ) -> Or(Empty L... param=1
+  4:20 signatureHelp: ( values: Or(Empty List(Any)) callback: ( value: Any index: PositiveInteger ) :> Any ) :> Or(Empty L... param=1
   7:15 hover: ```jul Any ```
   7:15 definition: kein
   7:15 completion: n=0 
@@ -1568,7 +1568,7 @@ semanticTokens
   12:1 hover: ```jul ( values: Or(Empty List(Any)) predicate: ( value: Any index: PositiveInteger ) :> Boolean ) `...
   12:1 definition: kein
   12:1 completion: n=2 values,predicate
-  12:1 signatureHelp: ( values: Or(Empty List(Any)) predicate: ( value: Any index: PositiveInteger ) :> Boolean ) -> Or(Em... param=1
+  12:1 signatureHelp: ( values: Or(Empty List(Any)) predicate: ( value: Any index: PositiveInteger ) :> Boolean ) :> Or(Em... param=1
   13:8 hover: ```jul Any ```
   13:8 definition: test1.jul:13:6
   13:8 completion: n=105 myFn,x,f
