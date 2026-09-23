@@ -1507,84 +1507,132 @@ semanticTokens
 
 === test1.jul
 symbols
-  myFn kind=12 1:1
-    a kind=13 1:9
+  SumType kind=12 1:1
+    A kind=13 1:12
       keine
-    c kind=14 2:2
-      value kind=13 2:19
-        keine
-    b kind=14 4:2
-      value kind=13 4:24
-        keine
-  x kind=14 7:1
-    value kind=13 8:3
+    B kind=13 1:20
       keine
-  f kind=12 13:1
-    value kind=13 13:6
+  mySubtract kind=12 2:1
+    a kind=13 2:15
+      keine
+    b kind=13 2:27
+      keine
+  f kind=12 3:1
+    x kind=13 3:6
+      keine
+    y kind=13 3:18
+      keine
+  f2 kind=12 6:1
+    x kind=13 6:7
+      keine
+    y kind=13 6:18
+      keine
+  subtract2 kind=14 10:1
+    minuend kind=13 11:3
+      keine
+    subtrahend kind=13 11:21
+      keine
+  MyType kind=14 19:1
+    minuend kind=13 19:11
+      keine
+    subtrahend kind=13 19:29
+      keine
+  add2 kind=14 23:1
+    keine
+  myAdd kind=12 32:1
+    a kind=13 33:2
+      keine
+    b kind=13 34:2
       keine
 semanticTokens
-  1: 1+4 function(declaration) 9+1 parameter(declaration,readonly) 12+4 function(defaultLibrary) 17+2 function(defaultLibrary) 23+7 type(defaultLibrary)
-  2: 2+1 variable(declaration,readonly) 6+1 parameter(readonly) 8+9 function(defaultLibrary) 19+5 parameter(declaration,readonly) 29+5 parameter(readonly)
-  4: 2+1 variable(declaration,readonly) 10+1 parameter(readonly) 13+9 function(defaultLibrary) 24+5 parameter(declaration,readonly) 34+5 parameter(readonly)
-  7: 1+1 variable(declaration,readonly) 23+6 function(defaultLibrary)
-  8: 3+5 parameter(declaration,readonly)
-  9: 5+5 parameter(readonly)
-  10: 5+7 type(defaultLibrary)
-  13: 1+1 function(declaration) 6+5 parameter(declaration,readonly)
-  14: 4+5 parameter(readonly)
-  15: 4+7 type(defaultLibrary)
-  1:18 hover: ```jul (...ChoiceTypes: List(Type)) -> Type ``` UnionType
-  1:18 definition: jul-core-lib:/core-lib.jul:34:1
-  1:18 completion: n=107 myFn,x,f
-  1:18 signatureHelp: (...ChoiceTypes: List(Type)) -> Type param=0
-  2:18 hover: ```jul ( value: Any index: PositiveInteger ) ```
-  2:18 definition: kein
-  2:18 completion: n=1 index
-  2:18 signatureHelp: kein
-  4:20 hover: ```jul ( values: Or(Empty List(Any)) callback: ( value: Any index: PositiveInteger ) :> Any ) :> Or(...
-  4:20 definition: jul-core-lib:/core-lib.jul:694:1
-  4:20 completion: n=37 myFn,f,List
-  4:20 signatureHelp: ( values: Or(Empty List(Any)) callback: ( value: Any index: PositiveInteger ) :> Any ) :> Or(Empty L... param=1
-  7:15 hover: ```jul Any ```
-  7:15 definition: kein
-  7:15 completion: n=0 
-  7:15 signatureHelp: kein
-  8:6 hover: ```jul Or(1 2 3 Empty §asdf§) ```
-  8:6 definition: test1.jul:8:3
-  8:6 completion: n=105 myFn,x,f
-  8:6 signatureHelp: kein
-  9:6 hover: ```jul Or(1 2 3 Empty §asdf§) ```
-  9:6 definition: test1.jul:8:3
-  9:6 completion: n=105 myFn,x,f
-  9:6 signatureHelp: kein
-  10:11 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
-  10:11 definition: jul-core-lib:/core-lib.jul:75:1
-  10:11 completion: n=105 myFn,x,f
-  10:11 signatureHelp: kein
-  11:8 hover: kein
-  11:8 definition: kein
-  11:8 completion: n=105 myFn,x,f
-  11:8 signatureHelp: kein
-  12:1 hover: ```jul ( values: Or(Empty List(Any)) predicate: ( value: Any index: PositiveInteger ) :> Boolean ) `...
-  12:1 definition: kein
-  12:1 completion: n=2 values,predicate
-  12:1 signatureHelp: ( values: Or(Empty List(Any)) predicate: ( value: Any index: PositiveInteger ) :> Boolean ) :> Or(Em... param=1
-  13:8 hover: ```jul Any ```
-  13:8 definition: test1.jul:13:6
-  13:8 completion: n=105 myFn,x,f
-  13:8 signatureHelp: kein
-  14:5 hover: ```jul Any ```
-  14:5 definition: test1.jul:13:6
-  14:5 completion: n=105 myFn,x,f
-  14:5 signatureHelp: kein
-  15:10 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
-  15:10 definition: jul-core-lib:/core-lib.jul:75:1
-  15:10 completion: n=105 myFn,x,f
-  15:10 signatureHelp: kein
-  16:7 hover: kein
-  16:7 definition: kein
-  16:7 completion: n=105 myFn,x,f
-  16:7 signatureHelp: kein
+  1: 1+7 function(declaration) 12+1 parameter(declaration,readonly) 15+4 type(defaultLibrary) 20+1 parameter(declaration,readonly) 23+4 type(defaultLibrary) 32+2 function(defaultLibrary) 35+3 function(defaultLibrary) 39+7 type(defaultLibrary) 47+3 function(defaultLibrary) 51+1 parameter(readonly) 53+1 parameter(readonly) 57+3 function(defaultLibrary) 61+8 type(defaultLibrary) 70+2 function(defaultLibrary) 73+1 parameter(readonly) 75+1 parameter(readonly)
+  2: 1+10 function(declaration) 15+1 parameter(declaration,readonly) 18+8 type(defaultLibrary) 27+1 parameter(declaration,readonly) 30+8 type(defaultLibrary) 43+7 function 51+6 function(defaultLibrary) 58+1 parameter(readonly) 61+6 function(defaultLibrary) 68+1 parameter(readonly) 75+8 function(defaultLibrary) 84+1 parameter(readonly) 86+1 parameter(readonly)
+  3: 1+1 function(declaration) 6+1 parameter(declaration,readonly) 9+8 type(defaultLibrary) 18+1 parameter(declaration,readonly) 21+7 type(defaultLibrary) 33+8 type(defaultLibrary)
+  4: 2+10 function 13+1 parameter(readonly) 15+1 parameter(readonly)
+  6: 1+2 function(declaration) 7+1 parameter(declaration,readonly) 10+7 type(defaultLibrary) 18+1 parameter(declaration,readonly) 21+7 type(defaultLibrary)
+  7: 2+10 function 13+1 parameter(readonly) 15+1 parameter(readonly)
+  10: 1+9 function(declaration) 13+14 function(defaultLibrary)
+  11: 3+7 parameter(declaration,readonly) 12+8 type(defaultLibrary) 21+10 parameter(declaration,readonly) 33+8 type(defaultLibrary)
+  13: 6+6 function(defaultLibrary) 13+7 parameter(readonly) 22+6 function(defaultLibrary) 29+10 parameter(readonly)
+  14: 6+7 type(defaultLibrary) 14+7 type(defaultLibrary) 26+7 type(defaultLibrary)
+  15: 11+8 type(defaultLibrary)
+  19: 1+6 type(declaration) 11+7 parameter(declaration,readonly) 20+8 type(defaultLibrary) 29+10 parameter(declaration,readonly) 41+8 type(defaultLibrary) 54+6 function(defaultLibrary)
+  20: 2+7 parameter(readonly)
+  23: 1+4 function(declaration) 8+14 function(defaultLibrary)
+  24: 6+4 parameter(declaration,readonly) 12+4 function(defaultLibrary) 17+8 type(defaultLibrary)
+  32: 1+5 function(declaration)
+  33: 2+1 parameter(declaration,readonly) 5+8 type(defaultLibrary)
+  34: 2+1 parameter(declaration,readonly) 5+8 type(defaultLibrary)
+  37: 3+7 function 11+6 function(defaultLibrary) 18+1 parameter(readonly) 21+6 function(defaultLibrary) 28+1 parameter(readonly)
+  39: 3+3 function(defaultLibrary) 7+1 parameter(readonly) 9+1 parameter(readonly)
+  1:40 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
+  1:40 definition: jul-core-lib:/core-lib.jul:75:1
+  1:40 completion: n=0 
+  1:40 signatureHelp: kein
+  3:22 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
+  3:22 definition: jul-core-lib:/core-lib.jul:75:1
+  3:22 completion: n=111 SumType,mySubtract,f
+  3:22 signatureHelp: kein
+  6:16 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
+  6:16 definition: jul-core-lib:/core-lib.jul:75:1
+  6:16 completion: n=111 SumType,mySubtract,f
+  6:16 signatureHelp: kein
+  10:14 hover: ```jul ( FunctionType: Type js: Text ) ~> Type ``` Interprets the given Text as js Code and yields t...
+  10:14 definition: jul-core-lib:/core-lib.jul:1190:1
+  10:14 completion: n=109 SumType,mySubtract,f
+  10:14 signatureHelp: ( FunctionType: Type js: Text ) ~> Type param=0
+  12:3 hover: ```jul Type ```
+  12:3 definition: kein
+  12:3 completion: n=2 FunctionType,js
+  12:3 signatureHelp: kein
+  14:17 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
+  14:17 definition: jul-core-lib:/core-lib.jul:75:1
+  14:17 completion: n=111 SumType,mySubtract,f
+  14:17 signatureHelp: kein
+  16:4 hover: ```jul Text ```
+  16:4 definition: kein
+  16:4 completion: n=2 FunctionType,js
+  16:4 signatureHelp: kein
+  19:31 hover: ```jul Or(Integer Fraction) ```
+  19:31 definition: test1.jul:19:29
+  19:31 completion: n=111 SumType,mySubtract,f
+  19:31 signatureHelp: kein
+  21:1 hover: ```jul (value: Any) ```
+  21:1 definition: kein
+  21:1 completion: n=1 value
+  21:1 signatureHelp: (value: Any) -> Type param=0
+  24:14 hover: ```jul (ElementType: Type) -> TypeOf(List(Type)) ``` data structure containing 1 or more elements of...
+  24:14 definition: jul-core-lib:/core-lib.jul:10:1
+  24:14 completion: n=110 SumType,mySubtract,f
+  24:14 signatureHelp: (ElementType: Type) -> TypeOf(List(Type)) param=0
+  26:10 hover: ```jul Type ```
+  26:10 definition: kein
+  26:10 completion: n=2 FunctionType,js
+  26:10 signatureHelp: kein
+  28:10 hover: ```jul Type ```
+  28:10 definition: kein
+  28:10 completion: n=2 FunctionType,js
+  28:10 signatureHelp: kein
+  30:1 hover: ```jul ( FunctionType: Type js: Text ) ```
+  30:1 definition: kein
+  30:1 completion: n=2 FunctionType,js
+  30:1 signatureHelp: ( FunctionType: Type js: Text ) ~> Type param=0
+  33:7 hover: ```jul TypeOf(Or(Integer Fraction)) ```
+  33:7 definition: jul-core-lib:/core-lib.jul:93:1
+  33:7 completion: n=111 SumType,mySubtract,f
+  33:7 signatureHelp: kein
+  35:1 hover: ```jul ( a: Rational b: Rational ) ```
+  35:1 definition: kein
+  35:1 completion: n=0 
+  35:1 signatureHelp: kein
+  37:16 hover: ```jul (value: Any) -> Type ``` The Type that only contains the given value.
+  37:16 definition: jul-core-lib:/core-lib.jul:59:1
+  37:16 completion: n=111 SumType,mySubtract,f
+  37:16 signatureHelp: (value: Any) -> Type param=0
+  39:6 hover: ```jul (...args: List(Rational)) -> Rational ``` Liefert die Summe der args.
+  39:6 definition: jul-core-lib:/core-lib.jul:296:1
+  39:6 completion: n=111 SumType,mySubtract,f
+  39:6 signatureHelp: (...args: List(Rational)) -> Rational param=0
 
 === text-example.jul
 symbols
