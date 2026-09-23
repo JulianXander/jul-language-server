@@ -1424,6 +1424,7 @@ function getDocumentSymbolsFromExpressions(expressions: PositionedExpression[]):
 function getDocumentSymbolsFromExpression(expression: PositionedExpression): DocumentSymbol[] {
 	switch (expression.type) {
 		case 'branching':
+		case 'typeBranching':
 			return [
 				...(expression.args
 					? getDocumentSymbolsFromExpression(expression.args)
@@ -1744,6 +1745,7 @@ function getRawSymbolDefinition(
 		case 'binding':
 		case 'data':
 		case 'branching':
+		case 'typeBranching':
 		case 'destructuringField':
 		case 'destructuringFields':
 		case 'dictionary':
