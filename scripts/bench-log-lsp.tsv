@@ -99,3 +99,19 @@
 2026-09-23 11:40:51	80eac55+	jul-compiler ba86e2f+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.13	0.28	nach :?
 2026-09-23 11:40:51	80eac55+	jul-compiler ba86e2f+	ADV-DEV-56627	yugioh	documentSymbol	3	3.95	5.72	5.72	nach :?
 2026-09-23 11:40:51	80eac55+	jul-compiler ba86e2f+	ADV-DEV-56627	yugioh	semanticTokens	3	4.31	5.18	5.18	nach :?
+2026-09-23 12:29:45	750799b	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	48.69	364.58	364.58	vor Loader
+2026-09-23 12:29:45	750799b	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	169.95	184.04	184.04	vor Loader
+2026-09-23 12:29:45	750799b	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	hover	564	0.13	0.34	56.96	vor Loader
+2026-09-23 12:29:45	750799b	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	definition	564	0.07	0.17	0.33	vor Loader
+2026-09-23 12:29:45	750799b	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	completion	564	1.47	2.24	4.06	vor Loader
+2026-09-23 12:29:45	750799b	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.11	0.31	vor Loader
+2026-09-23 12:29:45	750799b	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	documentSymbol	3	3.73	4.64	4.64	vor Loader
+2026-09-23 12:29:45	750799b	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	semanticTokens	3	3.58	5.00	5.00	vor Loader
+2026-09-23 12:31:14	750799b+	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	35.12	320.18	320.18	gemeinsamer Loader
+2026-09-23 12:31:14	750799b+	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	134.32	148.34	148.34	gemeinsamer Loader
+2026-09-23 12:31:14	750799b+	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	hover	564	0.10	0.28	32.56	gemeinsamer Loader
+2026-09-23 12:31:14	750799b+	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	definition	564	0.06	0.12	0.24	gemeinsamer Loader
+2026-09-23 12:31:14	750799b+	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	completion	564	1.46	2.08	6.01	gemeinsamer Loader
+2026-09-23 12:31:14	750799b+	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.16	0.54	gemeinsamer Loader
+2026-09-23 12:31:14	750799b+	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	documentSymbol	3	4.17	4.56	4.56	gemeinsamer Loader
+2026-09-23 12:31:14	750799b+	jul-compiler 1e7f2d7+	ADV-DEV-56627	yugioh	semanticTokens	3	3.44	4.97	4.97	gemeinsamer Loader

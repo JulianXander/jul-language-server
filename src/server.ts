@@ -39,14 +39,15 @@ import {
 	getPathFromImport,
 	isCoreLibPath,
 	isImportFunctionCall,
-	parseCode
 } from 'jul-compiler/out/parser/parser.js';
+import { loadFile, ProjectHost } from 'jul-compiler/out/project-loader.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
 	CompileTimeType,
 	DefinitionExpression,
 	forEachChild,
+	ImportedDependency,
 	PositionedExpression,
 	Parameter,
 	ParseDestructuringField,
@@ -112,20 +113,20 @@ const referenceIndex = new ReferenceIndex();
 // Re-Export-Ketten hinweg - ParsedFile.dependencies kennt nur die Vorwärtsrichtung.
 const dependents = new Map<string, Set<string>>();
 
-function registerDependencies(filePath: string, dependencyPaths: string[] | undefined): void {
-	dependencyPaths?.forEach(dependencyPath => {
-		let dependentSet = dependents.get(dependencyPath);
+function registerDependencies(filePath: string, dependencies: ImportedDependency[] | undefined): void {
+	dependencies?.forEach(({ fullPath }) => {
+		let dependentSet = dependents.get(fullPath);
 		if (!dependentSet) {
 			dependentSet = new Set();
-			dependents.set(dependencyPath, dependentSet);
+			dependents.set(fullPath, dependentSet);
 		}
 		dependentSet.add(filePath);
 	});
 }
 
-function unregisterDependencies(filePath: string, dependencyPaths: string[] | undefined): void {
-	dependencyPaths?.forEach(dependencyPath => {
-		dependents.get(dependencyPath)?.delete(filePath);
+function unregisterDependencies(filePath: string, dependencies: ImportedDependency[] | undefined): void {
+	dependencies?.forEach(({ fullPath }) => {
+		dependents.get(fullPath)?.delete(filePath);
 	});
 }
 
@@ -311,42 +312,39 @@ documents.onDidChangeContent(change => {
 });
 
 /**
- * TODO check cyclic imports
- * füllt parsedDocuments
- * verarbeitet auch importe
- * checks types
+ * Derselbe Ladeweg wie in der CLI (project-loader.ts). Obendrauf pflegt der Server nur seinen
+ * Abhängigkeitsgraphen in umgekehrter Richtung.
+ */
+const projectHost: ProjectHost = {
+	readSource: path => {
+		const code = tryReadTextFile(path);
+		if (code === undefined) {
+			return { type: 'notFound' };
+		}
+		if (code.length > maxFileSize) {
+			return { type: 'skipped' };
+		}
+		return { type: 'code', code: code };
+	},
+	referenceIndex: referenceIndex,
+	onParsed: (parsed, previous) => {
+		unregisterDependencies(parsed.filePath, previous?.dependencies);
+		registerDependencies(parsed.filePath, parsed.dependencies);
+	},
+};
+
+/**
+ * Parst text (Editor-Inhalt) neu, lädt fehlende Importe von der Platte und checkt.
  */
 function parseDocumentByCode(text: string, path: string): ParsedFile {
-	const oldDependencies = parsedDocuments[path]?.dependencies;
-	const parsed = parseCode(text, path);
-	parsedDocuments[path] = parsed;
-	unregisterDependencies(path, oldDependencies);
-	registerDependencies(path, parsed.dependencies);
-	// recursively parse imported files
-	parsed.dependencies?.forEach(importedPath => {
-		parseDocumentByPath(importedPath);
-	});
-	checkTypes(parsed, parsedDocuments, referenceIndex);
-	return parsed;
+	return loadFile(path, parsedDocuments, projectHost, text);
 }
 
+/**
+ * Lädt path von der Platte, sofern noch nicht geladen, und checkt.
+ */
 function parseDocumentByPath(path: string): void {
-	const oldParsed = parsedDocuments[path];
-	if (oldParsed) {
-		if (oldParsed.checked) {
-			return;
-		}
-		checkTypes(oldParsed, parsedDocuments, referenceIndex);
-		return;
-	}
-	const code = tryReadTextFile(path);
-	if (code === undefined) {
-		return;
-	}
-	if (code.length > maxFileSize) {
-		return;
-	}
-	parseDocumentByCode(code, path);
+	loadFile(path, parsedDocuments, projectHost);
 }
 //#endregion diagnostics
 
