@@ -75,3 +75,11 @@
 2026-09-23 09:08:06	95751ba	jul-compiler b7693a9+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.09	0.36	vor mehrzeiligem Funktionskopf
 2026-09-23 09:08:06	95751ba	jul-compiler b7693a9+	ADV-DEV-56627	yugioh	documentSymbol	3	3.55	4.22	4.22	vor mehrzeiligem Funktionskopf
 2026-09-23 09:08:06	95751ba	jul-compiler b7693a9+	ADV-DEV-56627	yugioh	semanticTokens	3	3.75	5.47	5.47	vor mehrzeiligem Funktionskopf
+2026-09-23 09:45:32	21bc22a	jul-compiler fc0dbc8+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	58.56	382.53	382.53	nach mehrzeiligem Funktionskopf
+2026-09-23 09:45:32	21bc22a	jul-compiler fc0dbc8+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	160.57	176.57	176.57	nach mehrzeiligem Funktionskopf
+2026-09-23 09:45:32	21bc22a	jul-compiler fc0dbc8+	ADV-DEV-56627	yugioh	hover	564	0.10	0.31	43.48	nach mehrzeiligem Funktionskopf
+2026-09-23 09:45:32	21bc22a	jul-compiler fc0dbc8+	ADV-DEV-56627	yugioh	definition	564	0.06	0.14	0.30	nach mehrzeiligem Funktionskopf
+2026-09-23 09:45:32	21bc22a	jul-compiler fc0dbc8+	ADV-DEV-56627	yugioh	completion	564	1.35	2.24	3.16	nach mehrzeiligem Funktionskopf
+2026-09-23 09:45:32	21bc22a	jul-compiler fc0dbc8+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.12	0.34	nach mehrzeiligem Funktionskopf
+2026-09-23 09:45:32	21bc22a	jul-compiler fc0dbc8+	ADV-DEV-56627	yugioh	documentSymbol	3	4.05	4.22	4.22	nach mehrzeiligem Funktionskopf
+2026-09-23 09:45:32	21bc22a	jul-compiler fc0dbc8+	ADV-DEV-56627	yugioh	semanticTokens	3	3.88	5.21	5.21	nach mehrzeiligem Funktionskopf
