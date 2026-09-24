@@ -291,7 +291,7 @@ function recheckDependents(filePath: string): void {
 		if (!dependentParsed) {
 			return;
 		}
-		checkTypes(dependentParsed, parsedDocuments, referenceIndex);
+		checkTypes(dependentParsed, parsedDocuments, projectHost);
 		sendDiagnosticsForFile(pathToUri(dependentPath), dependentParsed);
 	});
 }
@@ -326,6 +326,8 @@ const projectHost: ProjectHost = {
 		}
 		return { type: 'code', code: code };
 	},
+	// recheckDependents checkt Dateien ohne neues Parsen erneut.
+	cloneUnchecked: true,
 	referenceIndex: referenceIndex,
 	onParsed: (parsed, previous) => {
 		unregisterDependencies(parsed.filePath, previous?.dependencies);
@@ -378,7 +380,7 @@ connection.onDidChangeWatchedFiles(changeParams => {
 		if (!dependentParsed) {
 			return;
 		}
-		checkTypes(dependentParsed, parsedDocuments, referenceIndex);
+		checkTypes(dependentParsed, parsedDocuments, projectHost);
 		sendDiagnosticsForFile(pathToUri(dependentPath), dependentParsed);
 	});
 });
