@@ -180,10 +180,9 @@ describe('findImportCandidates', () => {
 		expect(findImportCandidates('cardEffects', mainPath, documents)).to.deep.equal([]);
 	});
 
-	// resolveCanonicalSymbol (jul-compiler) folgt Import-Hops nur, wenn getPathFromImport die
-	// Zieldatei tatsächlich auf der Platte findet - dafür braucht es hier echte Dateien statt der
-	// virtuellen parseAll()-Dokumente.
-	describe('mit Re-Exporten auf der Platte', () => {
+	// Echte Dateien statt der virtuellen parseAll()-Dokumente: der Checker löst die Importe dann
+	// tatsächlich auf, so wie im Projekt.
+	describe('mit importierenden Dateien auf der Platte', () => {
 		let realFolder: string;
 		let realMainPath: string;
 		let documents: ParsedDocuments;
@@ -211,7 +210,7 @@ describe('findImportCandidates', () => {
 			return documents;
 		}
 
-		it('schlägt bei einem unaliasierten Re-Export nur die ursprüngliche Quelle vor', () => {
+		it('schlägt nur die definierende Datei vor, nicht eine importierende', () => {
 			const docs = parseAndCheckAll({
 				'main.jul': 'x = cardEffects\n',
 				'source.jul': 'cardEffects = 1\n',
@@ -223,16 +222,13 @@ describe('findImportCandidates', () => {
 			]);
 		});
 
-		it('schlägt bei einem aliasierten Re-Export den Alias vor, da nur er den Namen führt', () => {
+		it('schlägt einen Alias-Import nicht vor, Importe werden nicht weiterexportiert', () => {
 			const docs = parseAndCheckAll({
 				'main.jul': 'x = effects\n',
 				'source.jul': 'cardEffects = 1\n',
 				'reexport.jul': '(effects = cardEffects) = import(§./source.jul§)\n',
 			});
-			const candidates = findImportCandidates('effects', realMainPath, docs);
-			expect(candidates.map(candidate => candidate.importPath)).to.deep.equal([
-				'./reexport.jul',
-			]);
+			expect(findImportCandidates('effects', realMainPath, docs)).to.deep.equal([]);
 		});
 	});
 });

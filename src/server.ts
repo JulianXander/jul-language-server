@@ -41,7 +41,7 @@ import {
 	isImportFunctionCall,
 } from 'jul-compiler/out/parser/parser.js';
 import { loadFile, ProjectHost } from 'jul-compiler/out/project-loader.js';
-import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
+import { getCheckedEscapableName, isExportedSymbol } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
 	CompileTimeType,
@@ -109,8 +109,8 @@ const parsedDocuments: ParsedDocuments = {};
 // jul-compiler/docs/cross-file-reference-index.md. Lebt so lange wie der Serverprozess, wird pro
 // Datei bei jedem Recheck geleert und neu befüllt (siehe checkTypes-Aufrufe unten).
 const referenceIndex = new ReferenceIndex();
-// Reverse-Dependency-Map (wer importiert diese Datei, auch transitiv) für Invalidierung über
-// Re-Export-Ketten hinweg - ParsedFile.dependencies kennt nur die Vorwärtsrichtung.
+// Reverse-Dependency-Map (wer importiert diese Datei, auch transitiv) für die Invalidierung - Typen
+// fließen über Definitionen weiter (b = d), ParsedFile.dependencies kennt nur die Vorwärtsrichtung.
 const dependents = new Map<string, Set<string>>();
 
 function registerDependencies(filePath: string, dependencies: ImportedDependency[] | undefined): void {
@@ -131,7 +131,7 @@ function unregisterDependencies(filePath: string, dependencies: ImportedDependen
 }
 
 /**
- * Alle Dateien, die filePath direkt oder über Re-Export-Ketten importieren - müssen mit invalidiert
+ * Alle Dateien, die filePath direkt oder transitiv importieren - müssen mit invalidiert
  * werden, wenn sich filePath ändert (Visited-Set schützt vor zyklischen Importen).
  */
 function getTransitiveDependents(filePath: string): Set<string> {
@@ -356,7 +356,7 @@ connection.onDidChangeWatchedFiles(changeParams => {
 			return !!parsedDocuments[path];
 		});
 
-	// Transitiv betroffene Dateien (über dependents, auch über Re-Export-Ketten) VOR dem
+	// Transitiv betroffene Dateien (über dependents) VOR dem
 	// Neu-Parsen ermitteln - danach kennen wir die alten Import-Kanten nicht mehr.
 	const transitivelyAffected = new Set<string>();
 	changedFilePaths.forEach(path => {
@@ -1833,7 +1833,9 @@ function getImportedSymbol(
 				const impordedExpressions = importedDocument.checked ?? importedDocument.unchecked;
 				const importedSymbol = impordedExpressions.symbols[symbolName.name];
 				return {
-					symbol: importedSymbol,
+					symbol: importedSymbol && isExportedSymbol(importedSymbol)
+						? importedSymbol
+						: undefined,
 					filePath: fullPath,
 				};
 			}
@@ -1841,30 +1843,23 @@ function getImportedSymbol(
 	}
 }
 
-// Löst Verweise auf importierte Symbole direkt bis zur tatsächlichen Deklaration auf, statt bei
-// jedem Hop erneut an der lokalen Import-Zeile stehen zu bleiben (auch über mehrere Re-Exports).
+// Löst Verweise auf importierte Symbole direkt bis zur tatsächlichen Deklaration auf, statt an der
+// lokalen Import-Zeile stehen zu bleiben. Ein Hop genügt, exportiert werden nur Definitionen.
 function resolveThroughImports(symbolInfo: SymbolInfo, folderPath: string): SymbolInfo {
-	let current = symbolInfo;
-	let currentFolderPath = folderPath;
-	const visitedFilePaths = new Set<string>();
-	for (; ;) {
-		const definition = current.symbol.definition;
-		if (definition?.type !== 'destructuringField') {
-			return current;
-		}
-		const imported = getImportedSymbol(definition, currentFolderPath);
-		if (!imported?.symbol || visitedFilePaths.has(imported.filePath)) {
-			return current;
-		}
-		visitedFilePaths.add(imported.filePath);
-		current = {
-			name: current.name,
-			isBuiltIn: false,
-			symbol: imported.symbol,
-			filePath: imported.filePath,
-		};
-		currentFolderPath = dirname(imported.filePath);
+	const definition = symbolInfo.symbol.definition;
+	if (definition?.type !== 'destructuringField') {
+		return symbolInfo;
 	}
+	const imported = getImportedSymbol(definition, folderPath);
+	if (!imported?.symbol) {
+		return symbolInfo;
+	}
+	return {
+		name: symbolInfo.name,
+		isBuiltIn: false,
+		symbol: imported.symbol,
+		filePath: imported.filePath,
+	};
 }
 
 //#endregion get Symbol
