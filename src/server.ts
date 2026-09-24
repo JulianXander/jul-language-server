@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from 'fs';
+import { readdirSync, readFileSync, statSync } from 'fs';
 import { dirname, extname, join } from 'path';
 import {
 	LanguageService,
@@ -76,7 +76,7 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, getFieldSymbolsFromDictionaryType, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
-import { isDefined, isValidExtension, map, tryReadTextFile } from 'jul-compiler/out/util.js';
+import { isDefined, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
 import {
 	dictionaryTypeToCompletionItems,
@@ -1919,6 +1919,16 @@ function getParsedFileByUri(uri: string): ParsedFile | undefined {
 }
 
 //#endregion uri
+
+function tryReadTextFile(path: string): string | undefined {
+	try {
+		return readFileSync(path).toString();
+	}
+	catch (error) {
+		console.error(error);
+		return undefined;
+	}
+}
 
 function getTypeMarkdown(
 	type: TypeInfo | undefined,
