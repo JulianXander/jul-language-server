@@ -1233,7 +1233,7 @@ semanticTokens
   35:21 definition: jul-core-lib:/core-lib.jul:1148:1
   35:21 completion: n=109 valueImport,file2,someText
   35:21 signatureHelp: (path: Text) ~> Any param=0
-  36:11 hover: ```jul [ test: §hello ts§ test2: 4f testfn1: (par1: Any) :> Any testfn2: (par1: Any) :> Any ] ``` ty...
+  36:11 hover: ```jul [ test: §hello ts§ test2: 4f testfn1: (par1: Text) :> Any testfn2: (par1: Text) :> Any ] ``` ...
   36:11 definition: import/import.jul:35:1
   36:11 completion: n=0 
   36:11 signatureHelp: kein
@@ -2774,7 +2774,7 @@ semanticTokens
   4:6 definition: ui/preserve-dom/main.jul:4:3
   4:6 completion: n=101 addMessage,value,true
   4:6 signatureHelp: kein
-  5:21 hover: ```jul Any ```
+  5:21 hover: ```jul Text ```
   5:21 definition: kein
   5:21 completion: n=1 message
   5:21 signatureHelp: kein
@@ -2811,7 +2811,7 @@ semanticTokens
   1:1 definition: kein
   1:1 completion: n=0 
   1:1 signatureHelp: kein
-  2:5 hover: ```jul (html: Any) :> Any ```
+  2:5 hover: ```jul (html: Text) :> Any ```
   2:5 definition: ui/todo-list/dom.ts:16:17
   2:5 completion: n=0 
   2:5 signatureHelp: kein
@@ -2867,10 +2867,10 @@ semanticTokens
   17:6 definition: ui/todo-list/todo-list.jul:16:10
   17:6 completion: n=105 addHtml,removeElement,subscribeEvent
   17:6 signatureHelp: kein
-  18:18 hover: ```jul (html: Any) :> Any ```
+  18:18 hover: ```jul (html: Text) :> Any ```
   18:18 definition: ui/todo-list/dom.ts:16:17
   18:18 completion: n=105 addHtml,removeElement,subscribeEvent
-  18:18 signatureHelp: (html: Any) :> Any param=0
+  18:18 signatureHelp: (html: Text) :> Any param=0
   19:27 hover: ```jul (element: Any) :> Any ```
   19:27 definition: ui/todo-list/dom.ts:12:17
   19:27 completion: n=105 addHtml,removeElement,subscribeEvent
