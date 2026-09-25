@@ -3,7 +3,6 @@ import {
 	dereferenceNameFromObject,
 	isFunctionType,
 	isParametersType,
-	isTypeOfType,
 	resolvePlaceholders,
 } from 'jul-compiler/out/checker/checker.js';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
@@ -96,7 +95,11 @@ export function getDeclaredResolvedType(expression: PositionedExpression): Compi
 	return getResolvedType(getDeclaredType(expression));
 }
 
-// TODO recursive getDeclaredType für List elements
+/**
+ * Der Typ, den die Stelle verlangt, an der der Ausdruck steht. Den merkt sich der Checker am
+ * Ausdruck (expectedType), samt der Zuordnung von Argumenten, Elementen und Feldern. Für
+ * Referenzen und Aufrufe ist es dagegen der eigene Typ.
+ */
 export function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined {
 	switch (expression.type) {
 		case 'functionCall':
@@ -148,117 +151,32 @@ export function getDeclaredType(expression: PositionedExpression): TypeInfo | un
 		default:
 			break;
 	}
+	if ('expectedType' in expression && expression.expectedType) {
+		return { type: expression.expectedType };
+	}
+	// Stellen, an denen der Checker keinen erwarteten Typ merkt.
 	switch (expression.parent?.type) {
 		case 'definition':
-			if (expression.parent.value === expression) {
-				if (expression.parent.typeGuard) {
-					const typeGuardType = expression.parent.typeGuard.typeInfo;
-					if (!typeGuardType) {
-						return undefined;
-					}
-					const resolvedTypeGuardType = resolvePlaceholders(typeGuardType.type);
-					if (isTypeOfType(resolvedTypeGuardType)) {
-						return { type: resolvedTypeGuardType.value };
-					}
-					return typeGuardType;
-				}
-				else {
-					return expression.typeInfo;
-				}
-			}
-			else {
-				return undefined;
-			}
-		case 'functionLiteral': {
-			if (expression.parent.params !== expression) {
-				return undefined;
-			}
-			const functionLiteralDeclaredType = getDeclaredResolvedType(expression.parent);
-			if (!functionLiteralDeclaredType) {
-				return undefined;
-			}
-			if (!isFunctionType(functionLiteralDeclaredType)) {
-				return undefined;
-			}
-			return { type: functionLiteralDeclaredType.ParamsType };
-		}
+			// Ohne Typguard verlangt die Definition nichts, angezeigt wird der eigene Typ des Werts.
+			return expression.parent.value === expression && !expression.parent.typeGuard
+				? expression.typeInfo
+				: undefined;
 		case 'functionCall': {
+			// Das Präfix-Argument wird inferiert, bevor die aufgerufene Funktion bekannt ist.
 			if (expression.parent.prefixArgument === expression) {
 				const prefixArgumentType = getPrefixArgumentDeclaredType(expression.parent);
 				return prefixArgumentType && { type: prefixArgumentType };
 			}
-			// function call arg
+			// Die Argumentliste als Ganzes, z.B. für die Vervollständigung benannter Argumente.
 			if (expression.parent.arguments !== expression) {
 				return undefined;
 			}
-			const functionExpression = expression.parent.functionExpression;
-			if (!functionExpression) {
-				return undefined;
-			}
-			const functionType = getResolvedType(functionExpression.typeInfo);
-			if (!functionType) {
-				return undefined;
-			}
-			if (!isFunctionType(functionType)) {
+			const functionType = getResolvedType(expression.parent.functionExpression?.typeInfo);
+			if (!functionType || !isFunctionType(functionType)) {
 				return undefined;
 			}
 			return { type: functionType.ParamsType };
 		}
-		case 'list': {
-			const list = expression.parent;
-			const listType = getDeclaredResolvedType(list);
-			if (!listType) {
-				return undefined;
-			}
-			const functionCall = list.parent;
-			if (functionCall?.type === 'functionCall'
-				&& functionCall.arguments === list) {
-				const dereferencedlistType = listType;
-				// function call arg
-				if (!isParametersType(dereferencedlistType)) {
-					return undefined;
-				}
-				const parameterCount = dereferencedlistType.singleNames.length + (dereferencedlistType.rest ? 1 : 0);
-				const parameterIndex = getParameterIndex(functionCall, expression.startRowIndex, expression.startColumnIndex, parameterCount);
-				const currentParameter = parameterIndex < dereferencedlistType.singleNames.length
-					? dereferencedlistType.singleNames[parameterIndex]
-					: dereferencedlistType.rest;
-				if (!currentParameter) {
-					return undefined;
-				}
-				if (!currentParameter.type) {
-					return undefined;
-				}
-				return { type: currentParameter.type };
-			}
-			const index = list.values.indexOf(expression as any);
-			const elementType = dereferenceIndexFromObject(index, listType);
-			if (!elementType) {
-				return undefined;
-			}
-			return { type: elementType };
-		}
-		case 'singleDictionaryField': {
-			const dictionary = expression.parent.parent;
-			if (!dictionary) {
-				return undefined;
-			}
-			const dictionaryDeclaredType = getDeclaredResolvedType(dictionary);
-			if (!dictionaryDeclaredType) {
-				return undefined;
-			}
-			const nameString = getCheckedEscapableName(expression.parent.name);
-			if (!nameString) {
-				return undefined;
-			}
-			const fieldType = dereferenceNameFromObject(nameString, dictionaryDeclaredType);
-			if (!fieldType) {
-				return undefined;
-			}
-			return { type: fieldType };
-		}
-		case undefined:
-			return undefined;
 		default:
 			return undefined;
 	}

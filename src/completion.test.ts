@@ -237,6 +237,60 @@ describe('getDictionaryFieldCompletionItemsFromType', () => {
 	});
 });
 
+describe('getDeclaredResolvedType', () => {
+	/** liefert den Wert der Definition in der angegebenen Zeile */
+	function getDefinitionValue(code: string, rowIndex: number) {
+		const parsed = parse(code);
+		const definition = parsed.checked!.expressions![rowIndex];
+		if (definition?.type !== 'definition' || !definition.value) {
+			throw new Error(`Erwartet definition mit value, bekommen ${definition?.type}`);
+		}
+		return definition.value;
+	}
+
+	// Ein Spread bringt unbekannt viele Argumente mit, danach ist die Position des Parameters
+	// nicht mehr bekannt.
+	it('liefert nach einem Spread in der Argumentliste keinen Parametertyp', () => {
+		const code = 'f = (a: Integer b: Text c: Float) :> Integer => a\nxs: List(Integer) = [1]\nx = f(1 ...xs §a§)\n';
+		const functionCall = getDefinitionValue(code, 2);
+		if (functionCall.type !== 'functionCall' || functionCall.arguments?.type !== 'list') {
+			throw new Error('Erwartet functionCall mit list-Argumenten');
+		}
+		const text = functionCall.arguments.values[2]!;
+		expect(getDeclaredResolvedType(text)).to.equal(undefined);
+	});
+
+	it('liefert nach einem Spread in einem Listenliteral keinen Elementtyp', () => {
+		const code = 'xs: List(Integer) = [1]\nl: [Integer Text Float] = [1 ...xs §a§]\n';
+		const list = getDefinitionValue(code, 1);
+		if (list.type !== 'list') {
+			throw new Error(`Erwartet list, bekommen ${list.type}`);
+		}
+		const text = list.values[2]!;
+		expect(getDeclaredResolvedType(text)).to.equal(undefined);
+	});
+
+	// Der Parametertyp des Callbacks steht in der core-lib als TypeOf(values)/ElementType und ist
+	// erst mit den Argumenten dieses Aufrufs bekannt. Das Symbol values behält den Typ seines Werts,
+	// das Element ist also das Literal 1.
+	it('liefert für die Parameter eines Callbacks den mit dem Aufruf instanziierten Typ', () => {
+		const code = 'values: List(Integer) = [1]\nx = values.map((v) => v)\n';
+		const functionCall = getDefinitionValue(code, 1);
+		if (functionCall.type !== 'functionCall' || functionCall.arguments?.type !== 'list') {
+			throw new Error('Erwartet functionCall mit list-Argumenten');
+		}
+		const callback = functionCall.arguments.values[0];
+		if (callback?.type !== 'functionLiteral') {
+			throw new Error(`Erwartet functionLiteral, bekommen ${callback?.type}`);
+		}
+		const paramsType = getDeclaredResolvedType(callback.params);
+		if (paramsType?.julType !== 'parameters') {
+			throw new Error(`Erwartet parameters, bekommen ${paramsType?.julType}`);
+		}
+		expect(paramsType.singleNames[0]?.type?.julType).to.equal('integerLiteral');
+	});
+});
+
 describe('getDictionaryLiteralFieldCompletionItems', () => {
 	it('schlägt bei einem leeren Dictionary-Literal die Felder des erwarteten Typs vor', () => {
 		const parsed = parse('MyType = [f1: Integer]\nx: MyType = []\n');

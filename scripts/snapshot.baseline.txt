@@ -48,9 +48,9 @@ semanticTokens
   1:3 definition: kein
   1:3 completion: n=103 a,MyType,myFn
   1:3 signatureHelp: kein
-  4:7 hover: ```jul §asdf§ ```
+  4:7 hover: kein
   4:7 definition: kein
-  4:7 completion: n=1 asdf
+  4:7 completion: n=103 a,MyType,myFn
   4:7 signatureHelp: kein
   6:5 hover: ```jul (...args: Or(Empty List(Any))) ~> Empty ``` Gibt die args in der Konsole aus.
   6:5 definition: jul-core-lib:/core-lib.jul:1170:1
@@ -193,19 +193,19 @@ semanticTokens
   2:13 definition: kein
   2:13 completion: n=0 
   2:13 signatureHelp: kein
-  7:17 hover: ```jul 2 ```
+  7:17 hover: kein
   7:17 definition: kein
   7:17 completion: n=104 inlineObj,inlineList,someVar
   7:17 signatureHelp: kein
-  10:5 hover: ```jul Any ```
+  10:5 hover: kein
   10:5 definition: kein
   10:5 completion: n=104 inlineObj,inlineList,someVar
   10:5 signatureHelp: kein
-  12:5 hover: ```jul Any ```
+  12:5 hover: kein
   12:5 definition: kein
   12:5 completion: n=104 inlineObj,inlineList,someVar
   12:5 signatureHelp: kein
-  14:6 hover: ```jul Any ```
+  14:6 hover: kein
   14:6 definition: kein
   14:6 completion: n=104 inlineObj,inlineList,someVar
   14:6 signatureHelp: kein
@@ -221,7 +221,7 @@ semanticTokens
   22:9 definition: bracketed-expression-example.jul:22:1
   22:9 completion: n=104 inlineObj,inlineList,someVar
   22:9 signatureHelp: kein
-  24:2 hover: ```jul 1 ```
+  24:2 hover: kein
   24:2 definition: kein
   24:2 completion: n=104 inlineObj,inlineList,someVar
   24:2 signatureHelp: kein
@@ -339,7 +339,7 @@ semanticTokens
   10:10 definition: jul-core-lib:/core-lib.jul:1170:1
   10:10 completion: n=103 myVal,myEmpty,myList
   10:10 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=0
-  12:14 hover: ```jul Or(Empty List(Any)) ```
+  12:14 hover: kein
   12:14 definition: kein
   12:14 completion: n=0 
   12:14 signatureHelp: kein
@@ -359,7 +359,7 @@ semanticTokens
   29:7 definition: branching.jul:29:1
   29:7 completion: n=103 myVal,myEmpty,myList
   29:7 signatureHelp: kein
-  31:20 hover: ```jul Or(Empty List(Any)) ```
+  31:20 hover: kein
   31:20 definition: kein
   31:20 completion: n=0 
   31:20 signatureHelp: kein
@@ -375,7 +375,7 @@ semanticTokens
   41:8 definition: kein
   41:8 completion: n=103 myVal,myEmpty,myList
   41:8 signatureHelp: kein
-  43:14 hover: ```jul Or(Empty List(Any)) ```
+  43:14 hover: kein
   43:14 definition: kein
   43:14 completion: n=0 
   43:14 signatureHelp: kein
@@ -383,7 +383,7 @@ semanticTokens
   47:7 definition: branching.jul:46:1
   47:7 completion: n=103 myVal,myEmpty,myList
   47:7 signatureHelp: kein
-  49:14 hover: ```jul Or(Empty List(Any)) ```
+  49:14 hover: kein
   49:14 definition: kein
   49:14 completion: n=0 
   49:14 signatureHelp: kein
@@ -1345,7 +1345,7 @@ semanticTokens
   11:3 definition: kein
   11:3 completion: n=111 myList,myList2,myListValue
   11:3 signatureHelp: kein
-  13:2 hover: ```jul [21 22 23] ```
+  13:2 hover: kein
   13:2 definition: kein
   13:2 completion: n=111 myList,myList2,myListValue
   13:2 signatureHelp: kein
@@ -1353,7 +1353,7 @@ semanticTokens
   17:12 definition: object-example.jul:17:1
   17:12 completion: n=111 myList,myList2,myListValue
   17:12 signatureHelp: kein
-  23:16 hover: ```jul 10 ```
+  23:16 hover: kein
   23:16 definition: kein
   23:16 completion: n=111 myList,myList2,myListValue
   23:16 signatureHelp: kein
@@ -1381,9 +1381,9 @@ semanticTokens
   41:7 definition: kein
   41:7 completion: n=111 myList,myList2,myListValue
   41:7 signatureHelp: kein
-  43:2 hover: ```jul [ b1: 1 b2: 112344 b3: 1234 ] ```
+  43:2 hover: kein
   43:2 definition: kein
-  43:2 completion: n=0 
+  43:2 completion: n=111 myList,myList2,myListValue
   43:2 signatureHelp: kein
   45:1 hover: ```jul [ a: 1 b: [ b1: 1 b2: 112344 b3: 1234 ] c: 3 ] ```
   45:1 definition: kein
@@ -1488,7 +1488,7 @@ semanticTokens
   13:24 definition: stream.jul:1:1
   13:24 completion: n=0 
   13:24 signatureHelp: kein
-  14:27 hover: ```jul (value: Any) :> Any ```
+  14:27 hover: ```jul (value: Or(Empty List(Or(Float Integer)))) :> Any ```
   14:27 definition: kein
   14:27 completion: n=2 stream$,listener
   14:27 signatureHelp: kein
@@ -1627,9 +1627,9 @@ semanticTokens
   33:7 definition: jul-core-lib:/core-lib.jul:93:1
   33:7 completion: n=110 SumType,mySubtract,f
   33:7 signatureHelp: kein
-  35:1 hover: ```jul ( a: Rational b: Rational ) ```
+  35:1 hover: kein
   35:1 definition: kein
-  35:1 completion: n=0 
+  35:1 completion: n=110 SumType,mySubtract,f
   35:1 signatureHelp: kein
   37:16 hover: ```jul (value: Any) -> Type ``` The Type that only contains the given value.
   37:16 definition: jul-core-lib:/core-lib.jul:59:1
@@ -2140,7 +2140,7 @@ semanticTokens
   1:7 definition: type-function.jul:1:1
   1:7 completion: n=108 BlubType,typeFnShort,typeFnLong
   1:7 signatureHelp: kein
-  3:8 hover: ```jul List(Type) ```
+  3:8 hover: ```jul Type ```
   3:8 definition: kein
   3:8 completion: n=108 BlubType,typeFnShort,typeFnLong
   3:8 signatureHelp: kein
@@ -2337,9 +2337,9 @@ semanticTokens
   10:5 definition: types.jul:30:1
   10:5 completion: n=106 myVar,myVarIsText,Article
   10:5 signatureHelp: kein
-  12:38 hover: ```jul §4 can not be assigned to myVar because it is not of type Text§ ```
+  12:38 hover: kein
   12:38 definition: kein
-  12:38 completion: n=1 4 can not be assigned to myVar because it is not of type Text
+  12:38 completion: n=106 myVar,myVarIsText,Article
   12:38 signatureHelp: kein
   15:18 hover: ```jul TypeOf(Text) ``` sequence of characters (String)
   15:18 definition: jul-core-lib:/core-lib.jul:96:1
