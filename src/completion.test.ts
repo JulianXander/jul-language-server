@@ -302,6 +302,17 @@ describe('getDictionaryLiteralFieldCompletionItems', () => {
 		expect(completionItems?.map(item => item.label)).to.include('f1');
 	});
 
+	// Bei List(X) verlangt jedes Element dasselbe, auch hinter einem Spread.
+	it('schlägt hinter einem Spread in einer List die Felder des Elementtyps vor', () => {
+		const parsed = parse('Button = [label: Text]\ndefaults: List(Button) = [[label = §a§]]\nbuttons: List(Button) = [...defaults []]\n');
+		const definition = parsed.checked!.expressions![2];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'list') {
+			throw new Error('Erwartet definition mit list value');
+		}
+		const completionItems = getDictionaryLiteralFieldCompletionItems(definition.value.values[1]);
+		expect(completionItems?.map(item => item.label)).to.include('label');
+	});
+
 	// Realer Fall: sobald der erste Buchstabe eines Feldnamens getippt ist, parst `[f]` nicht mehr
 	// als leeres/dictionary-Literal, sondern als list mit einer reference darin - die Vervollständigung
 	// verschwindet dadurch komplett.
