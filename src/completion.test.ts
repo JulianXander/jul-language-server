@@ -57,8 +57,8 @@ describe('getExpectedPositionKind', () => {
 		expect(getExpectedPositionKind(definition.value.returnType)).to.equal('type');
 	});
 
-	it('erkennt den typeGuard eines Dictionary-Felds als Typ-Position, den value als Wert-Position', () => {
-		const parsed = parse('x = [a: Integer = 1]\n');
+	it('erkennt den value eines Dictionary-Felds als Wert-Position', () => {
+		const parsed = parse('x = [a = 1]\n');
 		const definition = parsed.checked!.expressions![0];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'dictionary') {
 			throw new Error('Erwartet definition mit dictionary value');
@@ -67,7 +67,6 @@ describe('getExpectedPositionKind', () => {
 		if (field?.type !== 'singleDictionaryField') {
 			throw new Error(`Erwartet singleDictionaryField, bekommen ${field?.type}`);
 		}
-		expect(getExpectedPositionKind(field.typeGuard)).to.equal('type');
 		expect(getExpectedPositionKind(field.value)).to.equal('value');
 	});
 

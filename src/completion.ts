@@ -111,13 +111,7 @@ export function getExpectedPositionKind(
 		case 'singleDictionaryTypeField':
 			return parent.typeGuard === expression ? 'type' : undefined;
 		case 'singleDictionaryField':
-			if (parent.typeGuard === expression) {
-				return 'type';
-			}
-			if (parent.value === expression) {
-				return 'value';
-			}
-			return undefined;
+			return parent.value === expression ? 'value' : undefined;
 		case 'functionLiteral':
 		case 'functionTypeLiteral':
 			return parent.returnType === expression ? 'type' : undefined;

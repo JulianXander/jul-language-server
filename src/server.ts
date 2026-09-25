@@ -1515,14 +1515,7 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 		case 'parameters':
 			return getDocumentSymbolsFromExpressions(expression.singleFields);
 		case 'singleDictionaryField': {
-			const children = [
-				...(expression.typeGuard
-					? getDocumentSymbolsFromExpression(expression.typeGuard)
-					: []),
-				...(expression.value
-					? getDocumentSymbolsFromExpression(expression.value)
-					: []),
-			];
+			const children = expression.value && getDocumentSymbolsFromExpression(expression.value);
 			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
 		}
 		case 'singleDictionaryTypeField': {
