@@ -2,6 +2,8 @@ import { builtInSymbols, ParsedDocuments } from 'jul-compiler/out/checker/checke
 import { ReferenceIndex, ReferenceLocation, SymbolLocation } from 'jul-compiler/out/checker/reference-index.js';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
 import { forEachChild, PositionedExpression, SymbolTable } from 'jul-compiler/out/syntax-tree.js';
+import { AnnotatedTextEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver';
+import { pathToUri, positionedToRange } from './util.js';
 
 //#region Ziele
 
@@ -15,6 +17,28 @@ export function resolveRelatedTargets(target: SymbolLocation, referenceIndex: Re
 	return typeFields.length
 		? typeFields
 		: [target];
+}
+
+/**
+ * Go-to-Definition auf einem Feldzugriff: Ist das gefundene Feld ein Literalfeld mit erwartetem
+ * Typ (a/name mit a: MyType = [...]), sind die Felder des Typs das Ziel, wie bei einem Zugriff auf
+ * einen Parameter vom Typ MyType. undefined, wenn es dabei bleibt, etwa weil der Ausdruck kein
+ * Feldzugriff ist: eine Variable springt zu ihrem eigenen Binding, auch wenn sie mit einem Typfeld
+ * verknüpft ist.
+ */
+export function getFieldAccessTypeFields(
+	expression: PositionedExpression,
+	found: SymbolLocation,
+	referenceIndex: ReferenceIndex,
+): SymbolLocation[] | undefined {
+	if (expression.type !== 'name'
+		|| expression.parent?.type !== 'nestedReference') {
+		return undefined;
+	}
+	const typeFields = referenceIndex.getRelatedTypeFields(found.symbol, found.filePath);
+	return typeFields.length
+		? typeFields
+		: undefined;
 }
 
 //#endregion Ziele
@@ -105,6 +129,56 @@ export function getRenameEdits(
 		});
 	});
 	return [...edits.values()];
+}
+
+const furtherTypeFieldsAnnotationId = 'furtherTypeFields';
+
+/**
+ * Baut aus den Rename-Änderungen die WorkspaceEdit. Änderungen, die bestätigt werden müssen,
+ * tragen eine changeAnnotation, sofern der Client das kann (nur in documentChanges erlaubt), sonst
+ * werden sie ohne Rückfrage angewendet.
+ */
+export function createRenameWorkspaceEdit(edits: RenameEdit[], supportsChangeAnnotations: boolean): WorkspaceEdit {
+	const toTextEdit = (edit: RenameEdit): TextEdit => ({
+		range: positionedToRange(edit),
+		newText: edit.newText,
+	});
+	const editsByUri = new Map<string, (TextEdit | AnnotatedTextEdit)[]>();
+	const addToUri = (edit: RenameEdit, textEdit: TextEdit | AnnotatedTextEdit) => {
+		const uri = pathToUri(edit.filePath);
+		let uriEdits = editsByUri.get(uri);
+		if (!uriEdits) {
+			uriEdits = [];
+			editsByUri.set(uri, uriEdits);
+		}
+		uriEdits.push(textEdit);
+	};
+	const needsConfirmation = supportsChangeAnnotations
+		&& edits.some(edit => edit.needsConfirmation);
+	if (!needsConfirmation) {
+		edits.forEach(edit => {
+			addToUri(edit, toTextEdit(edit));
+		});
+		return { changes: Object.fromEntries(editsByUri) };
+	}
+	edits.forEach(edit => {
+		addToUri(edit, edit.needsConfirmation
+			? { ...toTextEdit(edit), annotationId: furtherTypeFieldsAnnotationId }
+			: toTextEdit(edit));
+	});
+	return {
+		documentChanges: [...editsByUri].map(([uri, uriEdits]) => ({
+			textDocument: { uri: uri, version: null },
+			edits: uriEdits,
+		})),
+		changeAnnotations: {
+			[furtherTypeFieldsAnnotationId]: {
+				label: 'Feld auch in weiteren Typen',
+				description: 'Die Stelle gehört zu mehreren Typen, das Feld wird in allen umbenannt.',
+				needsConfirmation: true,
+			},
+		},
+	};
 }
 
 /**

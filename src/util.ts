@@ -6,6 +6,7 @@ import {
 	isTypeOfType,
 	resolvePlaceholders,
 } from 'jul-compiler/out/checker/checker.js';
+import { Positioned } from 'jul-compiler/out/compiler-errors.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import {
 	CompileTimeType,
@@ -13,6 +14,25 @@ import {
 	PositionedExpression,
 	TypeInfo,
 } from 'jul-compiler/out/syntax-tree.js';
+import { Range } from 'vscode-languageserver';
+import { URI } from 'vscode-uri';
+
+export function positionedToRange(positioned: Positioned): Range {
+	return {
+		start: {
+			line: positioned.startRowIndex,
+			character: positioned.startColumnIndex,
+		},
+		end: {
+			line: positioned.endRowIndex,
+			character: positioned.endColumnIndex,
+		},
+	};
+}
+
+export function pathToUri(path: string): string {
+	return URI.file(path).toString();
+}
 
 /**
  * Der Server zeigt und prüft Typen, verarbeitet sie aber nicht weiter - hier ist die aufgelöste

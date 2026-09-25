@@ -28,7 +28,6 @@ import {
 	TextDocuments,
 	TextDocumentSyncKind,
 	TextEdit,
-	WorkspaceEdit,
 } from 'vscode-languageserver';
 import { createConnection } from 'vscode-languageserver/node';
 import {
@@ -79,7 +78,13 @@ import {
 import { ReferenceIndex, getFieldSymbolsFromDictionaryType, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
-import { getReferenceLocations, getRenameEdits, RenameEdit, resolveRelatedTargets } from './references.js';
+import {
+	createRenameWorkspaceEdit,
+	getFieldAccessTypeFields,
+	getReferenceLocations,
+	getRenameEdits,
+	resolveRelatedTargets,
+} from './references.js';
 import {
 	dictionaryTypeToCompletionItems,
 	getArgumentPositionKind,
@@ -95,6 +100,8 @@ import {
 	getDeclaredType,
 	getParameterIndex,
 	getResolvedType,
+	pathToUri,
+	positionedToRange,
 } from './util.js';
 
 // For performance do not process large files
@@ -1113,20 +1120,17 @@ connection.onDefinition((definitionParams) => {
 	//#endregion go to imported file
 
 	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
-	// Ein Feldzugriff auf ein Literalfeld mit erwartetem Typ (a/name mit a: MyType = [...]) zielt
-	// auf die Felder des Typs, wie bei einem Zugriff auf einen Parameter vom Typ MyType. Eine
-	// Variable springt dagegen weiter zu ihrem eigenen Binding.
-	if (foundSymbol
+	const typeFields = foundSymbol
 		&& !foundSymbol.isBuiltIn
-		&& expression.type === 'name'
-		&& expression.parent?.type === 'nestedReference') {
-		const typeFields = referenceIndex.getRelatedTypeFields(foundSymbol.symbol, foundSymbol.filePath || documentPath);
-		if (typeFields.length) {
-			return typeFields.map((typeField): Location => ({
-				uri: pathToUri(typeField.filePath),
-				range: positionedToRange(typeField.symbol),
-			}));
-		}
+		&& getFieldAccessTypeFields(
+			expression,
+			{ symbol: foundSymbol.symbol, filePath: foundSymbol.filePath || documentPath },
+			referenceIndex);
+	if (typeFields) {
+		return typeFields.map((typeField): Location => ({
+			uri: pathToUri(typeField.filePath),
+			range: positionedToRange(typeField.symbol),
+		}));
 	}
 	if (foundSymbol) {
 		const location: Location = {
@@ -1243,52 +1247,6 @@ function resolveCanonicalRenameTarget(
 	return resolveCanonicalSymbol(raw.symbol, raw.filePath ?? documentPath, parsedDocuments);
 }
 
-/**
- * Baut aus den Rename-Änderungen die WorkspaceEdit. Änderungen, die bestätigt werden müssen,
- * tragen eine changeAnnotation, sofern der Client das kann, sonst werden sie ohne Rückfrage
- * angewendet.
- */
-function createRenameWorkspaceEdit(edits: RenameEdit[]): WorkspaceEdit {
-	const toTextEdit = (edit: RenameEdit) => ({
-		range: positionedToRange(edit),
-		newText: edit.newText,
-	});
-	const needsConfirmation = hasChangeAnnotationCapability
-		&& edits.some(edit => edit.needsConfirmation);
-	if (!needsConfirmation) {
-		const changes: { [uri: string]: TextEdit[]; } = {};
-		edits.forEach(edit => {
-			(changes[pathToUri(edit.filePath)] ??= []).push(toTextEdit(edit));
-		});
-		return { changes };
-	}
-	const annotationId = 'furtherTypeFields';
-	const editsByUri = new Map<string, TextEdit[]>();
-	edits.forEach(edit => {
-		const uri = pathToUri(edit.filePath);
-		let uriEdits = editsByUri.get(uri);
-		if (!uriEdits) {
-			uriEdits = [];
-			editsByUri.set(uri, uriEdits);
-		}
-		uriEdits.push(edit.needsConfirmation
-			? { ...toTextEdit(edit), annotationId: annotationId } as TextEdit
-			: toTextEdit(edit));
-	});
-	return {
-		documentChanges: [...editsByUri].map(([uri, uriEdits]) => ({
-			textDocument: { uri: uri, version: null },
-			edits: uriEdits,
-		})),
-		changeAnnotations: {
-			[annotationId]: {
-				label: 'Feld auch in weiteren Typen',
-				description: 'Die Stelle gehört zu mehreren Typen, das Feld wird in allen umbenannt.',
-				needsConfirmation: true,
-			},
-		},
-	};
-}
 
 connection.onRenameRequest(renameParams => {
 	const documentUri = renameParams.textDocument.uri;
@@ -1306,7 +1264,9 @@ connection.onRenameRequest(renameParams => {
 	if (!targets) {
 		return;
 	}
-	return createRenameWorkspaceEdit(getRenameEdits(targets, renameParams.newName, referenceIndex, parsedDocuments));
+	return createRenameWorkspaceEdit(
+		getRenameEdits(targets, renameParams.newName, referenceIndex, parsedDocuments),
+		hasChangeAnnotationCapability);
 });
 //#endregion rename
 
