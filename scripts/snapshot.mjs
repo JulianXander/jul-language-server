@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, statSync, writeFileSync } from 'fs';
-import { relative, resolve } from 'path';
+import { basename, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import {
 	collectPositions,
@@ -25,6 +25,8 @@ const maxCompletionLabels = 3;
 
 const target = resolve(import.meta.dirname, '../../jul-examples');
 const baselinePath = resolve(import.meta.dirname, 'snapshot.baseline.txt');
+// test1.jul ist ein Scratch-File zum manuellen Ausprobieren, kein stabiles Beispiel.
+const excludedFiles = ['test1.jul'];
 
 //#region antworten normalisieren
 
@@ -217,6 +219,7 @@ async function main() {
 		return;
 	}
 	const julFiles = findJulFiles(target)
+		.filter(filePath => !excludedFiles.includes(basename(filePath)))
 		.filter(filePath => statSync(filePath).size <= maxFileSize);
 	if (!julFiles.length) {
 		console.error(`keine .jul Dateien in ${target}`);

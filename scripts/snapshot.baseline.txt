@@ -1512,48 +1512,6 @@ semanticTokens
   18:10 completion: n=12 TypeOf,equal,deepEqual
   18:10 signatureHelp: (stream$: Stream(Any)) ~> Empty param=1
 
-=== test1.jul
-symbols
-  myFn kind=12 6:1
-    a kind=13 6:9
-      keine
-    x kind=8 7:3
-      keine
-    y kind=8 7:5
-      keine
-  g kind=12 10:1
-    t kind=13 10:6
-      keine
-  h kind=12 11:1
-    n kind=13 11:6
-      keine
-semanticTokens
-  6: 1+4 function(declaration) 9+1 parameter(declaration,readonly) 12+4 function(defaultLibrary) 17+7 type(defaultLibrary)
-  7: 3+1 variable(declaration,readonly) 5+1 variable(declaration,readonly) 14+1 parameter(readonly)
-  8: 3+1 variable(readonly) 5+1 variable(readonly)
-  10: 1+1 function(declaration) 6+1 parameter(declaration,readonly) 9+4 type(defaultLibrary) 18+1 parameter(readonly)
-  11: 1+1 function(declaration) 6+1 parameter(declaration,readonly) 9+3 function(defaultLibrary) 13+7 type(defaultLibrary) 21+3 function(defaultLibrary) 33+1 function 35+1 parameter(readonly)
-  6:15 hover: ```jul (ElementType: Type) -> TypeOf(List(Type)) ``` data structure containing 1 or more elements of...
-  6:15 definition: jul-core-lib:/core-lib.jul:10:1
-  6:15 completion: n=105 myFn,g,h
-  6:15 signatureHelp: (ElementType: Type) -> TypeOf(List(Type)) param=0
-  7:9 hover: kein
-  7:9 definition: kein
-  7:9 completion: n=105 myFn,g,h
-  7:9 signatureHelp: kein
-  8:4 hover: ```jul Any ```
-  8:4 definition: test1.jul:7:3
-  8:4 completion: n=105 myFn,g,h
-  8:4 signatureHelp: kein
-  10:10 hover: ```jul TypeOf(Text) ``` sequence of characters (String)
-  10:10 definition: jul-core-lib:/core-lib.jul:111:1
-  10:10 completion: n=103 myFn,g,h
-  10:10 signatureHelp: kein
-  11:19 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
-  11:19 definition: jul-core-lib:/core-lib.jul:85:1
-  11:19 completion: n=0 
-  11:19 signatureHelp: kein
-
 === text-example.jul
 symbols
   inline kind=14 1:1
