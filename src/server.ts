@@ -12,6 +12,7 @@ import {
 	CompletionItemKind,
 	Diagnostic,
 	DiagnosticSeverity,
+	DiagnosticTag,
 	DocumentHighlight,
 	DocumentSymbol,
 	InitializeParams,
@@ -277,6 +278,10 @@ function sendDiagnosticsForFile(uri: string, parsed: ParsedFile): void {
 			message: error.message,
 			source: 'jul'
 		};
+		// Der Editor graut den Namen aus, statt ihn zu unterstreichen.
+		if (error.code === ErrorCode.unusedDefinition) {
+			diagnostic.tags = [DiagnosticTag.Unnecessary];
+		}
 		if (error.expectedIndent !== undefined) {
 			diagnostic.data = { expectedIndent: error.expectedIndent };
 		}
