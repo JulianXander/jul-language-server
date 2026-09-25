@@ -28,6 +28,7 @@ import {
 	TextDocuments,
 	TextDocumentSyncKind,
 	TextEdit,
+	WorkspaceEdit,
 } from 'vscode-languageserver';
 import { createConnection } from 'vscode-languageserver/node';
 import {
@@ -78,6 +79,7 @@ import {
 import { ReferenceIndex, getFieldSymbolsFromDictionaryType, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
+import { getReferenceLocations, getRenameEdits, RenameEdit, resolveRelatedTargets } from './references.js';
 import {
 	dictionaryTypeToCompletionItems,
 	getArgumentPositionKind,
@@ -150,6 +152,11 @@ function getTransitiveDependents(filePath: string): Set<string> {
 }
 
 let hasDiagnosticRelatedInformationCapability = false;
+/**
+ * Der Client kann Änderungen eines Renames zur Bestätigung vorlegen (changeAnnotations mit
+ * needsConfirmation, nur in documentChanges erlaubt).
+ */
+let hasChangeAnnotationCapability = false;
 let htmlLanguageService: LanguageService;
 
 /**
@@ -166,6 +173,8 @@ connection.onInitialize((params: InitializeParams) => {
 	const capabilities = params.capabilities;
 
 	hasDiagnosticRelatedInformationCapability = !!capabilities.textDocument?.publishDiagnostics?.relatedInformation;
+	hasChangeAnnotationCapability = !!capabilities.workspace?.workspaceEdit?.changeAnnotationSupport
+		&& !!capabilities.workspace.workspaceEdit.documentChanges;
 
 	workspaceFolderPaths = params.workspaceFolders
 		? params.workspaceFolders.map(folder => uriToPath(folder.uri))
@@ -1104,6 +1113,21 @@ connection.onDefinition((definitionParams) => {
 	//#endregion go to imported file
 
 	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
+	// Ein Feldzugriff auf ein Literalfeld mit erwartetem Typ (a/name mit a: MyType = [...]) zielt
+	// auf die Felder des Typs, wie bei einem Zugriff auf einen Parameter vom Typ MyType. Eine
+	// Variable springt dagegen weiter zu ihrem eigenen Binding.
+	if (foundSymbol
+		&& !foundSymbol.isBuiltIn
+		&& expression.type === 'name'
+		&& expression.parent?.type === 'nestedReference') {
+		const typeFields = referenceIndex.getRelatedTypeFields(foundSymbol.symbol, foundSymbol.filePath || documentPath);
+		if (typeFields.length) {
+			return typeFields.map((typeField): Location => ({
+				uri: pathToUri(typeField.filePath),
+				range: positionedToRange(typeField.symbol),
+			}));
+		}
+	}
 	if (foundSymbol) {
 		const location: Location = {
 			uri: foundSymbol.isBuiltIn
@@ -1173,13 +1197,24 @@ connection.onPrepareRename(prepareRenameParams => {
 	return positionedToRange(expression);
 });
 /**
- * Löst ein Rename-/Find-All-References-Ziel auf die kanonische Identität auf (siehe
- * jul-compiler/docs/cross-file-reference-index.md): ein Alias-Binding
- * (`local = source` in einer destructuring-Import-Zeile) ist dabei bewusst eine eigene Identität,
+ * Löst ein Rename-/Find-All-References-Ziel auf die kanonische Identität auf: ein Alias-Binding
+ * (`local = source` in einer destructuring-Zeile) ist dabei bewusst eine eigene Identität,
  * unabhängig vom Ursprung - Cursor auf dem lokalen Alias-Namen darf den Ursprung nicht mitziehen,
  * Cursor auf dem source-Token (bzw. dem Namen ohne Alias) zeigt dagegen auf den Ursprung.
+ * Ein Literalfeld an einer Stelle mit erwartetem Typ und der lokale Name eines Destructurings ohne
+ * Alias zielen auf die Felder ihres Typs, bei einer Union auf mehrere.
  */
-function resolveRenameTarget(
+function resolveRenameTargets(
+	expression: PositionedExpression,
+	scopes: SymbolTable[],
+	documentPath: string,
+	folderPath: string,
+): { symbol: SymbolDefinition; filePath: string; }[] | undefined {
+	const canonical = resolveCanonicalRenameTarget(expression, scopes, documentPath, folderPath);
+	return canonical && resolveRelatedTargets(canonical, referenceIndex);
+}
+
+function resolveCanonicalRenameTarget(
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	documentPath: string,
@@ -1187,22 +1222,72 @@ function resolveRenameTarget(
 ): { symbol: SymbolDefinition; filePath: string; } | undefined {
 	if (expression.type === 'name' && expression.parent?.type === 'destructuringField') {
 		const field = expression.parent;
+		const localSymbol = field.parent?.type === 'destructuringFields'
+			? field.parent.symbols[field.name.name]
+			: undefined;
+		const local = localSymbol && {
+			symbol: localSymbol,
+			filePath: documentPath,
+		};
 		if (field.source && expression === field.name) {
-			const localSymbol = field.parent?.type === 'destructuringFields'
-				? field.parent.symbols[field.name.name]
-				: undefined;
-			return localSymbol && {
-				symbol: localSymbol,
-				filePath: documentPath,
-			};
+			return local;
 		}
-		return resolveImportBinding(field, documentPath, parsedDocuments);
+		// Kein Import: der lokale Name eines Dictionary-Destructurings, über die Verknüpfung
+		// landet er beim Typfeld.
+		return resolveImportBinding(field, documentPath, parsedDocuments) ?? local;
 	}
 	const raw = getRawSymbolDefinition(expression, scopes, folderPath);
 	if (!raw || raw.isBuiltIn) {
 		return undefined;
 	}
 	return resolveCanonicalSymbol(raw.symbol, raw.filePath ?? documentPath, parsedDocuments);
+}
+
+/**
+ * Baut aus den Rename-Änderungen die WorkspaceEdit. Änderungen, die bestätigt werden müssen,
+ * tragen eine changeAnnotation, sofern der Client das kann, sonst werden sie ohne Rückfrage
+ * angewendet.
+ */
+function createRenameWorkspaceEdit(edits: RenameEdit[]): WorkspaceEdit {
+	const toTextEdit = (edit: RenameEdit) => ({
+		range: positionedToRange(edit),
+		newText: edit.newText,
+	});
+	const needsConfirmation = hasChangeAnnotationCapability
+		&& edits.some(edit => edit.needsConfirmation);
+	if (!needsConfirmation) {
+		const changes: { [uri: string]: TextEdit[]; } = {};
+		edits.forEach(edit => {
+			(changes[pathToUri(edit.filePath)] ??= []).push(toTextEdit(edit));
+		});
+		return { changes };
+	}
+	const annotationId = 'furtherTypeFields';
+	const editsByUri = new Map<string, TextEdit[]>();
+	edits.forEach(edit => {
+		const uri = pathToUri(edit.filePath);
+		let uriEdits = editsByUri.get(uri);
+		if (!uriEdits) {
+			uriEdits = [];
+			editsByUri.set(uri, uriEdits);
+		}
+		uriEdits.push(edit.needsConfirmation
+			? { ...toTextEdit(edit), annotationId: annotationId } as TextEdit
+			: toTextEdit(edit));
+	});
+	return {
+		documentChanges: [...editsByUri].map(([uri, uriEdits]) => ({
+			textDocument: { uri: uri, version: null },
+			edits: uriEdits,
+		})),
+		changeAnnotations: {
+			[annotationId]: {
+				label: 'Feld auch in weiteren Typen',
+				description: 'Die Stelle gehört zu mehreren Typen, das Feld wird in allen umbenannt.',
+				needsConfirmation: true,
+			},
+		},
+	};
 }
 
 connection.onRenameRequest(renameParams => {
@@ -1217,28 +1302,11 @@ connection.onRenameRequest(renameParams => {
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const canonical = resolveRenameTarget(expression, scopes, documentPath, folderPath);
-	if (!canonical) {
+	const targets = resolveRenameTargets(expression, scopes, documentPath, folderPath);
+	if (!targets) {
 		return;
 	}
-	const changesByUri = new Map<string, TextEdit[]>();
-	function addEdit(filePath: string, position: Positioned): void {
-		const uri = pathToUri(filePath);
-		let edits = changesByUri.get(uri);
-		if (!edits) {
-			edits = [];
-			changesByUri.set(uri, edits);
-		}
-		edits.push({
-			range: positionedToRange(position),
-			newText: renameParams.newName,
-		});
-	}
-	addEdit(canonical.filePath, canonical.symbol);
-	referenceIndex.getReferences(canonical.symbol, canonical.filePath).forEach(location => {
-		addEdit(location.filePath, location);
-	});
-	return { changes: Object.fromEntries(changesByUri) };
+	return createRenameWorkspaceEdit(getRenameEdits(targets, renameParams.newName, referenceIndex, parsedDocuments));
 });
 //#endregion rename
 
@@ -1354,21 +1422,15 @@ connection.onReferences(referenceParams => {
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const canonical = resolveRenameTarget(expression, scopes, documentPath, folderPath);
-	if (!canonical) {
+	const targets = resolveRenameTargets(expression, scopes, documentPath, folderPath);
+	if (!targets) {
 		return;
 	}
-	const locations: Location[] = referenceIndex.getReferences(canonical.symbol, canonical.filePath).map(location => ({
-		uri: pathToUri(location.filePath),
-		range: positionedToRange(location),
-	}));
-	if (referenceParams.context.includeDeclaration) {
-		locations.push({
-			uri: pathToUri(canonical.filePath),
-			range: positionedToRange(canonical.symbol),
-		});
-	}
-	return locations;
+	return getReferenceLocations(targets, referenceIndex, referenceParams.context.includeDeclaration)
+		.map((location): Location => ({
+			uri: pathToUri(location.filePath),
+			range: positionedToRange(location),
+		}));
 });
 //#endregion references
 
@@ -1385,19 +1447,15 @@ connection.onDocumentHighlight(highlightParams => {
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const canonical = resolveRenameTarget(expression, scopes, documentPath, folderPath);
-	if (!canonical) {
+	const targets = resolveRenameTargets(expression, scopes, documentPath, folderPath);
+	if (!targets) {
 		return;
 	}
 	// Anders als bei Find-All-References/Rename: nur Vorkommen in genau diesem Dokument, kein
 	// Cross-File-Ergebnis - Document Highlight ist die stille Markierung im aktuell offenen Editor.
-	const highlights: DocumentHighlight[] = referenceIndex.getReferences(canonical.symbol, canonical.filePath)
+	return getReferenceLocations(targets, referenceIndex, true)
 		.filter(location => location.filePath === documentPath)
-		.map(location => ({ range: positionedToRange(location) }));
-	if (canonical.filePath === documentPath) {
-		highlights.push({ range: positionedToRange(canonical.symbol) });
-	}
-	return highlights;
+		.map((location): DocumentHighlight => ({ range: positionedToRange(location) }));
 });
 //#endregion document highlight
 
@@ -1891,24 +1949,7 @@ const diagnosticSeverities: { [Severity in CompilerErrorSeverity]: DiagnosticSev
 	hint: DiagnosticSeverity.Hint,
 };
 
-function positionedToRange(positioned: Positioned): Range {
-	return {
-		start: {
-			line: positioned.startRowIndex,
-			character: positioned.startColumnIndex,
-		},
-		end: {
-			line: positioned.endRowIndex,
-			character: positioned.endColumnIndex,
-		},
-	};
-}
-
 //#region uri
-
-function pathToUri(path: string): string {
-	return URI.file(path).toString();
-}
 
 function uriToPath(uri: string): string {
 	return URI.parse(uri).fsPath;

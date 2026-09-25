@@ -123,3 +123,27 @@
 2026-09-24 15:33:56	68befdd+	jul-compiler a744a34+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.12	0.25	Stufe 2: TS-Parametertypen
 2026-09-24 15:33:56	68befdd+	jul-compiler a744a34+	ADV-DEV-56627	yugioh	documentSymbol	3	4.55	8.53	8.53	Stufe 2: TS-Parametertypen
 2026-09-24 15:33:56	68befdd+	jul-compiler a744a34+	ADV-DEV-56627	yugioh	semanticTokens	3	5.30	9.28	9.28	Stufe 2: TS-Parametertypen
+2026-09-25 07:58:40	ac31f73	jul-compiler 600ec3f	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	52.23	434.63	434.63	vor feldreferenzen
+2026-09-25 07:58:40	ac31f73	jul-compiler 600ec3f	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	156.03	168.54	168.54	vor feldreferenzen
+2026-09-25 07:58:40	ac31f73	jul-compiler 600ec3f	ADV-DEV-56627	yugioh	hover	564	0.18	0.37	47.06	vor feldreferenzen
+2026-09-25 07:58:40	ac31f73	jul-compiler 600ec3f	ADV-DEV-56627	yugioh	definition	564	0.08	0.23	0.38	vor feldreferenzen
+2026-09-25 07:58:40	ac31f73	jul-compiler 600ec3f	ADV-DEV-56627	yugioh	completion	564	1.92	3.83	5.46	vor feldreferenzen
+2026-09-25 07:58:40	ac31f73	jul-compiler 600ec3f	ADV-DEV-56627	yugioh	signatureHelp	564	0.08	0.17	0.54	vor feldreferenzen
+2026-09-25 07:58:40	ac31f73	jul-compiler 600ec3f	ADV-DEV-56627	yugioh	documentSymbol	3	4.06	4.64	4.64	vor feldreferenzen
+2026-09-25 07:58:40	ac31f73	jul-compiler 600ec3f	ADV-DEV-56627	yugioh	semanticTokens	3	5.43	5.70	5.70	vor feldreferenzen
+2026-09-25 08:31:47	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	84.73	513.73	513.73	feldreferenzen
+2026-09-25 08:31:47	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	1207.18	1726.61	1726.61	feldreferenzen
+2026-09-25 08:31:47	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	hover	564	0.28	0.74	400.81	feldreferenzen
+2026-09-25 08:31:47	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	definition	564	0.19	0.46	0.86	feldreferenzen
+2026-09-25 08:31:47	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	completion	564	6.10	25.22	72.97	feldreferenzen
+2026-09-25 08:31:47	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	signatureHelp	564	0.19	0.40	0.90	feldreferenzen
+2026-09-25 08:31:47	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	documentSymbol	3	20.87	31.25	31.25	feldreferenzen
+2026-09-25 08:31:47	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	semanticTokens	3	26.32	39.36	39.36	feldreferenzen
+2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	10	61.62	434.06	434.06	feldreferenzen, wiederholt ohne fremde last
+2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	152.56	163.25	163.25	feldreferenzen, wiederholt ohne fremde last
+2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	hover	564	0.11	0.28	47.91	feldreferenzen, wiederholt ohne fremde last
+2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	definition	564	0.06	0.11	0.27	feldreferenzen, wiederholt ohne fremde last
+2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	completion	564	1.58	2.55	4.81	feldreferenzen, wiederholt ohne fremde last
+2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.13	0.30	feldreferenzen, wiederholt ohne fremde last
+2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	documentSymbol	3	3.59	4.39	4.39	feldreferenzen, wiederholt ohne fremde last
+2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	semanticTokens	3	3.63	5.21	5.21	feldreferenzen, wiederholt ohne fremde last
