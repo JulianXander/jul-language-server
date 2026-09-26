@@ -44,6 +44,7 @@ import { loadFile, ProjectHost } from 'jul-compiler/out/project-loader.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
+	CompileTimeFunctionType,
 	CompileTimeType,
 	DefinitionExpression,
 	forEachChild,
@@ -863,7 +864,7 @@ function collectEmptyLiterals(expression: PositionedExpression, ranges: Range[])
 // Die Grammatik rät den Bezeichnertyp an der Schreibweise. Der checker weiß ihn - Werte und Typen
 // teilen in JUL denselben Namensraum, dort rät die Grammatik zwangsläufig falsch.
 const semanticTokenTypes = ['namespace', 'type', 'function', 'parameter', 'variable', 'property'] as const;
-const semanticTokenModifiers = ['declaration', 'defaultLibrary', 'readonly', 'stream'] as const;
+const semanticTokenModifiers = ['declaration', 'defaultLibrary', 'readonly', 'stream', 'impure'] as const;
 type SemanticTokenType = typeof semanticTokenTypes[number];
 type SemanticTokenModifier = typeof semanticTokenModifiers[number];
 
@@ -1010,7 +1011,7 @@ function getSemanticTokenType(
 	}
 	// Der unaufgelöste Typ genügt: gefragt ist die Art des Bezeichners, nicht sein Inhalt.
 	// resolvePlaceholders pro Referenz kostet mehr als der ganze restliche Durchlauf.
-	const type = typeInfo?.type;
+	const type = getFunctionValueType(typeInfo) ?? typeInfo?.type;
 	if (isTypeOfType(type) || type?.julType === 'type') {
 		return 'type';
 	}
@@ -1033,7 +1034,27 @@ function getSemanticTokenModifiers(
 	if (typeInfo?.type.julType === 'stream') {
 		modifiers.push('stream');
 	}
+	// Die Purity steht sonst nur am Pfeil ~> im Hover. Mit eigener Farbe ist ein Seiteneffekt an
+	// jedem Aufruf zu sehen. Nur das sichere impure: pureIfArgsPure hängt vom einzelnen Aufruf ab.
+	if (getFunctionValueType(typeInfo)?.purity === 'impure') {
+		modifiers.push('impure');
+	}
 	return modifiers;
+}
+
+/**
+ * Der Funktionstyp eines Bezeichners, dessen Wert eine Funktion ist. Eine Referenz auf ein
+ * Funktionsliteral kann als TypeOf(Funktion) ankommen - das ist der Funktionswert selbst, kein Typ.
+ */
+function getFunctionValueType(typeInfo: TypeInfo | undefined): CompileTimeFunctionType | undefined {
+	const type = typeInfo?.type;
+	if (isFunctionType(type)) {
+		return type;
+	}
+	if (isTypeOfType(type) && isFunctionType(type.value)) {
+		return type.value;
+	}
+	return undefined;
 }
 
 function isImportDefinition(definition: DefinitionExpression): boolean {
