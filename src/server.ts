@@ -1730,11 +1730,23 @@ function getRawSymbolDefinition(
 			switch (parent?.type) {
 				case 'destructuringField': {
 					const importedSymbol = getImportedSymbol(parent, folderPath);
-					return importedSymbol?.symbol && {
+					if (importedSymbol) {
+						return importedSymbol.symbol && {
+							name: name,
+							isBuiltIn: false,
+							symbol: importedSymbol.symbol,
+							filePath: importedSymbol.filePath,
+						};
+					}
+					// Kein Import: der lokale Name bindet selbst, wie bei einer normalen Definition.
+					// Den Typ trägt das Symbol im Scope, nicht das in destructuringFields.symbols.
+					if (expression !== parent.name) {
+						return undefined;
+					}
+					const definition = findSymbolInScopesWithBuiltIns(name, scopes);
+					return definition && {
+						...definition,
 						name: name,
-						isBuiltIn: false,
-						symbol: importedSymbol.symbol,
-						filePath: importedSymbol.filePath,
 					};
 				}
 				case 'nestedReference': {
