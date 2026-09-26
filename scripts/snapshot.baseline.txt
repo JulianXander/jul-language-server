@@ -583,61 +583,6 @@ semanticTokens
   13:1 completion: n=2 stream$,listener
   13:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
 
-=== destructuring.jul
-symbols
-  list kind=14 1:1
-    keine
-  longName kind=8 2:2
-    keine
-  dict kind=14 4:1
-    fieldName kind=8 4:9
-      keine
-  fieldName kind=8 5:2
-    keine
-  useLocal kind=12 7:1
-    a kind=13 7:13
-      keine
-    inner kind=8 8:3
-      keine
-    second kind=8 8:9
-      keine
-semanticTokens
-  1: 1+4 variable(declaration,readonly)
-  2: 2+8 variable(declaration,readonly) 14+4 variable(readonly)
-  4: 1+4 variable(declaration,readonly) 9+9 property(declaration,readonly)
-  5: 2+9 variable(declaration,readonly) 15+4 variable(readonly)
-  7: 1+8 function(declaration) 13+1 parameter(declaration,readonly) 16+4 function(defaultLibrary) 21+7 type(defaultLibrary)
-  8: 3+5 variable(declaration,readonly) 9+6 variable(declaration,readonly) 19+1 parameter(readonly)
-  9: 3+5 variable(readonly) 9+6 variable(readonly)
-  1:7 hover: kein
-  1:7 definition: kein
-  1:7 completion: n=105 list,longName,dict
-  1:7 signatureHelp: kein
-  2:9 hover: ```jul 1 ```
-  2:9 definition: destructuring.jul:2:2
-  2:9 completion: n=0 
-  2:9 signatureHelp: kein
-  4:12 hover: ```jul 1 ```
-  4:12 definition: destructuring.jul:4:9
-  4:12 completion: n=105 list,longName,dict
-  4:12 signatureHelp: kein
-  5:10 hover: ```jul 1 ```
-  5:10 definition: destructuring.jul:5:2
-  5:10 completion: n=0 
-  5:10 signatureHelp: kein
-  7:17 hover: ```jul (ElementType: Type) -> TypeOf(List(Type)) ``` data structure containing 1 or more elements of...
-  7:17 definition: jul-core-lib:/core-lib.jul:10:1
-  7:17 completion: n=108 list,longName,dict
-  7:17 signatureHelp: (ElementType: Type) -> TypeOf(List(Type)) param=0
-  8:10 hover: ```jul Or(Empty Integer) ```
-  8:10 definition: destructuring.jul:8:9
-  8:10 completion: n=0 
-  8:10 signatureHelp: kein
-  9:8 hover: ```jul Integer ```
-  9:8 definition: destructuring.jul:8:3
-  9:8 completion: n=108 list,longName,dict
-  9:8 signatureHelp: kein
-
 === fibonacci/fibonacci.jul
 symbols
   fibonacciHelper kind=12 9:1
