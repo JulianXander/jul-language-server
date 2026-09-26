@@ -666,9 +666,8 @@ symbols
     keine
 semanticTokens
   2: 2+9 variable(declaration,readonly)
-  4: 1+4 function(defaultLibrary,impure) 46+3 function(defaultLibrary) 50+5 function(defaultLibrary) 56+9 function 72+5 function(defaultLibrary) 78+9 function
-  5: 1+4 function(defaultLibrary,impure) 35+5 function(defaultLibrary) 41+9 function
-  6: 1+4 function(defaultLibrary,impure)
+  4: 46+3 function(defaultLibrary) 50+5 function(defaultLibrary) 56+9 function 72+5 function(defaultLibrary) 78+9 function
+  5: 35+5 function(defaultLibrary) 41+9 function
   8: 8+9 function(defaultLibrary) 18+3 function(defaultLibrary) 37+5 parameter(declaration,readonly) 47+9 function 57+5 parameter(readonly)
   2:20 hover: ```jul (path: Text) ~> Any ``` Supported file types: .jul .js .json .yaml
   2:20 definition: jul-core-lib:/core-lib.jul:1174:1

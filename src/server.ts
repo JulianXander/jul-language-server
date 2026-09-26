@@ -75,7 +75,7 @@ import {
 	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
-import { isDefined, isValidExtension, map } from 'jul-compiler/out/util.js';
+import { isDefined, isTestFilePath, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
 import {
 	createRenameWorkspaceEdit,
@@ -95,6 +95,7 @@ import {
 	isTypeSymbol,
 } from './completion.js';
 import { getHover, getTypeMarkdown } from './hover.js';
+import { DiscoveredTest, findTests } from './test-discovery.js';
 import {
 	findExpressionInParsedFile,
 	getRawSymbolDefinition,
@@ -357,6 +358,9 @@ const projectHost: ProjectHost = {
 	onParsed: (parsed, previous) => {
 		unregisterDependencies(parsed.filePath, previous?.dependencies);
 		registerDependencies(parsed.filePath, parsed.dependencies);
+		if (isTestFilePath(parsed.filePath)) {
+			notifyTestsChanged(parsed.filePath, findTests(parsed));
+		}
 	},
 };
 
@@ -382,6 +386,12 @@ connection.onDidChangeWatchedFiles(changeParams => {
 		.filter(path => {
 			return !!parsedDocuments[path];
 		});
+	// Eine neue Testdatei importiert niemand, ohne das Laden hier fehlte sie im Test Explorer, bis
+	// sie jemand öffnet.
+	changeParams.changes
+		.map(fileChange => uriToPath(fileChange.uri))
+		.filter(path => isTestFilePath(path) && !parsedDocuments[path])
+		.forEach(parseDocumentByPath);
 
 	// Transitiv betroffene Dateien (über dependents) VOR dem
 	// Neu-Parsen ermitteln - danach kennen wir die alten Import-Kanten nicht mehr.
@@ -399,6 +409,10 @@ connection.onDidChangeWatchedFiles(changeParams => {
 	// recalculate data
 	changedFilePaths.forEach((path) => {
 		parseDocumentByPath(path);
+		// Gelöscht: loadFile findet sie nicht mehr, onParsed kommt nicht.
+		if (isTestFilePath(path) && !parsedDocuments[path]) {
+			notifyTestsChanged(path, []);
+		}
 	});
 	transitivelyAffected.forEach(dependentPath => {
 		const dependentParsed = parsedDocuments[dependentPath];
@@ -900,6 +914,12 @@ connection.languages.semanticTokens.on(params => {
 	return builder.build();
 });
 
+/**
+ * Funktionen mit Sonderverhalten, die nur direkt aufgerufen werden dürfen und deshalb wie ein
+ * Keyword gefärbt werden, über die Grammatik statt über Semantic Tokens.
+ */
+const keywordFunctionNames = ['import', 'test'];
+
 function collectSemanticTokens(
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
@@ -931,10 +951,11 @@ function addSemanticToken(
 				|| (isTypeOfType(referencedType) && referencedType.value.julType === 'booleanLiteral')) {
 				return;
 			}
-			// import bekommt ebenfalls keinen Semantic Token: es ist nur als direkter Aufruf
-			// unterstützt (JUL3040), soll also wie ein Keyword gefärbt werden (Grammatik-Scope
-			// keyword.control.import.jul), nicht wie eine eingebaute Funktion/Variable.
-			if (expression.name.name === 'import') {
+			// import und test bekommen ebenfalls keinen Semantic Token: beide sind nur als direkter
+			// Aufruf erlaubt (JUL3040, JUL2704), sollen also wie ein Keyword gefärbt werden
+			// (Grammatik-Scopes keyword.control.import.jul/keyword.control.test.jul), nicht wie eine
+			// eingebaute Funktion/Variable.
+			if (keywordFunctionNames.includes(expression.name.name)) {
 				return;
 			}
 			const found = findSymbolInScopesWithBuiltIns(expression.name.name, scopes);
@@ -946,9 +967,9 @@ function addSemanticToken(
 			return;
 		}
 		case 'definition': {
-			// Die Deklarationen von import/true/false in core-lib.jul bekommen ebenfalls keinen
+			// Die Deklarationen von import/test/true/false in core-lib.jul bekommen ebenfalls keinen
 			// Semantic Token, aus demselben Grund wie an der jeweiligen Referenzstelle oben.
-			if (expression.name.name === 'import') {
+			if (keywordFunctionNames.includes(expression.name.name)) {
 				return;
 			}
 			const definedType = expression.typeInfo?.type;
@@ -1105,6 +1126,36 @@ function isBinding(tokenType: SemanticTokenType): boolean {
 	}
 }
 //#endregion semantic tokens
+
+//#region tests
+/**
+ * Zuletzt an den Client gemeldete Tests je Testdatei, als JSON. Beim Tippen wird jede Änderung neu
+ * geparst, gemeldet wird nur, was sich an den Tests geändert hat.
+ */
+const sentTests = new Map<string, string>();
+
+function notifyTestsChanged(filePath: string, tests: DiscoveredTest[]): void {
+	const testsJson = JSON.stringify(tests);
+	if (sentTests.get(filePath) === testsJson) {
+		return;
+	}
+	sentTests.set(filePath, testsJson);
+	connection.sendNotification('jul/testsChanged', { uri: pathToUri(filePath), tests: tests });
+}
+
+/**
+ * Alle Tests des Workspace für den Test Explorer (siehe test-explorer.ts der Extension). Danach
+ * kommen Änderungen über jul/testsChanged.
+ */
+connection.onRequest('jul/tests', () =>
+	Object.values(parsedDocuments)
+		.filter(parsed => isTestFilePath(parsed.filePath))
+		.map(parsed => {
+			const tests = findTests(parsed);
+			sentTests.set(parsed.filePath, JSON.stringify(tests));
+			return { uri: pathToUri(parsed.filePath), tests: tests };
+		}));
+//#endregion tests
 
 //#region go to definition
 // Go to definition auf builtIns führt in die core-lib. Statt die kompilierte Kopie in out/
