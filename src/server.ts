@@ -18,7 +18,6 @@ import {
 	InitializeParams,
 	InitializeResult,
 	Location,
-	MarkupContent,
 	ParameterInformation,
 	ProposedFeatures,
 	Range,
@@ -42,7 +41,7 @@ import {
 	isImportFunctionCall,
 } from 'jul-compiler/out/parser/parser.js';
 import { loadFile, ProjectHost } from 'jul-compiler/out/project-loader.js';
-import { getCheckedEscapableName, isExportedSymbol } from 'jul-compiler/out/parser/parser-utils.js';
+import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
 	CompileTimeType,
@@ -51,7 +50,6 @@ import {
 	ImportedDependency,
 	PositionedExpression,
 	Parameter,
-	ParseDestructuringField,
 	ParseDestructuringFields,
 	ParsedFile,
 	ParseFunctionCall,
@@ -62,7 +60,6 @@ import {
 	TypeInfo,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
-	resolvePlaceholders,
 	builtInSymbols,
 	checkTypes,
 	findSymbolInScopesWithBuiltIns,
@@ -76,7 +73,7 @@ import {
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
-import { ReferenceIndex, getFieldSymbolsFromDictionaryType, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
+import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
 import {
@@ -96,9 +93,15 @@ import {
 	getInfixFunctionCall,
 	isTypeSymbol,
 } from './completion.js';
+import { getHover, getTypeMarkdown } from './hover.js';
+import {
+	findExpressionInParsedFile,
+	getRawSymbolDefinition,
+	getSymbolDefinition,
+	pushScope,
+} from './symbol-lookup.js';
 import {
 	getDeclaredResolvedType,
-	getDeclaredType,
 	getParameterIndex,
 	getResolvedType,
 	pathToUri,
@@ -1124,7 +1127,7 @@ connection.onDefinition((definitionParams) => {
 	}
 	//#endregion go to imported file
 
-	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
+	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
 	const typeFields = foundSymbol
 		&& !foundSymbol.isBuiltIn
 		&& getFieldAccessTypeFields(
@@ -1158,29 +1161,9 @@ connection.onHover((hoverParams) => {
 	if (!parsed) {
 		return;
 	}
-	const { expression, scopes } = findExpressionInParsedFile(parsed, hoverParams.position.line, hoverParams.position.character);
-	if (!expression) {
-		return;
-	}
-
-	const documentPath = uriToPath(documentUri);
-	const folderPath = dirname(documentPath);
-	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
-	if (foundSymbol) {
-		const symbol = foundSymbol.symbol;
-		// Der Typ gehört der Stelle, nicht dem Namen: in einem branch ist er hier verengt.
-		// Die Beschreibung steht dagegen nur an der Definition.
-		return {
-			contents: getTypeMarkdown(('typeInfo' in expression && expression.typeInfo) || symbol.typeInfo, symbol.description),
-		};
-	}
-
-	const declaredType = getDeclaredType(expression);
-	if (declaredType) {
-		return {
-			contents: getTypeMarkdown(declaredType, undefined),
-		};
-	}
+	const folderPath = dirname(uriToPath(documentUri));
+	const contents = getHover(parsed, hoverParams.position.line, hoverParams.position.character, folderPath, parsedDocuments);
+	return contents && { contents: contents };
 });
 //#endregion hover
 
@@ -1198,7 +1181,7 @@ connection.onPrepareRename(prepareRenameParams => {
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath);
+	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
@@ -1245,7 +1228,7 @@ function resolveCanonicalRenameTarget(
 		// landet er beim Typfeld.
 		return resolveImportBinding(field, documentPath, parsedDocuments) ?? local;
 	}
-	const raw = getRawSymbolDefinition(expression, scopes, folderPath);
+	const raw = getRawSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
 	if (!raw || raw.isBuiltIn) {
 		return undefined;
 	}
@@ -1580,319 +1563,9 @@ connection.listen();
 
 //#region helper
 
-//#region findExpression
-
-/**
- * Liefert auch scopes
- */
-function findExpressionInParsedFile(
-	parsedFile: ParsedFile,
-	rowIndex: number,
-	columnIndex: number,
-): {
-	expression: PositionedExpression | undefined;
-	scopes: SymbolTable[];
-} {
-	const parsed2 = parsedFile.checked!;
-	const scopes: SymbolTable[] = [
-		parsed2.symbols,
-	];
-	const expressions = parsed2.expressions;
-	const expression = expressions && findExpressionInExpressions(
-		expressions,
-		rowIndex,
-		columnIndex,
-		scopes);
-	return {
-		expression: expression,
-		scopes: scopes,
-	};
-}
-
-/**
- * Füllt scopes
- */
-function findExpressionInExpressions(
-	expressions: PositionedExpression[],
-	rowIndex: number,
-	columnIndex: number,
-	scopes: SymbolTable[],
-): PositionedExpression | undefined {
-	const foundOuter = expressions.find(expression => {
-		return isPositionInRange(rowIndex, columnIndex, expression);
-	});
-	if (!foundOuter) {
-		return undefined;
-	}
-	const foundInner = findExpressionInExpression(foundOuter, rowIndex, columnIndex, scopes);
-	return foundInner;
-}
-
-/**
- * Füllt scopes
- * Gibt die gegebene expression zurück, falls keine passende innere expression gefunden wurde.
- */
-function findExpressionInExpression(
-	expression: PositionedExpression,
-	rowIndex: number,
-	columnIndex: number,
-	scopes: SymbolTable[],
-): PositionedExpression {
-	pushScope(expression, scopes);
-	const found = forEachChild(expression, child =>
-		isPositionInRange(rowIndex, columnIndex, child)
-			? findExpressionInExpression(child, rowIndex, columnIndex, scopes)
-			: undefined);
-	return found ?? expression;
-}
-
-/** Nur diese beiden bringen einen eigenen Scope mit. */
-function pushScope(expression: PositionedExpression, scopes: SymbolTable[]): boolean {
-	switch (expression.type) {
-		case 'functionLiteral':
-		case 'functionTypeLiteral':
-			scopes.push(expression.symbols);
-			return true;
-		default:
-			return false;
-	}
-}
-
-function isPositionInRange(
-	rowIndex: number,
-	columnIndex: number,
-	range: Positioned,
-): boolean {
-	return (range.startRowIndex < rowIndex
-		|| (range.startRowIndex === rowIndex && range.startColumnIndex <= columnIndex))
-		&& (range.endRowIndex > rowIndex
-			|| (range.endRowIndex === rowIndex && range.endColumnIndex >= columnIndex));
-}
-
-//#endregion findExpression
-
 // Rename/Find-All-References laufen über den ReferenceIndex (siehe oben, Region "rename"/
 // "references") statt über eine Textsuche pro Datei - der Index kennt die tatsächlich aufgelösten
 // Bindungen (inkl. Scope/Shadowing/Cross-File), eine Textsuche wäre hier nur eine Annäherung.
-
-//#region get Symbol
-
-interface SymbolInfo {
-	isBuiltIn: boolean;
-	symbol: SymbolDefinition;
-	name: string;
-	/**
-	 * undefined, wenn Symbol in gleicher Datei gefunden
-	 * Leerstring, wenn builtin.
-	 */
-	filePath?: string;
-}
-
-/**
- * Löst den Ausdruck auf das lokal gebundene Symbol auf, ohne durch Importe hindurchzufolgen.
- * Für Go-to-Definition/Hover wird das Ergebnis über `resolveThroughImports` weitergereicht
- * (siehe `getSymbolDefinition`); Rename/Find-All-References brauchen dagegen genau diese
- * ungefolgte, lokale Bindung, um sie alias-bewusst über `resolveCanonicalSymbol` (jul-compiler)
- * aufzulösen - ein Alias darf dort nicht wie beim Go-to-Definition blind mitgezogen werden.
- */
-function getRawSymbolDefinition(
-	expression: PositionedExpression,
-	scopes: SymbolTable[],
-	folderPath: string,
-): SymbolInfo | undefined {
-	switch (expression.type) {
-		case 'reference': {
-			const name = expression.name.name;
-			const definition = findSymbolInScopesWithBuiltIns(name, scopes);
-			return definition && {
-				...definition,
-				name: name,
-			};
-		}
-		case 'definition': {
-			// TODO GoToDefinition: bei import: go to source file symbol?
-			// create dictionary type mit allen definitions?
-			return undefined;
-		}
-		case 'destructuring': {
-			// TODO stattdessen bei name case, destrucuring als parent expression?
-			// TODO GoToDefinition: bei import: go to source file symbol
-			// if (isImport(expression.value)) {
-			// 	const importedPath = getPathFromImport(expression.value);
-			// 	const importedFile = parsedDocuments[importedPath];
-			// 	const importedSymbol = importedFile?.symbols[expression.fields];
-			// }
-			return undefined;
-		}
-		case 'name': {
-			const parent = expression.parent;
-			const name = expression.name;
-			switch (parent?.type) {
-				case 'destructuringField': {
-					const importedSymbol = getImportedSymbol(parent, folderPath);
-					if (importedSymbol) {
-						return importedSymbol.symbol && {
-							name: name,
-							isBuiltIn: false,
-							symbol: importedSymbol.symbol,
-							filePath: importedSymbol.filePath,
-						};
-					}
-					// Kein Import: der lokale Name bindet selbst, wie bei einer normalen Definition.
-					// Den Typ trägt das Symbol im Scope, nicht das in destructuringFields.symbols.
-					if (expression !== parent.name) {
-						return undefined;
-					}
-					const definition = findSymbolInScopesWithBuiltIns(name, scopes);
-					return definition && {
-						...definition,
-						name: name,
-					};
-				}
-				case 'nestedReference': {
-					const declaredSourceType = getDeclaredType(parent.source);
-					const sourceType = getResolvedType(declaredSourceType ?? parent.source.typeInfo);
-					const foundSymbol = sourceType && getSymbolFromDictionaryType(sourceType, name);
-					return foundSymbol;
-				}
-				case 'singleDictionaryField':
-				case 'singleDictionaryTypeField': {
-					const declaredParentType = getDeclaredResolvedType(parent.parent!);
-					const foundSymbol = declaredParentType && getSymbolFromDictionaryType(declaredParentType, name);
-					return foundSymbol;
-				}
-				default: {
-					const definition = findSymbolInScopesWithBuiltIns(name, scopes);
-					return definition && {
-						...definition,
-						name: name,
-					};
-				}
-			}
-		}
-		case 'binding':
-		case 'data':
-		case 'branching':
-		case 'typeBranching':
-		case 'destructuringField':
-		case 'destructuringFields':
-		case 'dictionary':
-		case 'dictionaryType':
-		case 'empty':
-		case 'field':
-		case 'float':
-		case 'fraction':
-		case 'functionCall':
-		case 'functionLiteral':
-		case 'functionTypeLiteral':
-		case 'index':
-		case 'integer':
-		case 'list':
-		case 'nestedReference':
-		case 'object':
-		case 'parameter':
-		case 'parameters':
-		case 'singleDictionaryField':
-		case 'singleDictionaryTypeField':
-		case 'spread':
-		case 'text':
-			return undefined;
-		default: {
-			const assertNever: never = expression;
-			throw new Error(`Unexpected expression.type: ${(assertNever as PositionedExpression).type}`);
-		}
-	}
-}
-
-/**
- * Für Go-to-Definition/Hover: wie `getRawSymbolDefinition`, folgt aber zusätzlich durch Importe
- * (auch Aliase) bis zur tatsächlichen Deklaration durch, siehe `resolveThroughImports`.
- */
-function getSymbolDefinition(
-	expression: PositionedExpression,
-	scopes: SymbolTable[],
-	folderPath: string,
-): SymbolInfo | undefined {
-	const raw = getRawSymbolDefinition(expression, scopes, folderPath);
-	if (!raw) {
-		return undefined;
-	}
-	const rawFolderPath = raw.filePath
-		? dirname(raw.filePath)
-		: folderPath;
-	return resolveThroughImports(raw, rawFolderPath);
-}
-
-function getSymbolFromDictionaryType(
-	dictionaryType: CompileTimeType,
-	name: string,
-): SymbolInfo | undefined {
-	// TODO bei Union: Liste aller Treffer liefern statt nur des ersten?
-	const found = getFieldSymbolsFromDictionaryType(dictionaryType, name)[0];
-	return found && {
-		name: name,
-		isBuiltIn: found.filePath === '',
-		symbol: found.symbol,
-		filePath: found.filePath,
-	};
-}
-
-function getImportedSymbol(
-	destructuringField: ParseDestructuringField,
-	folderPath: string,
-): {
-	symbol: SymbolDefinition | undefined;
-	filePath: string;
-} | undefined {
-	if (destructuringField.parent?.type === 'destructuringFields') {
-		const destructuring = destructuringField.parent.parent;
-		if (destructuring?.type === 'destructuring'
-			&& destructuring.value
-			&& isImportFunctionCall(destructuring.value)) {
-			const { fullPath, error } = getPathFromImport(destructuring.value, folderPath);
-			if (error) {
-				connection.console.log(error.message);
-				return;
-			}
-			if (!fullPath) {
-				return;
-			}
-			const importedDocument = parsedDocuments[fullPath];
-			if (importedDocument) {
-				const symbolName = destructuringField.source ?? destructuringField.name;
-				const impordedExpressions = importedDocument.checked ?? importedDocument.unchecked;
-				const importedSymbol = impordedExpressions.symbols[symbolName.name];
-				return {
-					symbol: importedSymbol && isExportedSymbol(importedSymbol)
-						? importedSymbol
-						: undefined,
-					filePath: fullPath,
-				};
-			}
-		}
-	}
-}
-
-// Löst Verweise auf importierte Symbole direkt bis zur tatsächlichen Deklaration auf, statt an der
-// lokalen Import-Zeile stehen zu bleiben. Ein Hop genügt, exportiert werden nur Definitionen.
-function resolveThroughImports(symbolInfo: SymbolInfo, folderPath: string): SymbolInfo {
-	const definition = symbolInfo.symbol.definition;
-	if (definition?.type !== 'destructuringField') {
-		return symbolInfo;
-	}
-	const imported = getImportedSymbol(definition, folderPath);
-	if (!imported?.symbol) {
-		return symbolInfo;
-	}
-	return {
-		name: symbolInfo.name,
-		isBuiltIn: false,
-		symbol: imported.symbol,
-		filePath: imported.filePath,
-	};
-}
-
-//#endregion get Symbol
 
 /**
  * Ermittelt den Index des Parameters, für den das Argument ist, das an der Position liegt.
@@ -1941,22 +1614,6 @@ function tryReadTextFile(path: string): string | undefined {
 		console.error(error);
 		return undefined;
 	}
-}
-
-function getTypeMarkdown(
-	type: TypeInfo | undefined,
-	description: string | undefined,
-): MarkupContent {
-	const typeString = type
-		? `\`\`\`jul
-${typeToString(resolvePlaceholders(type.type), 0, 0)}
-\`\`\`
-`
-		: '';
-	return {
-		kind: 'markdown',
-		value: typeString + (description ?? ''),
-	};
 }
 
 //#endregion helper
