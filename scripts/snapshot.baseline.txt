@@ -682,22 +682,22 @@ semanticTokens
   5:30 definition: kein
   5:30 completion: n=0 
   5:30 signatureHelp: kein
-  6:3 hover: ```jul ( message: Text callback: () :> Boolean ) ~> Empty ``` Registriert einen Test, den `jul --tes...
+  6:3 hover: ```jul ( name: Text callback: () :> Boolean ) ~> Empty ``` Registriert einen Test, den `jul test` au...
   6:3 definition: jul-core-lib:/core-lib.jul:1189:1
   6:3 completion: n=101 fibonacci,true,false
-  6:3 signatureHelp: ( message: Text callback: () :> Boolean ) ~> Empty param=0
+  6:3 signatureHelp: ( name: Text callback: () :> Boolean ) ~> Empty param=0
   7:22 hover: ```jul Text ```
   7:22 definition: kein
-  7:22 completion: n=2 message,callback
+  7:22 completion: n=2 name,callback
   7:22 signatureHelp: kein
   8:40 hover: ```jul Or( 1 2 3 4 5 6 ) ```
   8:40 definition: fibonacci/fibonacci.test.jul:8:37
   8:40 completion: n=102 fibonacci,value,true
   8:40 signatureHelp: kein
-  9:1 hover: ```jul ( message: Text callback: () :> Boolean ) ```
+  9:1 hover: ```jul ( name: Text callback: () :> Boolean ) ```
   9:1 definition: kein
-  9:1 completion: n=2 message,callback
-  9:1 signatureHelp: ( message: Text callback: () :> Boolean ) ~> Empty param=0
+  9:1 completion: n=2 name,callback
+  9:1 signatureHelp: ( name: Text callback: () :> Boolean ) ~> Empty param=0
 
 === fizz-buzz/fizz-buzz-recursive.jul
 symbols
@@ -1274,7 +1274,7 @@ semanticTokens
   35:21 definition: jul-core-lib:/core-lib.jul:1174:1
   35:21 completion: n=110 valueImport,file2,someText
   35:21 signatureHelp: (path: Text) ~> Any param=0
-  36:11 hover: ```jul [ test: §hello ts§ test2: 4f testfn1: (par1: Text) :> Any testfn2: (par1: Text) :> Any ] ``` ...
+  36:11 hover: ```jul [ greeting: §hello ts§ test2: 4f testfn1: (par1: Text) :> Any testfn2: (par1: Text) :> Any ] ...
   36:11 definition: import/import.jul:35:1
   36:11 completion: n=0 
   36:11 signatureHelp: kein
@@ -1282,7 +1282,7 @@ semanticTokens
   39:21 definition: jul-core-lib:/core-lib.jul:1174:1
   39:21 completion: n=110 valueImport,file2,someText
   39:21 signatureHelp: (path: Text) ~> Any param=0
-  40:11 hover: ```jul [ testfn1: (par1: Any) :> Any testfn2: (par1: Any) :> Any test: §hello js§ test2: 4f ] ``` ja...
+  40:11 hover: ```jul [ testfn1: (par1: Any) :> Any testfn2: (par1: Any) :> Any greeting: §hello js§ test2: 4f ] ``...
   40:11 definition: import/import.jul:39:1
   40:11 completion: n=0 
   40:11 signatureHelp: kein
