@@ -60,7 +60,6 @@ import {
 	builtInSymbols,
 	checkTypes,
 	findSymbolInScopesWithBuiltIns,
-	getStreamGetValueType,
 	isDictionaryLiteralType,
 	isFunctionType,
 	isParameterReference,
@@ -81,6 +80,7 @@ import {
 } from './references.js';
 import {
 	dictionaryTypeToCompletionItems,
+	getFieldReferenceCompletionItems,
 	getArgumentPositionKind,
 	getCompletionSortText,
 	getDictionaryLiteralFieldCompletionItems,
@@ -563,7 +563,7 @@ connection.onCompletion(completionParams => {
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
 		const dereferencedType = getResolvedType(expression.source?.typeInfo);
-		return dereferencedType && getNestedReferenceCompletionItems(dereferencedType);
+		return dereferencedType && getFieldReferenceCompletionItems(dereferencedType);
 	}
 	//#endregion / field reference
 
@@ -654,63 +654,6 @@ function parameterToCompletionItem(parameter: Parameter, index: number, isRest: 
 		sortText: '' + index,
 	};
 	return completionItem;
-}
-
-function getNestedReferenceCompletionItems(dereferencedType: CompileTimeType): CompletionItem[] {
-	switch (dereferencedType.julType) {
-		case 'dictionaryLiteral':
-			return dictionaryTypeToCompletionItems(dereferencedType.Fields);
-		case 'function':
-			return functionTypeToCompletionItems(dereferencedType);
-		case 'or': {
-			const completionItems = dereferencedType.ChoiceTypes.flatMap(choiceType => getNestedReferenceCompletionItems(choiceType));
-			return completionItems;
-		}
-		case 'stream': {
-			const getValueType = getStreamGetValueType(dereferencedType);
-			return [
-				{
-					label: 'getValue',
-					kind: CompletionItemKind.Function,
-					detail: typeToString(getValueType, 0, 0),
-				},
-				// TODO? nur bei TypeOf(Stream)
-				{
-					label: 'ValueType',
-					kind: CompletionItemKind.Constant,
-					detail: typeToString(dereferencedType.ValueType, 0, 0),
-				},
-			];
-		}
-		default:
-			return [];
-	}
-}
-
-function functionTypeToCompletionItems(functionType: CompileTimeType | undefined): CompletionItem[] {
-	// TODO ParamsType, ReturnType stattdessen als symbols?
-	let paramsType: CompileTimeType | undefined;
-	let returnType: CompileTimeType | undefined;
-	if (isFunctionType(functionType)) {
-		returnType = functionType.ReturnType;
-		paramsType = functionType.ParamsType;
-	}
-	return [
-		{
-			label: 'ParamsType',
-			kind: CompletionItemKind.Constant,
-			detail: paramsType
-				? typeToString(paramsType, 0, 0)
-				: undefined,
-		},
-		{
-			label: 'ReturnType',
-			kind: CompletionItemKind.Constant,
-			detail: returnType
-				? typeToString(returnType, 0, 0)
-				: undefined,
-		},
-	];
 }
 
 function textLiteralTypeToCompletionItem(value: TextLiteralType): CompletionItem {

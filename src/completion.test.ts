@@ -5,7 +5,7 @@ import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { ParsedFile, ParseFunctionCall } from 'jul-compiler/out/syntax-tree.js';
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
-import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getDictionaryLiteralFieldCompletionItems, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -370,5 +370,40 @@ decks.
 		}
 		expect(functionCall.functionExpression).to.equal(undefined);
 		expect(getInfixFunctionCall(functionCall)).to.equal(functionCall);
+	});
+});
+
+describe('getFieldReferenceCompletionItems', () => {
+	// Was nach x/ angeboten wird, für das Symbol name aus code.
+	function fieldReferenceItems(code: string, name: string): { label: string; detail?: string; }[] {
+		const parsed = parse(code);
+		const type = getResolvedType(parsed.checked!.symbols[name]!.typeInfo);
+		return (type ? getFieldReferenceCompletionItems(type) : [])
+			.map(item => ({ label: item.label, detail: item.detail }));
+	}
+
+	// Typeigenschaften gibt es nur über einen Typwert, ein Stream-Wert hat nur getValue.
+	it('bietet bei einem Stream-Wert nur getValue an', () => {
+		expect(fieldReferenceItems('s$ = create$(Integer 1)', 's$').map(item => item.label))
+			.to.deep.equal(['getValue']);
+	});
+
+	it('bietet bei einem Funktionswert nichts an', () => {
+		expect(fieldReferenceItems('f = (q: Integer) => §a§', 'f')).to.deep.equal([]);
+	});
+
+	it('bietet bei einem Stream-Typ ValueType als Typwert an', () => {
+		expect(fieldReferenceItems('S = Stream(Integer)', 'S'))
+			.to.deep.equal([{ label: 'ValueType', detail: 'TypeOf(Integer)' }]);
+	});
+
+	it('bietet bei einem List-Typ ElementType als Typwert an', () => {
+		expect(fieldReferenceItems('L = List(Integer)', 'L'))
+			.to.deep.equal([{ label: 'ElementType', detail: 'TypeOf(Integer)' }]);
+	});
+
+	it('bietet bei einem Funktionstyp ParamsType und ReturnType als Typwerte an', () => {
+		expect(fieldReferenceItems('F = (q: Integer) :> Text', 'F').map(item => item.label))
+			.to.deep.equal(['ParamsType', 'ReturnType']);
 	});
 });

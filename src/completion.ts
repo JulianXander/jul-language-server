@@ -1,5 +1,7 @@
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import {
+	dereferenceNameFromObject,
+	getStreamGetValueType,
 	getTypeError,
 	isFunctionType,
 	isListType,
@@ -338,4 +340,58 @@ export function dictionaryTypeToCompletionItems(
 			};
 			return completionItem;
 		});
+}
+
+/**
+ * Was nach `x/` angeboten wird, abhängig vom Typ von x: die Felder eines Werts, bei einem Typwert
+ * dessen Typeigenschaften.
+ */
+export function getFieldReferenceCompletionItems(dereferencedType: CompileTimeType): CompletionItem[] {
+	switch (dereferencedType.julType) {
+		case 'dictionaryLiteral':
+			return dictionaryTypeToCompletionItems(dereferencedType.Fields);
+		case 'or':
+			return dereferencedType.ChoiceTypes.flatMap(getFieldReferenceCompletionItems);
+		case 'stream':
+			return [
+				{
+					label: 'getValue',
+					kind: CompletionItemKind.Function,
+					detail: typeToString(getStreamGetValueType(dereferencedType), 0, 0),
+				},
+			];
+		case 'typeOf':
+			return getTypePropertyNames(resolveAlias(dereferencedType.value)).map(name => {
+				const propertyType = dereferenceNameFromObject(name, dereferencedType);
+				return {
+					label: name,
+					kind: CompletionItemKind.Constant,
+					detail: propertyType && typeToString(propertyType, 0, 0),
+				};
+			});
+		default:
+			return [];
+	}
+}
+
+/**
+ * Die Eigenschaften, die ein Typwert dieser Art hat (`List(Integer)/ElementType`).
+ */
+function getTypePropertyNames(type: CompileTimeType): string[] {
+	switch (type.julType) {
+		case 'dictionary':
+		case 'list':
+		case 'tuple':
+			return ['ElementType'];
+		case 'dictionaryLiteral':
+			return Object.keys(type.Fields);
+		case 'function':
+			return ['ParamsType', 'ReturnType'];
+		case 'parameters':
+			return type.singleNames.map(parameter => parameter.name);
+		case 'stream':
+			return ['ValueType'];
+		default:
+			return [];
+	}
 }
