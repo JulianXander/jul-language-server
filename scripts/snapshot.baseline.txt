@@ -1528,7 +1528,7 @@ semanticTokens
   13:24 definition: stream.jul:1:1
   13:24 completion: n=0 
   13:24 signatureHelp: kein
-  14:27 hover: ```jul (value: Or(Empty List(Or(Float Integer)))) :> Any ```
+  14:27 hover: ```jul (value: [Float Integer Integer]) :> Any ```
   14:27 definition: kein
   14:27 completion: n=2 stream$,listener
   14:27 signatureHelp: kein
@@ -2646,15 +2646,15 @@ semanticTokens
   30:1 definition: kein
   30:1 completion: n=2 stream$,listener
   30:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
-  34:6 hover: ```jul Or(Empty List(Or(Text Boolean Empty Integer))) ```
+  34:6 hover: ```jul [Text Or(Empty Integer) Boolean] ```
   34:6 definition: ui/dynamic-form/dynamic-form.jul:34:3
   34:6 completion: n=121 elementById,integerValue,isChecked
   34:6 signatureHelp: kein
-  36:2 hover: ```jul (value: Or(Empty List(Or(Text Boolean Empty Integer)))) :> Any ```
+  36:2 hover: ```jul (value: [Text Or(Empty Integer) Boolean]) :> Any ```
   36:2 definition: kein
   36:2 completion: n=2 source$,transform$
   36:2 signatureHelp: kein
-  38:12 hover: ```jul Or(Empty Text Boolean Integer) ```
+  38:12 hover: ```jul Boolean ```
   38:12 definition: ui/dynamic-form/dynamic-form.jul:35:13
   38:12 completion: n=121 elementById,integerValue,isChecked
   38:12 signatureHelp: kein
@@ -2738,10 +2738,10 @@ semanticTokens
   4:13 definition: ui/dynamic-form/dynamic-form2.jul:1:34
   4:13 completion: n=115 body,stackPanel,label
   4:13 signatureHelp: Any param=0
-  6:9 hover: ```jul (...sources: Or(Empty List(Stream(Any)))) ~> Stream(Or(Empty List(Any))) ``` Wie RxJS combine...
-  6:9 definition: jul-core-lib:/core-lib.jul:1172:1
+  6:9 hover: ```jul (...sources: Or(Empty List(Stream(Any)))) ~> Stream(List(Any)) ``` Wie RxJS combineLatest Lie...
+  6:9 definition: jul-core-lib:/core-lib.jul:1173:1
   6:9 completion: n=115 body,stackPanel,label
-  6:9 signatureHelp: (...sources: Or(Empty List(Stream(Any)))) ~> Stream(Or(Empty List(Any))) param=0
+  6:9 signatureHelp: (...sources: Or(Empty List(Stream(Any)))) ~> Stream(List(Any)) param=0
   8:12 hover: ```jul Any ```
   8:12 definition: ui/dynamic-form/dynamic-form2.jul:4:1
   8:12 completion: n=115 body,stackPanel,label
@@ -2749,7 +2749,7 @@ semanticTokens
   10:1 hover: ```jul (...sources: Or(Empty List(Stream(Any)))) ```
   10:1 definition: kein
   10:1 completion: n=0 
-  10:1 signatureHelp: (...sources: Or(Empty List(Stream(Any)))) ~> Stream(Or(Empty List(Any))) param=0
+  10:1 signatureHelp: (...sources: Or(Empty List(Stream(Any)))) ~> Stream(List(Any)) param=0
   13:7 hover: ```jul Any ```
   13:7 definition: ui/dynamic-form/dynamic-form2.jul:1:7
   13:7 completion: n=115 body,stackPanel,label
