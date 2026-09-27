@@ -123,6 +123,16 @@ describe('hover', () => {
 		expect(hoverAt(code)).to.match(/transform\$: \(value: Integer\) :> §text§/);
 	});
 
+	it('die Selbstanwendung einer rekursiven Typfunktion zeigt sich mit ihrem Argument', () => {
+		const code = [
+			'Tree = (T: Type) => [value: T children: Or([] List(Tree(T)))]',
+			'f = (tree: Tree(Integer)) =>',
+			'	tr¦ee',
+			'',
+		].join('\n');
+		expect(hoverAt(code)).to.match(/children: Or\(Empty List\(Tree\(Integer\)\)\)/);
+	});
+
 	it('bei einem falschen Argument bleibt der Parameter, auf den verwiesen wird, deklariert', () => {
 		const code = [
 			'§text§.pu¦sh(1)',
