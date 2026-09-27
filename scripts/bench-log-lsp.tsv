@@ -147,3 +147,27 @@
 2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.13	0.30	feldreferenzen, wiederholt ohne fremde last
 2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	documentSymbol	3	3.59	4.39	4.39	feldreferenzen, wiederholt ohne fremde last
 2026-09-25 08:48:52	ac31f73+	jul-compiler 600ec3f+	ADV-DEV-56627	yugioh	semanticTokens	3	3.63	5.21	5.21	feldreferenzen, wiederholt ohne fremde last
+2026-09-27 10:04:49	2a29468	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	11	49.88	396.29	396.29	vor aufgeschobenem Aufruf im Rueckgabetyp
+2026-09-27 10:04:49	2a29468	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	156.93	187.13	187.13	vor aufgeschobenem Aufruf im Rueckgabetyp
+2026-09-27 10:04:49	2a29468	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	hover	564	0.10	0.26	48.21	vor aufgeschobenem Aufruf im Rueckgabetyp
+2026-09-27 10:04:49	2a29468	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	definition	564	0.06	0.12	0.59	vor aufgeschobenem Aufruf im Rueckgabetyp
+2026-09-27 10:04:49	2a29468	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	completion	564	1.48	2.35	5.78	vor aufgeschobenem Aufruf im Rueckgabetyp
+2026-09-27 10:04:49	2a29468	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.11	0.26	vor aufgeschobenem Aufruf im Rueckgabetyp
+2026-09-27 10:04:49	2a29468	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	documentSymbol	3	3.65	4.87	4.87	vor aufgeschobenem Aufruf im Rueckgabetyp
+2026-09-27 10:04:49	2a29468	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	semanticTokens	3	3.78	5.22	5.22	vor aufgeschobenem Aufruf im Rueckgabetyp
+2026-09-27 10:21:23	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	11	50.48	381.68	381.68	aufgeschobener Aufruf im Rueckgabetyp
+2026-09-27 10:21:23	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	153.27	169.86	169.86	aufgeschobener Aufruf im Rueckgabetyp
+2026-09-27 10:21:23	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	hover	564	0.09	0.25	44.42	aufgeschobener Aufruf im Rueckgabetyp
+2026-09-27 10:21:23	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	definition	564	0.06	0.10	0.27	aufgeschobener Aufruf im Rueckgabetyp
+2026-09-27 10:21:23	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	completion	564	1.50	2.30	5.51	aufgeschobener Aufruf im Rueckgabetyp
+2026-09-27 10:21:23	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.09	0.25	aufgeschobener Aufruf im Rueckgabetyp
+2026-09-27 10:21:23	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	documentSymbol	3	4.15	4.74	4.74	aufgeschobener Aufruf im Rueckgabetyp
+2026-09-27 10:21:23	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	semanticTokens	3	4.31	4.83	4.83	aufgeschobener Aufruf im Rueckgabetyp
+2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	11	50.02	371.91	371.91	Add als Typfunktion fuer add
+2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	149.52	164.17	164.17	Add als Typfunktion fuer add
+2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	hover	564	0.09	0.24	47.95	Add als Typfunktion fuer add
+2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	definition	564	0.06	0.10	0.26	Add als Typfunktion fuer add
+2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	completion	564	1.46	2.21	5.93	Add als Typfunktion fuer add
+2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.09	0.22	Add als Typfunktion fuer add
+2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	documentSymbol	3	3.45	4.04	4.04	Add als Typfunktion fuer add
+2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	semanticTokens	3	3.33	5.03	5.03	Add als Typfunktion fuer add
