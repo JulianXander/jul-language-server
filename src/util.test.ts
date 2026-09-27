@@ -39,7 +39,10 @@ describe('getParameterIndex', () => {
 describe('getPrefixArgumentDeclaredType', () => {
 	it('liefert den deklarierten Typ des ersten Parameters für das prefixArgument eines Infix-Aufrufs', () => {
 		const path = 'prefix-argument.test.jul';
-		const code = 'a: Integer = 1\nf = (b: Integer) :> Integer => b\na.f()\n';
+		const code = `a: Integer = 1
+f = (b: Integer) :> Integer => b
+a.f()
+`;
 		const parsed = parseCode(code, path);
 		const documents: ParsedDocuments = { [path]: parsed };
 		checkTypes(parsed, documents, { cloneUnchecked: true, referenceIndex: new ReferenceIndex() });

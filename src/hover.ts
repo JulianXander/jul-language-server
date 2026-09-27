@@ -29,9 +29,13 @@ export function getHover(
 			: undefined;
 		// Der Typ gehört der Stelle, nicht dem Namen: in einem branch ist er hier verengt.
 		// Die Beschreibung steht dagegen nur an der Definition.
+		// Ein Feld im Zugriff zeigt den Typ des Zugriffs, nicht den der Felddeklaration: Hinter
+		// einer womöglich leeren Quelle kommt Empty hinzu.
 		const typeInfo = calledFunctionType
 			? { type: calledFunctionType }
-			: ('typeInfo' in expression && expression.typeInfo) || symbol.typeInfo;
+			: ('typeInfo' in expression && expression.typeInfo)
+			|| (parent?.type === 'nestedReference' && getDeclaredType(expression))
+			|| symbol.typeInfo;
 		return getTypeMarkdown(typeInfo, symbol.description);
 	}
 

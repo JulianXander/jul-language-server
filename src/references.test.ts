@@ -59,16 +59,14 @@ function describeEdits(edits: RenameEdit[]): string[] {
 		.sort();
 }
 
-const fieldCode = [
-	'MyType = [',
-	'	name: Text',
-	']',
-	'a: MyType = [name = §a§]',
-	'e = a/name',
-	'(name) = a',
-	'nameUsage = name',
-	'',
-].join('\n');
+const fieldCode = `MyType = [
+	name: Text
+]
+a: MyType = [name = §a§]
+e = a/name
+(name) = a
+nameUsage = name
+`;
 
 describe('references', () => {
 	describe('resolveRelatedTargets', () => {
@@ -86,22 +84,20 @@ describe('references', () => {
 	});
 
 	describe('getFieldAccessTypeFields', () => {
-		const code = [
-			'MyType = [',
-			'	name: Text',
-			']',
-			'Person = [name: Text age: Integer]',
-			'Pet = [name: Text species: Text]',
-			'a: MyType = [name = §a§]',
-			'e = a/name',
-			'(name) = a',
-			'nameUsage = name',
-			'x = [name = §x§]',
-			'g = x/name',
-			'y: Or(Person Pet) = [name = §Rex§ age = 3 species = §Hund§]',
-			'f = y/name',
-			'',
-		].join('\n');
+		const code = `MyType = [
+	name: Text
+]
+Person = [name: Text age: Integer]
+Pet = [name: Text species: Text]
+a: MyType = [name = §a§]
+e = a/name
+(name) = a
+nameUsage = name
+x = [name = §x§]
+g = x/name
+y: Or(Person Pet) = [name = §Rex§ age = 3 species = §Hund§]
+f = y/name
+`;
 
 		it('ein Zugriff auf ein Literalfeld mit erwartetem Typ zielt auf das Typfeld', () => {
 			const { documents, referenceIndex } = check(code);
@@ -171,12 +167,10 @@ describe('references', () => {
 		});
 
 		it('von einer mehrdeutigen Stelle aus werden alle Typfelder umbenannt, die weiteren nur mit Bestätigung', () => {
-			const { documents, referenceIndex } = check([
-				'Person = [name: Text age: Integer]',
-				'Pet = [name: Text species: Text]',
-				'y: Or(Person Pet) = [name = §Rex§ age = 3 species = §Hund§]',
-				'',
-			].join('\n'));
+			const { documents, referenceIndex } = check(`Person = [name: Text age: Integer]
+Pet = [name: Text species: Text]
+y: Or(Person Pet) = [name = §Rex§ age = 3 species = §Hund§]
+`);
 			const targets = resolveRelatedTargets(getTypeField(documents, 'y', 'name'), referenceIndex);
 			const edits = getRenameEdits(targets, 'label', referenceIndex, documents);
 			expect(describeEdits(edits)).to.deep.equal([

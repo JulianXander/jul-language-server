@@ -77,7 +77,9 @@ describe('getExpectedPositionKind', () => {
 	});
 
 	it('erkennt die aufgerufene Funktion eines functionCall als Wert-Position', () => {
-		const parsed = parse('f = (a: Integer) :> Integer => a\nf(1)\n');
+		const parsed = parse(`f = (a: Integer) :> Integer => a
+f(1)
+`);
 		const functionCall = parsed.checked!.expressions![1];
 		if (functionCall?.type !== 'functionCall') {
 			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);
@@ -104,7 +106,10 @@ describe('getCompletionSortText', () => {
 
 describe('getFirstArgumentSymbolFilter', () => {
 	it('lässt nur Funktionen durch, deren erster Parameter den Argumenttyp annimmt', () => {
-		const parsed = parse('a: Integer = 1\nf = (b: Integer) :> Integer => b\ng = (b: Text) :> Text => b\n');
+		const parsed = parse(`a: Integer = 1
+f = (b: Integer) :> Integer => b
+g = (b: Text) :> Text => b
+`);
 		const symbols = parsed.checked!.symbols;
 		const prefixArgumentType = getResolvedType(symbols['a']?.typeInfo);
 		const filter = getFirstArgumentSymbolFilter(prefixArgumentType);
@@ -139,7 +144,9 @@ describe('getExpectedArgumentType', () => {
 	});
 
 	it('liefert den Typ des Parameters an der Cursorposition', () => {
-		const code = 'f = (a: Integer b: Text) :> Integer => a\nx = f(1 )\n';
+		const code = `f = (a: Integer b: Text) :> Integer => a
+x = f(1 )
+`;
 		const functionCall = getCallFromDefinition(code, 1);
 		// Cursor im zweiten Argument, dort wird Text erwartet
 		expect(getExpectedArgumentType(functionCall, 1, 8)?.julType).to.equal('text');
@@ -174,7 +181,9 @@ describe('getArgumentPositionKind', () => {
 	});
 
 	it('erkennt einen Wert-Parameter als Wert-Position, auch wenn schon ein Argument getippt ist', () => {
-		const parsed = parse('f = (a: Integer b: Text) :> Integer => a\nx = f(1 )\n');
+		const parsed = parse(`f = (a: Integer b: Text) :> Integer => a
+x = f(1 )
+`);
 		const definition = parsed.checked!.expressions![1];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'functionCall') {
 			throw new Error('Erwartet definition mit functionCall value');
@@ -211,7 +220,9 @@ describe('getDictionaryFieldCompletionItemsFromType', () => {
 	// Realer Fall: `MyType = [f1: Integer]` gefolgt von `x: MyType = []` - beim Tippen im leeren
 	// Dictionary-Literal sollte `f1` als Feld vorgeschlagen werden.
 	it('schlägt die Felder eines per Namen referenzierten Dictionary-Typs vor', () => {
-		const parsed = parse('MyType = [f1: Integer]\nx: MyType = []\n');
+		const parsed = parse(`MyType = [f1: Integer]
+x: MyType = []
+`);
 		const definition = parsed.checked!.expressions![1];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
 			throw new Error('Erwartet definition mit empty value');
@@ -224,7 +235,9 @@ describe('getDictionaryFieldCompletionItemsFromType', () => {
 	// Ein Dictionary-Literal (Wert) braucht für jedes Feld immer einen zugewiesenen Wert - anders
 	// als der Dictionary-Typ, wo `f1: Integer` ohne `=` steht.
 	it('hängt an den vorgeschlagenen Feldnamen " = " an, da ein Feld im Literal immer einen Wert braucht', () => {
-		const parsed = parse('MyType = [f1: Integer]\nx: MyType = []\n');
+		const parsed = parse(`MyType = [f1: Integer]
+x: MyType = []
+`);
 		const definition = parsed.checked!.expressions![1];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
 			throw new Error('Erwartet definition mit empty value');
@@ -250,7 +263,10 @@ describe('getDeclaredResolvedType', () => {
 	// Ein Spread bringt unbekannt viele Argumente mit, danach ist die Position des Parameters
 	// nicht mehr bekannt.
 	it('liefert nach einem Spread in der Argumentliste keinen Parametertyp', () => {
-		const code = 'f = (a: Integer b: Text c: Float) :> Integer => a\nxs: List(Integer) = [1]\nx = f(1 ...xs §a§)\n';
+		const code = `f = (a: Integer b: Text c: Float) :> Integer => a
+xs: List(Integer) = [1]
+x = f(1 ...xs §a§)
+`;
 		const functionCall = getDefinitionValue(code, 2);
 		if (functionCall.type !== 'functionCall' || functionCall.arguments?.type !== 'list') {
 			throw new Error('Erwartet functionCall mit list-Argumenten');
@@ -260,7 +276,9 @@ describe('getDeclaredResolvedType', () => {
 	});
 
 	it('liefert nach einem Spread in einem Listenliteral keinen Elementtyp', () => {
-		const code = 'xs: List(Integer) = [1]\nl: [Integer Text Float] = [1 ...xs §a§]\n';
+		const code = `xs: List(Integer) = [1]
+l: [Integer Text Float] = [1 ...xs §a§]
+`;
 		const list = getDefinitionValue(code, 1);
 		if (list.type !== 'list') {
 			throw new Error(`Erwartet list, bekommen ${list.type}`);
@@ -273,7 +291,9 @@ describe('getDeclaredResolvedType', () => {
 	// erst mit den Argumenten dieses Aufrufs bekannt. Das Symbol values behält den Typ seines Werts,
 	// das Element ist also das Literal 1.
 	it('liefert für die Parameter eines Callbacks den mit dem Aufruf instanziierten Typ', () => {
-		const code = 'values: List(Integer) = [1]\nx = values.map((v) => v)\n';
+		const code = `values: List(Integer) = [1]
+x = values.map((v) => v)
+`;
 		const functionCall = getDefinitionValue(code, 1);
 		if (functionCall.type !== 'functionCall' || functionCall.arguments?.type !== 'list') {
 			throw new Error('Erwartet functionCall mit list-Argumenten');
@@ -292,7 +312,9 @@ describe('getDeclaredResolvedType', () => {
 
 describe('getDictionaryLiteralFieldCompletionItems', () => {
 	it('schlägt bei einem leeren Dictionary-Literal die Felder des erwarteten Typs vor', () => {
-		const parsed = parse('MyType = [f1: Integer]\nx: MyType = []\n');
+		const parsed = parse(`MyType = [f1: Integer]
+x: MyType = []
+`);
 		const definition = parsed.checked!.expressions![1];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
 			throw new Error('Erwartet definition mit empty value');
@@ -303,7 +325,10 @@ describe('getDictionaryLiteralFieldCompletionItems', () => {
 
 	// Bei List(X) verlangt jedes Element dasselbe, auch hinter einem Spread.
 	it('schlägt hinter einem Spread in einer List die Felder des Elementtyps vor', () => {
-		const parsed = parse('Button = [label: Text]\ndefaults: List(Button) = [[label = §a§]]\nbuttons: List(Button) = [...defaults []]\n');
+		const parsed = parse(`Button = [label: Text]
+defaults: List(Button) = [[label = §a§]]
+buttons: List(Button) = [...defaults []]
+`);
 		const definition = parsed.checked!.expressions![2];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'list') {
 			throw new Error('Erwartet definition mit list value');
@@ -316,7 +341,9 @@ describe('getDictionaryLiteralFieldCompletionItems', () => {
 	// als leeres/dictionary-Literal, sondern als list mit einer reference darin - die Vervollständigung
 	// verschwindet dadurch komplett.
 	it('schlägt beim Tippen eines Feldnamens weiterhin die Felder des erwarteten Typs vor', () => {
-		const parsed = parse('MyType = [f1: Integer]\nx: MyType = [f]\n');
+		const parsed = parse(`MyType = [f1: Integer]
+x: MyType = [f]
+`);
 		const definition = parsed.checked!.expressions![1];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'list') {
 			throw new Error('Erwartet definition mit list value');
@@ -334,7 +361,9 @@ describe('getInfixFunctionCall', () => {
 	// Realer Fall aus C:\Projects\privat\yugioh\src\ui\main-menu.jul:23 - "decks." während des
 	// Tippens: der functionCall hat nur prefixArgument, functionExpression fehlt noch komplett.
 	it('erkennt einen unvollständigen Infix-Aufruf ohne Funktionsname (nur prefixArgument)', () => {
-		const parsed = parse('decks: Or([] List(Integer)) = []\ndecks.\n');
+		const parsed = parse(`decks: Or([] List(Integer)) = []
+decks.
+`);
 		const functionCall = parsed.checked!.expressions![1];
 		if (functionCall?.type !== 'functionCall') {
 			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);

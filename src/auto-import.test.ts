@@ -50,71 +50,127 @@ const importEditTestCases: ImportEditTestCase[] = [
 		name: 'cardEffects',
 		targetFileName: 'card-effects.jul',
 		maxRowIndex: 0,
-		expected: '(cardEffects) = import(§./card-effects.jul§)\nx = cardEffects\n',
+		expected: `(cardEffects) = import(§./card-effects.jul§)
+x = cardEffects
+`,
 	},
 	{
 		title: 'lässt einen führenden Kommentar oben stehen',
-		code: '# Kommentar\nx = cardEffects\n',
+		code: `# Kommentar
+x = cardEffects
+`,
 		name: 'cardEffects',
 		targetFileName: 'card-effects.jul',
 		maxRowIndex: 1,
-		expected: '# Kommentar\n(cardEffects) = import(§./card-effects.jul§)\nx = cardEffects\n',
+		expected: `# Kommentar
+(cardEffects) = import(§./card-effects.jul§)
+x = cardEffects
+`,
 	},
 	{
 		title: 'sortiert in ein einzeiliges Destructuring derselben Datei inline ein',
-		code: '(cardEffects) = import(§./card-effects.jul§)\nx = attackPoints\n',
+		code: `(cardEffects) = import(§./card-effects.jul§)
+x = attackPoints
+`,
 		name: 'attackPoints',
 		targetFileName: 'card-effects.jul',
 		maxRowIndex: 1,
-		expected: '(attackPoints cardEffects) = import(§./card-effects.jul§)\nx = attackPoints\n',
+		expected: `(attackPoints cardEffects) = import(§./card-effects.jul§)
+x = attackPoints
+`,
 	},
 	{
 		title: 'hängt an ein einzeiliges Destructuring hinten an',
-		code: '(cardEffects) = import(§./card-effects.jul§)\nx = zebra\n',
+		code: `(cardEffects) = import(§./card-effects.jul§)
+x = zebra
+`,
 		name: 'zebra',
 		targetFileName: 'card-effects.jul',
 		maxRowIndex: 1,
-		expected: '(cardEffects zebra) = import(§./card-effects.jul§)\nx = zebra\n',
+		expected: `(cardEffects zebra) = import(§./card-effects.jul§)
+x = zebra
+`,
 	},
 	{
 		title: 'sortiert in ein mehrzeiliges Destructuring als eigene Zeile ein',
-		code: '(\n\tcardEffects\n\tzebra\n) = import(§./card-effects.jul§)\nx = monster\n',
+		code: `(
+	cardEffects
+	zebra
+) = import(§./card-effects.jul§)
+x = monster
+`,
 		name: 'monster',
 		targetFileName: 'card-effects.jul',
 		maxRowIndex: 4,
-		expected: '(\n\tcardEffects\n\tmonster\n\tzebra\n) = import(§./card-effects.jul§)\nx = monster\n',
+		expected: `(
+	cardEffects
+	monster
+	zebra
+) = import(§./card-effects.jul§)
+x = monster
+`,
 	},
 	{
 		title: 'hängt an ein mehrzeiliges Destructuring hinten an',
-		code: '(\n\tcardEffects\n\tzebra\n) = import(§./card-effects.jul§)\nx = zzz\n',
+		code: `(
+	cardEffects
+	zebra
+) = import(§./card-effects.jul§)
+x = zzz
+`,
 		name: 'zzz',
 		targetFileName: 'card-effects.jul',
 		maxRowIndex: 4,
-		expected: '(\n\tcardEffects\n\tzebra\n\tzzz\n) = import(§./card-effects.jul§)\nx = zzz\n',
+		expected: `(
+	cardEffects
+	zebra
+	zzz
+) = import(§./card-effects.jul§)
+x = zzz
+`,
 	},
 	{
 		title: 'sortiert einen neuen Import alphabetisch zwischen bestehende ein',
-		code: '(a) = import(§./aaa.jul§)\n(z) = import(§./zzz.jul§)\nx = mid\n',
+		code: `(a) = import(§./aaa.jul§)
+(z) = import(§./zzz.jul§)
+x = mid
+`,
 		name: 'mid',
 		targetFileName: 'mmm.jul',
 		maxRowIndex: 2,
-		expected: '(a) = import(§./aaa.jul§)\n(mid) = import(§./mmm.jul§)\n(z) = import(§./zzz.jul§)\nx = mid\n',
+		expected: `(a) = import(§./aaa.jul§)
+(mid) = import(§./mmm.jul§)
+(z) = import(§./zzz.jul§)
+x = mid
+`,
 	},
 	{
 		title: 'hängt einen neuen Import hinter den letzten bestehenden',
-		code: '(a) = import(§./aaa.jul§)\n(z) = import(§./zzz.jul§)\nx = last\n',
+		code: `(a) = import(§./aaa.jul§)
+(z) = import(§./zzz.jul§)
+x = last
+`,
 		name: 'last',
 		targetFileName: 'zzz2.jul',
 		maxRowIndex: 2,
-		expected: '(a) = import(§./aaa.jul§)\n(z) = import(§./zzz.jul§)\n(last) = import(§./zzz2.jul§)\nx = last\n',
+		expected: `(a) = import(§./aaa.jul§)
+(z) = import(§./zzz.jul§)
+(last) = import(§./zzz2.jul§)
+x = last
+`,
 	},
 	{
 		title: 'ignoriert Importe unterhalb der Verwendung',
-		code: 'x = mid\n(z) = import(§./zzz.jul§)\n',
+		code: `x = mid
+(z) = import(§./zzz.jul§)
+`,
 		name: 'mid',
 		targetFileName: 'mmm.jul',
 		maxRowIndex: 0,
-		expected: '(mid) = import(§./mmm.jul§)\nx = mid\n(z) = import(§./zzz.jul§)\n',
+		expected: `(mid) = import(§./mmm.jul§)
+x = mid
+(z) = import(§./zzz.jul§)
+`,
 	},
 ];
 

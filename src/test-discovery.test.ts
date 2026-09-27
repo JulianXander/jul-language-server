@@ -19,7 +19,12 @@ function findTestsIn(code: string, fileName: string = 'a.test.jul'): DiscoveredT
 
 describe('findTests', () => {
 	it('findet Tests mit literalem Namen samt Range des Aufrufs', () => {
-		expect(findTestsIn('test(§a§ () => true)\n\ntest(\n\t§b§\n\t() => true\n)')).to.deep.equal([
+		expect(findTestsIn(`test(§a§ () => true)
+
+test(
+	§b§
+	() => true
+)`)).to.deep.equal([
 			{
 				name: 'a',
 				range: { start: { line: 0, character: 0 }, end: { line: 0, character: 20 } },
@@ -31,20 +36,24 @@ describe('findTests', () => {
 		]);
 	});
 	it('findet benannte Argumente und die Präfixform', () => {
-		expect(findTestsIn('test(callback = () => true name = §a§)\n§b§.test(() => true)').map(test => test.name))
+		expect(findTestsIn(`test(callback = () => true name = §a§)
+§b§.test(() => true)`).map(test => test.name))
 			.to.deep.equal(['a', 'b']);
 	});
 	it('liefert für Nicht-Testdateien nichts', () => {
 		expect(findTestsIn('test(§a§ () => true)', 'a.jul')).to.deep.equal([]);
 	});
 	it('übergeht Tests in Funktionen', () => {
-		expect(findTestsIn('f = () =>\n\ttest(§a§ () => true)')).to.deep.equal([]);
+		expect(findTestsIn(`f = () =>
+	test(§a§ () => true)`)).to.deep.equal([]);
 	});
 	it('übergeht Tests ohne literalen Namen', () => {
-		expect(findTestsIn('name = §a§\ntest(name () => true)')).to.deep.equal([]);
+		expect(findTestsIn(`name = §a§
+test(name () => true)`)).to.deep.equal([]);
 	});
 	it('nimmt bei doppeltem Namen nur das erste Vorkommen', () => {
-		expect(findTestsIn('test(§a§ () => true)\ntest(§a§ () => false)').map(test => test.range.start.line))
+		expect(findTestsIn(`test(§a§ () => true)
+test(§a§ () => false)`).map(test => test.range.start.line))
 			.to.deep.equal([0]);
 	});
 });
