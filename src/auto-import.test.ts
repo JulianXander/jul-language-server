@@ -5,6 +5,7 @@ import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { errorInfos } from 'jul-compiler/out/compiler-errors.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { ParsedFile } from 'jul-compiler/out/syntax-tree.js';
+import { reportAtCaller } from 'jul-compiler/src/test-util.js';
 import { TextEdit } from 'vscode-languageserver';
 import { createImportEdit, findImportCandidates, ImportCandidate } from './auto-import.js';
 
@@ -32,164 +33,164 @@ function applyTextEdit(code: string, edit: TextEdit): string {
 	return code.slice(0, start) + edit.newText + code.slice(end);
 }
 
-interface ImportEditTestCase {
-	title: string;
-	code: string;
-	name: string;
-	/** Dateiname im selben Ordner */
-	targetFileName: string;
-	/** Zeile der Verwendung */
-	maxRowIndex: number;
-	expected: string;
-}
+describe('createImportEdit', () => {
+	const expectImportEdit = reportAtCaller((code: string, { name, targetFileName, maxRowIndex, expected }: {
+		name: string;
+		/** Dateiname im selben Ordner */
+		targetFileName: string;
+		/** Zeile der Verwendung */
+		maxRowIndex: number;
+		expected: string;
+	}) => {
+		const parsedFile = parse(code, mainPath);
+		const candidate: ImportCandidate = {
+			filePath: join(folder, targetFileName),
+			importPath: './' + targetFileName,
+		};
+		const textEdit = createImportEdit(parsedFile, candidate, name, maxRowIndex);
+		expect(textEdit).to.not.equal(undefined);
+		const actual = applyTextEdit(code, textEdit!);
+		expect(actual).to.equal(expected);
+		// das Ergebnis muss wieder lesbar sein - ein reiner Textvergleich übersieht Zeilen-/Einrückungsfehler
+		const syntaxErrors = parseCode(actual, mainPath).unchecked.errors
+			.filter(error => errorInfos[error.code].type === 'syntax');
+		expect(syntaxErrors).to.deep.equal([]);
+	});
 
-const importEditTestCases: ImportEditTestCase[] = [
-	{
-		title: 'legt bei einer Datei ohne Import eine neue Definition oben an',
-		code: 'x = cardEffects\n',
-		name: 'cardEffects',
-		targetFileName: 'card-effects.jul',
-		maxRowIndex: 0,
-		expected: `(cardEffects) = import(§./card-effects.jul§)
+	it('legt bei einer Datei ohne Import eine neue Definition oben an', () => {
+		expectImportEdit('x = cardEffects\n', {
+			name: 'cardEffects',
+			targetFileName: 'card-effects.jul',
+			maxRowIndex: 0,
+			expected: `(cardEffects) = import(§./card-effects.jul§)
 x = cardEffects
 `,
-	},
-	{
-		title: 'lässt einen führenden Kommentar oben stehen',
-		code: `# Kommentar
+		});
+	});
+
+	it('lässt einen führenden Kommentar oben stehen', () => {
+		expectImportEdit(`# Kommentar
 x = cardEffects
-`,
-		name: 'cardEffects',
-		targetFileName: 'card-effects.jul',
-		maxRowIndex: 1,
-		expected: `# Kommentar
+`, {
+			name: 'cardEffects',
+			targetFileName: 'card-effects.jul',
+			maxRowIndex: 1,
+			expected: `# Kommentar
 (cardEffects) = import(§./card-effects.jul§)
 x = cardEffects
 `,
-	},
-	{
-		title: 'sortiert in ein einzeiliges Destructuring derselben Datei inline ein',
-		code: `(cardEffects) = import(§./card-effects.jul§)
+		});
+	});
+
+	it('sortiert in ein einzeiliges Destructuring derselben Datei inline ein', () => {
+		expectImportEdit(`(cardEffects) = import(§./card-effects.jul§)
+x = attackPoints
+`, {
+			name: 'attackPoints',
+			targetFileName: 'card-effects.jul',
+			maxRowIndex: 1,
+			expected: `(attackPoints cardEffects) = import(§./card-effects.jul§)
 x = attackPoints
 `,
-		name: 'attackPoints',
-		targetFileName: 'card-effects.jul',
-		maxRowIndex: 1,
-		expected: `(attackPoints cardEffects) = import(§./card-effects.jul§)
-x = attackPoints
-`,
-	},
-	{
-		title: 'hängt an ein einzeiliges Destructuring hinten an',
-		code: `(cardEffects) = import(§./card-effects.jul§)
+		});
+	});
+
+	it('hängt an ein einzeiliges Destructuring hinten an', () => {
+		expectImportEdit(`(cardEffects) = import(§./card-effects.jul§)
+x = zebra
+`, {
+			name: 'zebra',
+			targetFileName: 'card-effects.jul',
+			maxRowIndex: 1,
+			expected: `(cardEffects zebra) = import(§./card-effects.jul§)
 x = zebra
 `,
-		name: 'zebra',
-		targetFileName: 'card-effects.jul',
-		maxRowIndex: 1,
-		expected: `(cardEffects zebra) = import(§./card-effects.jul§)
-x = zebra
-`,
-	},
-	{
-		title: 'sortiert in ein mehrzeiliges Destructuring als eigene Zeile ein',
-		code: `(
+		});
+	});
+
+	it('sortiert in ein mehrzeiliges Destructuring als eigene Zeile ein', () => {
+		expectImportEdit(`(
 	cardEffects
 	zebra
 ) = import(§./card-effects.jul§)
 x = monster
-`,
-		name: 'monster',
-		targetFileName: 'card-effects.jul',
-		maxRowIndex: 4,
-		expected: `(
+`, {
+			name: 'monster',
+			targetFileName: 'card-effects.jul',
+			maxRowIndex: 4,
+			expected: `(
 	cardEffects
 	monster
 	zebra
 ) = import(§./card-effects.jul§)
 x = monster
 `,
-	},
-	{
-		title: 'hängt an ein mehrzeiliges Destructuring hinten an',
-		code: `(
+		});
+	});
+
+	it('hängt an ein mehrzeiliges Destructuring hinten an', () => {
+		expectImportEdit(`(
 	cardEffects
 	zebra
 ) = import(§./card-effects.jul§)
 x = zzz
-`,
-		name: 'zzz',
-		targetFileName: 'card-effects.jul',
-		maxRowIndex: 4,
-		expected: `(
+`, {
+			name: 'zzz',
+			targetFileName: 'card-effects.jul',
+			maxRowIndex: 4,
+			expected: `(
 	cardEffects
 	zebra
 	zzz
 ) = import(§./card-effects.jul§)
 x = zzz
 `,
-	},
-	{
-		title: 'sortiert einen neuen Import alphabetisch zwischen bestehende ein',
-		code: `(a) = import(§./aaa.jul§)
+		});
+	});
+
+	it('sortiert einen neuen Import alphabetisch zwischen bestehende ein', () => {
+		expectImportEdit(`(a) = import(§./aaa.jul§)
 (z) = import(§./zzz.jul§)
 x = mid
-`,
-		name: 'mid',
-		targetFileName: 'mmm.jul',
-		maxRowIndex: 2,
-		expected: `(a) = import(§./aaa.jul§)
+`, {
+			name: 'mid',
+			targetFileName: 'mmm.jul',
+			maxRowIndex: 2,
+			expected: `(a) = import(§./aaa.jul§)
 (mid) = import(§./mmm.jul§)
 (z) = import(§./zzz.jul§)
 x = mid
 `,
-	},
-	{
-		title: 'hängt einen neuen Import hinter den letzten bestehenden',
-		code: `(a) = import(§./aaa.jul§)
+		});
+	});
+
+	it('hängt einen neuen Import hinter den letzten bestehenden', () => {
+		expectImportEdit(`(a) = import(§./aaa.jul§)
 (z) = import(§./zzz.jul§)
 x = last
-`,
-		name: 'last',
-		targetFileName: 'zzz2.jul',
-		maxRowIndex: 2,
-		expected: `(a) = import(§./aaa.jul§)
+`, {
+			name: 'last',
+			targetFileName: 'zzz2.jul',
+			maxRowIndex: 2,
+			expected: `(a) = import(§./aaa.jul§)
 (z) = import(§./zzz.jul§)
 (last) = import(§./zzz2.jul§)
 x = last
 `,
-	},
-	{
-		title: 'ignoriert Importe unterhalb der Verwendung',
-		code: `x = mid
+		});
+	});
+
+	it('ignoriert Importe unterhalb der Verwendung', () => {
+		expectImportEdit(`x = mid
 (z) = import(§./zzz.jul§)
-`,
-		name: 'mid',
-		targetFileName: 'mmm.jul',
-		maxRowIndex: 0,
-		expected: `(mid) = import(§./mmm.jul§)
+`, {
+			name: 'mid',
+			targetFileName: 'mmm.jul',
+			maxRowIndex: 0,
+			expected: `(mid) = import(§./mmm.jul§)
 x = mid
 (z) = import(§./zzz.jul§)
 `,
-	},
-];
-
-describe('createImportEdit', () => {
-	importEditTestCases.forEach(testCase => {
-		it(testCase.title, () => {
-			const parsedFile = parse(testCase.code, mainPath);
-			const candidate: ImportCandidate = {
-				filePath: join(folder, testCase.targetFileName),
-				importPath: './' + testCase.targetFileName,
-			};
-			const textEdit = createImportEdit(parsedFile, candidate, testCase.name, testCase.maxRowIndex);
-			expect(textEdit).to.not.equal(undefined);
-			const actual = applyTextEdit(testCase.code, textEdit!);
-			expect(actual).to.equal(testCase.expected);
-			// das Ergebnis muss wieder lesbar sein - ein reiner Textvergleich übersieht Zeilen-/Einrückungsfehler
-			const syntaxErrors = parseCode(actual, mainPath).unchecked.errors
-				.filter(error => errorInfos[error.code].type === 'syntax');
-			expect(syntaxErrors).to.deep.equal([]);
 		});
 	});
 });
