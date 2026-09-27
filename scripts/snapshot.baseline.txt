@@ -2479,10 +2479,10 @@ semanticTokens
   55:10 definition: kein
   55:10 completion: n=118 appendHtml,elementById,findElement
   55:10 signatureHelp: kein
-  58:2 hover: ```jul ( dialog: Any listener: Any ) ```
+  58:2 hover: ```jul ( dialog: Any listener: (returnValue: Text) :> Any ) ```
   58:2 definition: kein
   58:2 completion: n=2 dialog,listener
-  58:2 signatureHelp: ( dialog: Any listener: Any ) :> Any param=1
+  58:2 signatureHelp: ( dialog: Any listener: (returnValue: Text) :> Any ) :> Any param=1
   62:16 hover: ```jul Text ```
   62:16 definition: kein
   62:16 completion: n=1 id
@@ -2596,11 +2596,11 @@ semanticTokens
   1:1 completion: n=0 
   1:1 signatureHelp: kein
   3:7 hover: ```jul (input: Any) :> Or(Empty Integer) ``` undefined, solange das Feld leer ist oder keine ganze Z...
-  3:7 definition: ui/dynamic-form/dom.ts:23:17
+  3:7 definition: ui/dynamic-form/dom.ts:29:17
   3:7 completion: n=0 
   3:7 signatureHelp: kein
-  5:5 hover: ```jul ( input: Any listener: Any ) :> Empty ``` Ruft listener bei jeder Eingabe auf, auch beim Umsc...
-  5:5 definition: ui/dynamic-form/dom.ts:35:17
+  5:5 hover: ```jul ( input: Any listener: () :> Any ) :> Empty ``` Ruft listener bei jeder Eingabe auf, auch bei...
+  5:5 definition: ui/dynamic-form/dom.ts:41:17
   5:5 completion: n=0 
   5:5 signatureHelp: kein
   7:5 hover: ```jul ( element: Any text: Text ) :> Empty ``` Setzt den Text per textContent, er wird also nie als...
@@ -2636,7 +2636,7 @@ semanticTokens
   25:32 completion: n=116 elementById,integerValue,isChecked
   25:32 signatureHelp: (id: Text) :> Any param=0
   28:22 hover: ```jul ( element: Any hidden: Boolean ) :> Empty ```
-  28:22 definition: ui/dynamic-form/dom.ts:12:17
+  28:22 definition: ui/dynamic-form/dom.ts:15:17
   28:22 completion: n=88 elementById,integerValue,isChecked
   28:22 signatureHelp: ( element: Any hidden: Boolean ) :> Empty param=1
   32:24 hover: ```jul Stream(Or(Empty Integer)) ```
