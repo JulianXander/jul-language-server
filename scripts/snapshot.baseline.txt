@@ -450,7 +450,7 @@ semanticTokens
   2:31 definition: console-progress/console-progress.jul:2:27
   2:31 completion: n=105 timer1$,progress$,value
   2:31 signatureHelp: kein
-  3:11 hover: ```jul ( stream$: Stream(Any) listener: (value: Float) :> Any ) ~> Empty ```
+  3:11 hover: ```jul ( stream$: Stream(Float) listener: (value: Float) :> Any ) ~> Empty ```
   3:11 definition: jul-core-lib:/core-lib.jul:1020:1
   3:11 completion: n=13 TypeOf,equal,deepEqual
   3:11 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
@@ -542,7 +542,7 @@ semanticTokens
   2:13 definition: jul-core-lib:/core-lib.jul:1097:1
   2:13 completion: n=103 counter$,true,false
   2:13 signatureHelp: (delayMs: Float) ~> Stream(Float) param=0
-  3:10 hover: ```jul ( stream$: Stream(Any) listener: (value: Float) :> Any ) ~> Empty ```
+  3:10 hover: ```jul ( stream$: Stream(Float) listener: (value: Float) :> Any ) ~> Empty ```
   3:10 definition: jul-core-lib:/core-lib.jul:1020:1
   3:10 completion: n=13 TypeOf,equal,deepEqual
   3:10 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
@@ -1492,7 +1492,7 @@ semanticTokens
   1:12 definition: jul-core-lib:/core-lib.jul:1097:1
   1:12 completion: n=106 source$,mapped1$,mapped2$
   1:12 signatureHelp: (delayMs: Float) ~> Stream(Float) param=0
-  2:10 hover: ```jul ( stream$: Stream(Any) listener: (value: Float) :> Any ) ~> Empty ```
+  2:10 hover: ```jul ( stream$: Stream(Float) listener: (value: Float) :> Any ) ~> Empty ```
   2:10 definition: jul-core-lib:/core-lib.jul:1020:1
   2:10 completion: n=13 TypeOf,equal,deepEqual
   2:10 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
@@ -2439,7 +2439,7 @@ semanticTokens
   19:5 definition: ui/dialog/dialog.jul:16:2
   19:5 completion: n=115 appendHtml,elementById,findElement
   19:5 signatureHelp: kein
-  22:22 hover: ```jul ( source$: Stream(Any) notifier$: Stream(Any) ) ~> Stream(Text) ``` Liefert die Werte von sou...
+  22:22 hover: ```jul ( source$: Stream(Text) notifier$: Stream(Any) ) ~> Stream(Text) ``` Liefert die Werte von so...
   22:22 definition: jul-core-lib:/core-lib.jul:1183:1
   22:22 completion: n=21 findElement,onClick,onDialogClose
   22:22 signatureHelp: ( source$: Stream(Any) notifier$: Stream(Any) ) ~> Stream(Any) param=1
@@ -2495,7 +2495,7 @@ semanticTokens
   68:37 definition: kein
   68:37 completion: n=115 appendHtml,elementById,findElement
   68:37 signatureHelp: kein
-  71:11 hover: ```jul ( stream$: Stream(Any) listener: (value: Or(Empty §ok§ §cancel§)) :> Any ) ~> Empty ```
+  71:11 hover: ```jul ( stream$: Stream(Or(Empty §ok§ §cancel§)) listener: (value: Or(Empty §ok§ §cancel§)) :> Any ...
   71:11 definition: jul-core-lib:/core-lib.jul:1020:1
   71:11 completion: n=20 findElement,onClick,onDialogClose
   71:11 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1

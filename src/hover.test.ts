@@ -77,9 +77,57 @@ describe('hover', () => {
 		].join('\n');
 		expect(hoverAt(code)).to.equal(typeMarkdown([
 			'(',
-			'  stream$: Stream(Any)',
+			'  stream$: Stream(Or(Empty Integer))',
 			'  value: Or(Empty Integer)',
 			') ~> Empty',
 		].join('\n')));
+	});
+
+	it('ein Parameter, auf dessen ValueType verwiesen wird, zeigt am Aufruf den eingesetzten Stream-Typ', () => {
+		const code = [
+			's$ = create$(Integer 1)',
+			's$.subscri¦be((value: Integer) => log(value))',
+			'',
+		].join('\n');
+		expect(hoverAt(code)).to.equal(typeMarkdown([
+			'(',
+			'  stream$: Stream(Integer)',
+			'  listener: (value: Integer) :> Any',
+			') ~> Empty',
+		].join('\n')));
+	});
+
+	it('ein Parameter, auf dessen ElementType verwiesen wird, behält am Aufruf das Empty seiner Deklaration', () => {
+		const code = [
+			'f = (values: Or([] List(Text))) =>',
+			'	values.fil¦ter((value: Text) => true)',
+			'',
+		].join('\n');
+		expect(hoverAt(code)).to.match(/values: Or\(Empty List\(Text\)\)/);
+	});
+
+	it('ein leeres Argument setzt in den Parameter, auf den verwiesen wird, nichts ein', () => {
+		const code = [
+			'[].fil¦ter((value: Any) => true)',
+			'',
+		].join('\n');
+		expect(hoverAt(code)).to.match(/values: Or\(Empty List\(Any\)\)/);
+	});
+
+	it('ein Parameter, auf dessen ReturnType verwiesen wird, zeigt am Aufruf den Rückgabetyp des Callbacks', () => {
+		const code = [
+			's$ = create$(Integer 1)',
+			's$.ma¦p$((value: Integer) => §text§)',
+			'',
+		].join('\n');
+		expect(hoverAt(code)).to.match(/transform\$: \(value: Integer\) :> §text§/);
+	});
+
+	it('bei einem falschen Argument bleibt der Parameter, auf den verwiesen wird, deklariert', () => {
+		const code = [
+			'§text§.pu¦sh(1)',
+			'',
+		].join('\n');
+		expect(hoverAt(code)).to.match(/stream\$: Stream\(Any\)/);
 	});
 });
