@@ -2514,132 +2514,162 @@ semanticTokens
 
 === ui/dynamic-form/dynamic-form.jul
 symbols
-  body kind=8 1:2
+  elementById kind=8 2:2
     keine
-  stackPanel kind=8 1:7
+  integerValue kind=8 3:2
     keine
-  label kind=8 1:18
+  isChecked kind=8 4:2
     keine
-  textInput kind=8 1:24
+  onInput kind=8 5:2
     keine
-  numberInput kind=8 1:34
+  setHidden kind=8 6:2
     keine
-  booleanInput kind=8 1:46
+  setText kind=8 7:2
     keine
-  htmlIf kind=8 1:59
+  textValue kind=8 8:2
     keine
-  inputValue$ kind=8 1:66
+  inputValue$ kind=12 13:1
+    element kind=13 14:2
+      keine
+    ValueType kind=13 15:2
+      keine
+    read kind=13 16:2
+      keine
+    value$ kind=14 18:2
+      keine
+  ageField kind=14 22:1
     keine
-  id kind=8 19:5
+  output kind=14 23:1
     keine
-  default kind=8 20:5
+  name$ kind=14 24:1
+    keine
+  age$ kind=14 25:1
+    keine
+  ageVisible$ kind=14 26:1
+    keine
+  value kind=13 29:3
+    keine
+  data$ kind=14 33:1
+    value kind=13 34:3
+      keine
+    name kind=8 35:4
+      keine
+    age kind=8 35:9
+      keine
+    ageVisible kind=8 35:13
+      keine
+    name kind=8 37:4
+      keine
+    age kind=8 38:4
+      keine
+  value kind=13 44:3
     keine
 semanticTokens
-  1: 2+4 variable(declaration,readonly) 7+10 variable(declaration,readonly) 18+5 variable(declaration,readonly) 24+9 variable(declaration,readonly) 34+11 variable(declaration,readonly) 46+12 variable(declaration,readonly) 59+6 variable(declaration,readonly) 66+11 variable(declaration,readonly)
-  3: 1+4 variable(readonly) 6+4 function(defaultLibrary,impure)
-  4: 2+10 variable(readonly)
-  5: 3+5 variable(readonly)
-  7: 4+9 variable(readonly)
-  9: 3+6 variable(readonly)
-  10: 4+11 variable(readonly)
-  11: 4+5 variable(readonly)
-  13: 5+11 variable(readonly)
-  16: 3+5 variable(readonly)
-  18: 4+12 variable(readonly)
-  19: 5+2 property(declaration,readonly)
-  20: 5+7 property(declaration,readonly)
-  1:47 hover: ```jul Any ```
-  1:47 definition: ui/dynamic-form/dynamic-form.jul:1:46
-  1:47 completion: n=0 
-  1:47 signatureHelp: kein
-  3:6 hover: ```jul ( stream$: Stream(Any) value: Any ) ~> Empty ```
-  3:6 definition: jul-core-lib:/core-lib.jul:1008:1
-  3:6 completion: n=80 List,And,Or
-  3:6 signatureHelp: ( stream$: Stream(Any) value: Any ) ~> Empty param=1
-  4:7 hover: ```jul Any ```
-  4:7 definition: ui/dynamic-form/dynamic-form.jul:1:7
-  4:7 completion: n=110 body,stackPanel,label
-  4:7 signatureHelp: Any param=0
-  5:5 hover: ```jul Any ```
-  5:5 definition: ui/dynamic-form/dynamic-form.jul:1:18
-  5:5 completion: n=110 body,stackPanel,label
-  5:5 signatureHelp: Any param=0
-  6:8 hover: kein
-  6:8 definition: kein
-  6:8 completion: n=110 body,stackPanel,label
-  6:8 signatureHelp: kein
-  7:8 hover: ```jul Any ```
-  7:8 definition: ui/dynamic-form/dynamic-form.jul:1:24
-  7:8 completion: n=110 body,stackPanel,label
-  7:8 signatureHelp: Any param=0
-  8:2 hover: kein
-  8:2 definition: kein
-  8:2 completion: n=110 body,stackPanel,label
-  8:2 signatureHelp: Any param=0
-  9:5 hover: ```jul Any ```
-  9:5 definition: ui/dynamic-form/dynamic-form.jul:1:59
-  9:5 completion: n=110 body,stackPanel,label
-  9:5 signatureHelp: Any param=0
-  10:13 hover: ```jul Any ```
-  10:13 definition: ui/dynamic-form/dynamic-form.jul:1:66
-  10:13 completion: n=110 body,stackPanel,label
-  10:13 signatureHelp: Any param=0
-  11:5 hover: ```jul Any ```
-  11:5 definition: ui/dynamic-form/dynamic-form.jul:1:18
-  11:5 completion: n=110 body,stackPanel,label
-  11:5 signatureHelp: Any param=0
-  12:10 hover: kein
-  12:10 definition: kein
-  12:10 completion: n=110 body,stackPanel,label
-  12:10 signatureHelp: kein
-  13:9 hover: ```jul Any ```
-  13:9 definition: ui/dynamic-form/dynamic-form.jul:1:34
-  13:9 completion: n=110 body,stackPanel,label
-  13:9 signatureHelp: Any param=0
-  14:3 hover: kein
-  14:3 definition: kein
-  14:3 completion: n=110 body,stackPanel,label
-  14:3 signatureHelp: Any param=0
-  15:2 hover: kein
-  15:2 definition: kein
-  15:2 completion: n=110 body,stackPanel,label
-  15:2 signatureHelp: Any param=0
-  16:5 hover: ```jul Any ```
-  16:5 definition: ui/dynamic-form/dynamic-form.jul:1:18
-  16:5 completion: n=110 body,stackPanel,label
-  16:5 signatureHelp: Any param=0
-  17:7 hover: kein
-  17:7 definition: kein
-  17:7 completion: n=110 body,stackPanel,label
-  17:7 signatureHelp: kein
-  18:9 hover: ```jul Any ```
-  18:9 definition: ui/dynamic-form/dynamic-form.jul:1:46
-  18:9 completion: n=110 body,stackPanel,label
-  18:9 signatureHelp: Any param=0
-  19:10 hover: kein
-  19:10 definition: kein
-  19:10 completion: n=110 body,stackPanel,label
-  19:10 signatureHelp: kein
-  20:10 hover: kein
-  20:10 definition: kein
-  20:10 completion: n=110 body,stackPanel,label
-  20:10 signatureHelp: kein
-  21:3 hover: kein
-  21:3 definition: kein
-  21:3 completion: n=110 body,stackPanel,label
-  21:3 signatureHelp: Any param=0
-  22:2 hover: kein
-  22:2 definition: kein
-  22:2 completion: n=110 body,stackPanel,label
-  22:2 signatureHelp: Any param=0
-  23:2 hover: kein
-  23:2 definition: kein
-  23:2 completion: n=110 body,stackPanel,label
-  23:2 signatureHelp: Any param=0
-  24:1 hover: ```jul ( stream$: Stream(Any) value: Any ) ```
-  24:1 definition: kein
-  24:1 completion: n=2 stream$,value
-  24:1 signatureHelp: ( stream$: Stream(Any) value: Any ) ~> Empty param=1
+  2: 2+11 variable(declaration,readonly)
+  3: 2+12 variable(declaration,readonly)
+  4: 2+9 variable(declaration,readonly)
+  5: 2+7 variable(declaration,readonly)
+  6: 2+9 variable(declaration,readonly)
+  7: 2+7 variable(declaration,readonly)
+  8: 2+9 variable(declaration,readonly)
+  13: 1+11 function(declaration,impure)
+  14: 2+7 parameter(declaration,readonly)
+  15: 2+9 parameter(declaration,readonly) 13+4 type(defaultLibrary)
+  16: 2+4 parameter(declaration,readonly) 9+5 parameter(declaration,readonly) 16+3 type(defaultLibrary) 24+9 parameter(readonly)
+  18: 2+6 variable(declaration,readonly,stream) 11+7 function(defaultLibrary,impure) 19+9 parameter(readonly) 29+7 parameter(readonly) 37+4 parameter(readonly)
+  19: 2+7 parameter(readonly) 10+7 function 24+6 variable(readonly,stream) 31+4 function(defaultLibrary,impure) 36+7 parameter(readonly) 44+4 parameter(readonly)
+  20: 2+6 variable(readonly,stream)
+  22: 1+8 variable(declaration,readonly) 12+11 function
+  23: 1+6 variable(declaration,readonly) 10+11 function
+  24: 1+5 variable(declaration,readonly,stream) 9+11 function(impure) 21+11 function 41+4 type(defaultLibrary) 46+9 function
+  25: 1+4 variable(declaration,readonly,stream) 8+11 function(impure) 20+11 function 39+2 typeConstructor(defaultLibrary) 45+7 type(defaultLibrary) 54+12 function
+  26: 1+11 variable(declaration,readonly,stream) 15+11 function(impure) 27+11 function 54+7 type(defaultLibrary) 62+9 function
+  28: 1+11 variable(readonly,stream) 13+9 function(defaultLibrary,impure)
+  29: 3+5 parameter(declaration,readonly) 13+8 variable(readonly) 22+9 function 32+3 function(defaultLibrary) 36+5 parameter(readonly)
+  33: 1+5 variable(declaration,readonly,stream) 9+8 function(defaultLibrary,impure) 18+5 variable(readonly,stream) 24+4 variable(readonly,stream) 29+11 variable(readonly,stream) 42+4 function(defaultLibrary,impure)
+  34: 3+5 parameter(declaration,readonly)
+  35: 4+4 variable(declaration,readonly) 9+3 variable(declaration,readonly) 13+10 variable(declaration,readonly) 27+5 parameter(readonly)
+  37: 4+4 property(declaration,readonly) 11+4 variable(readonly)
+  38: 4+3 property(declaration,readonly) 12+10 variable(readonly)
+  39: 15+3 variable(readonly)
+  43: 1+5 variable(readonly,stream) 7+9 function(defaultLibrary,impure)
+  44: 3+5 parameter(declaration,readonly) 13+6 variable(readonly) 20+7 function 28+6 function(defaultLibrary) 35+5 parameter(readonly)
+  1:1 hover: kein
+  1:1 definition: kein
+  1:1 completion: n=0 
+  1:1 signatureHelp: kein
+  3:7 hover: ```jul (input: Any) :> Or(Empty Integer) ``` undefined, solange das Feld leer ist oder keine ganze Z...
+  3:7 definition: ui/dynamic-form/dom.ts:23:17
+  3:7 completion: n=0 
+  3:7 signatureHelp: kein
+  5:5 hover: ```jul ( input: Any listener: Any ) :> Any ``` Ruft listener bei jeder Eingabe auf, auch beim Umscha...
+  5:5 definition: ui/dynamic-form/dom.ts:35:17
+  5:5 completion: n=0 
+  5:5 signatureHelp: kein
+  7:5 hover: ```jul ( element: Any text: Text ) :> Any ``` Setzt den Text per textContent, er wird also nie als H...
+  7:5 definition: ui/dynamic-form/dom.ts:8:17
+  7:5 completion: n=0 
+  7:5 signatureHelp: kein
+  9:12 hover: ```jul Text ```
+  9:12 definition: ui/dynamic-form/dom.ts:1:1
+  9:12 completion: n=4 dom.ts,dynamic-form2.jul,jul-config.yaml
+  9:12 signatureHelp: kein
+  14:5 hover: ```jul Any ```
+  14:5 definition: ui/dynamic-form/dynamic-form.jul:14:2
+  14:5 completion: n=120 elementById,integerValue,isChecked
+  14:5 signatureHelp: kein
+  16:17 hover: ```jul TypeOf(Any) ``` TODO split Unknown Type? any value
+  16:17 definition: jul-core-lib:/core-lib.jul:6:1
+  16:17 completion: n=121 elementById,integerValue,isChecked
+  16:17 signatureHelp: kein
+  18:22 hover: ```jul Type ```
+  18:22 definition: ui/dynamic-form/dynamic-form.jul:15:2
+  18:22 completion: n=2 ValueType,intitialValue
+  18:22 signatureHelp: kein
+  20:4 hover: ```jul Stream(Type) ```
+  20:4 definition: ui/dynamic-form/dynamic-form.jul:18:2
+  20:4 completion: n=120 elementById,integerValue,isChecked
+  20:4 signatureHelp: kein
+  23:16 hover: ```jul (id: Text) :> Any ```
+  23:16 definition: ui/dynamic-form/dom.ts:1:17
+  23:16 completion: n=116 elementById,integerValue,isChecked
+  23:16 signatureHelp: (id: Text) :> Any param=0
+  25:34 hover: ```jul Text ```
+  25:34 definition: kein
+  25:34 completion: n=1 id
+  25:34 signatureHelp: kein
+  28:12 hover: ```jul Stream(Boolean) ```
+  28:12 definition: ui/dynamic-form/dynamic-form.jul:26:1
+  28:12 completion: n=116 elementById,integerValue,isChecked
+  28:12 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
+  30:1 hover: ```jul ( stream$: Stream(Any) listener: (value: Any) :> Any ) ```
+  30:1 definition: kein
+  30:1 completion: n=2 stream$,listener
+  30:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
+  34:6 hover: ```jul Or(Empty List(Or(Text Boolean Empty Integer))) ```
+  34:6 definition: ui/dynamic-form/dynamic-form.jul:34:3
+  34:6 completion: n=120 elementById,integerValue,isChecked
+  34:6 signatureHelp: kein
+  36:2 hover: ```jul (value: Or(Empty List(Or(Text Boolean Empty Integer)))) :> Any ```
+  36:2 definition: kein
+  36:2 completion: n=2 source$,transform$
+  36:2 signatureHelp: kein
+  38:12 hover: ```jul Or(Empty Text Boolean Integer) ```
+  38:12 definition: ui/dynamic-form/dynamic-form.jul:35:13
+  38:12 completion: n=120 elementById,integerValue,isChecked
+  38:12 signatureHelp: kein
+  40:7 hover: kein
+  40:7 definition: kein
+  40:7 completion: n=120 elementById,integerValue,isChecked
+  40:7 signatureHelp: kein
+  42:1 hover: ```jul ( source$: Stream(Any) transform$: (value: Any) :> Any ) ```
+  42:1 definition: kein
+  42:1 completion: n=2 source$,transform$
+  42:1 signatureHelp: ( source$: Stream(Any) transform$: (value: Any) :> Any ) ~> Stream(Any) param=1
+  44:21 hover: ```jul ( element: Any text: Text ) :> Any ``` Setzt den Text per textContent, er wird also nie als H...
+  44:21 definition: ui/dynamic-form/dom.ts:8:17
+  44:21 completion: n=88 elementById,integerValue,isChecked
+  44:21 signatureHelp: ( element: Any text: Text ) :> Any param=1
 
 === ui/dynamic-form/dynamic-form2.jul
 symbols
