@@ -21,7 +21,6 @@ import {
 	ParameterInformation,
 	ProposedFeatures,
 	Range,
-	SemanticTokensBuilder,
 	SignatureHelp,
 	SymbolKind,
 	TextDocumentIdentifier,
@@ -44,9 +43,7 @@ import { loadFile, ProjectHost } from 'jul-compiler/out/project-loader.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
-	CompileTimeFunctionType,
 	CompileTimeType,
-	DefinitionExpression,
 	forEachChild,
 	ImportedDependency,
 	PositionedExpression,
@@ -58,7 +55,6 @@ import {
 	SymbolDefinition,
 	SymbolTable,
 	TextLiteralType,
-	TypeInfo,
 } from 'jul-compiler/out/syntax-tree.js';
 import {
 	builtInSymbols,
@@ -70,7 +66,6 @@ import {
 	isParameterReference,
 	isParametersType,
 	isTextLiteralType,
-	isTypeOfType,
 	ParsedDocuments,
 	typeToString,
 } from 'jul-compiler/out/checker/checker.js';
@@ -95,12 +90,12 @@ import {
 	isTypeSymbol,
 } from './completion.js';
 import { getHover, getTypeMarkdown } from './hover.js';
+import { getSemanticTokens, semanticTokenLegend } from './semantic-tokens.js';
 import { DiscoveredTest, findTests } from './test-discovery.js';
 import {
 	findExpressionInParsedFile,
 	getRawSymbolDefinition,
 	getSymbolDefinition,
-	pushScope,
 } from './symbol-lookup.js';
 import {
 	getDeclaredResolvedType,
@@ -214,10 +209,7 @@ connection.onInitialize((params: InitializeParams) => {
 				prepareProvider: true,
 			},
 			semanticTokensProvider: {
-				legend: {
-					tokenTypes: [...semanticTokenTypes],
-					tokenModifiers: [...semanticTokenModifiers],
-				},
+				legend: semanticTokenLegend,
 				full: true,
 			},
 			signatureHelpProvider: {
@@ -874,258 +866,10 @@ function collectEmptyLiterals(expression: PositionedExpression, ranges: Range[])
 }
 //#endregion empty literals
 
-//#region semantic tokens
-// Die Grammatik rät den Bezeichnertyp an der Schreibweise. Der checker weiß ihn - Werte und Typen
-// teilen in JUL denselben Namensraum, dort rät die Grammatik zwangsläufig falsch.
-const semanticTokenTypes = ['namespace', 'type', 'function', 'parameter', 'variable', 'property'] as const;
-const semanticTokenModifiers = ['declaration', 'defaultLibrary', 'readonly', 'stream', 'impure'] as const;
-type SemanticTokenType = typeof semanticTokenTypes[number];
-type SemanticTokenModifier = typeof semanticTokenModifiers[number];
-
-interface SemanticTokenInfo {
-	line: number;
-	character: number;
-	length: number;
-	tokenType: number;
-	tokenModifiers: number;
-}
-
-connection.languages.semanticTokens.on(params => {
+connection.languages.semanticTokens.on(params =>
 	// Dateien über maxFileSize stehen gar nicht erst in parsedDocuments.
-	const parsedFile = getParsedFileByUri(params.textDocument.uri);
-	const checked = parsedFile?.checked;
-	const expressions = checked?.expressions;
-	if (!checked || !expressions) {
-		return { data: [] };
-	}
-	const tokens: SemanticTokenInfo[] = [];
-	const scopes: SymbolTable[] = [checked.symbols];
-	expressions.forEach(expression => collectSemanticTokens(expression, scopes, tokens));
-	// Der builder verlangt aufsteigende Positionen. forEachChild liefert Quelltextreihenfolge,
-	// aber ein infix call stellt das Aufrufziel hinter sein erstes Argument.
-	tokens.sort((a, b) => a.line - b.line || a.character - b.character);
-	const builder = new SemanticTokensBuilder();
-	tokens.forEach(token => builder.push(
-		token.line,
-		token.character,
-		token.length,
-		token.tokenType,
-		token.tokenModifiers));
-	return builder.build();
-});
+	getSemanticTokens(getParsedFileByUri(params.textDocument.uri)));
 
-/**
- * Funktionen mit Sonderverhalten, die nur direkt aufgerufen werden dürfen und deshalb wie ein
- * Keyword gefärbt werden, über die Grammatik statt über Semantic Tokens.
- */
-const keywordFunctionNames = ['import', 'test'];
-
-function collectSemanticTokens(
-	expression: PositionedExpression,
-	scopes: SymbolTable[],
-	tokens: SemanticTokenInfo[],
-): void {
-	addSemanticToken(expression, scopes, tokens);
-	const pushedScope = pushScope(expression, scopes);
-	forEachChild(expression, child => {
-		collectSemanticTokens(child, scopes, tokens);
-		return undefined;
-	});
-	if (pushedScope) {
-		scopes.pop();
-	}
-}
-
-function addSemanticToken(
-	expression: PositionedExpression,
-	scopes: SymbolTable[],
-	tokens: SemanticTokenInfo[],
-): void {
-	switch (expression.type) {
-		case 'reference': {
-			// true/false bekommen keinen Semantic Token: sie sollen wie Literale gefärbt werden
-			// (Grammatik-Scope constant.language.boolean.jul), nicht wie eine eingebaute Variable
-			// oder ein Typ-Pattern (z.B. [true] => ...  löst als TypeOf(booleanLiteral) auf).
-			const referencedType = expression.typeInfo?.type;
-			if (referencedType?.julType === 'booleanLiteral'
-				|| (isTypeOfType(referencedType) && referencedType.value.julType === 'booleanLiteral')) {
-				return;
-			}
-			// import und test bekommen ebenfalls keinen Semantic Token: beide sind nur als direkter
-			// Aufruf erlaubt (JUL3040, JUL2704), sollen also wie ein Keyword gefärbt werden
-			// (Grammatik-Scopes keyword.control.import.jul/keyword.control.test.jul), nicht wie eine
-			// eingebaute Funktion/Variable.
-			if (keywordFunctionNames.includes(expression.name.name)) {
-				return;
-			}
-			const found = findSymbolInScopesWithBuiltIns(expression.name.name, scopes);
-			pushSemanticToken(
-				tokens,
-				expression.name,
-				getSemanticTokenType(expression.typeInfo, found?.symbol),
-				getSemanticTokenModifiers(expression.typeInfo, found?.isBuiltIn));
-			return;
-		}
-		case 'definition': {
-			// Die Deklarationen von import/test/true/false in core-lib.jul bekommen ebenfalls keinen
-			// Semantic Token, aus demselben Grund wie an der jeweiligen Referenzstelle oben.
-			if (keywordFunctionNames.includes(expression.name.name)) {
-				return;
-			}
-			const definedType = expression.typeInfo?.type;
-			if (definedType?.julType === 'booleanLiteral'
-				|| (isTypeOfType(definedType) && definedType.value.julType === 'booleanLiteral')) {
-				return;
-			}
-			pushSemanticToken(
-				tokens,
-				expression.name,
-				getSemanticTokenType(expression.typeInfo, findSymbolInScopes(expression.name.name, scopes)),
-				['declaration', ...getSemanticTokenModifiers(expression.typeInfo, false)]);
-			return;
-		}
-		case 'parameter':
-			pushSemanticToken(tokens, expression.name, 'parameter', ['declaration']);
-			return;
-		case 'destructuringField':
-			pushSemanticToken(tokens, expression.name, 'variable', ['declaration']);
-			if (expression.source) {
-				pushSemanticToken(tokens, expression.source, 'property', []);
-			}
-			return;
-		case 'singleDictionaryField':
-		case 'singleDictionaryTypeField':
-			if (expression.name.type === 'name') {
-				pushSemanticToken(tokens, expression.name, 'property', ['declaration']);
-			}
-			return;
-		case 'nestedReference':
-			if (expression.nestedKey?.type === 'name') {
-				pushSemanticToken(tokens, expression.nestedKey, 'property', []);
-			}
-			return;
-		default:
-			return;
-	}
-}
-
-function findSymbolInScopes(name: string, scopes: SymbolTable[]): SymbolDefinition | undefined {
-	for (let index = scopes.length - 1; index >= 0; index--) {
-		const symbol = scopes[index]![name];
-		if (symbol) {
-			return symbol;
-		}
-	}
-	return undefined;
-}
-
-function getSemanticTokenType(
-	typeInfo: TypeInfo | undefined,
-	symbol: SymbolDefinition | undefined,
-): SemanticTokenType {
-	// Vor allen Typprüfungen: ein importiertes Modul kann selbst eine Funktion oder ein Typ sein.
-	if (symbol?.definition && isImportDefinition(symbol.definition)) {
-		return 'namespace';
-	}
-	if (symbol?.definition?.type === 'parameter') {
-		return 'parameter';
-	}
-	// Der unaufgelöste Typ genügt: gefragt ist die Art des Bezeichners, nicht sein Inhalt.
-	// resolvePlaceholders pro Referenz kostet mehr als der ganze restliche Durchlauf.
-	const type = getFunctionValueType(typeInfo) ?? typeInfo?.type;
-	if (isTypeOfType(type) || type?.julType === 'type') {
-		return 'type';
-	}
-	if (isFunctionType(type)) {
-		return 'function';
-	}
-	return 'variable';
-}
-
-function getSemanticTokenModifiers(
-	typeInfo: TypeInfo | undefined,
-	isBuiltIn: boolean | undefined,
-): SemanticTokenModifier[] {
-	const modifiers: SemanticTokenModifier[] = [];
-	if (isBuiltIn) {
-		modifiers.push('defaultLibrary');
-	}
-	// Streams haben keinen eigenen LSP-Tokentyp. Der Modifier heißt wie die Sache; die Farbe
-	// liefert die semanticTokenScopes-Contribution der Extension, kein Theme kennt ihn von selbst.
-	if (typeInfo?.type.julType === 'stream') {
-		modifiers.push('stream');
-	}
-	// Die Purity steht sonst nur am Pfeil ~> im Hover. Mit eigener Farbe ist ein Seiteneffekt an
-	// jedem Aufruf zu sehen. Nur das sichere impure: pureIfArgsPure hängt vom einzelnen Aufruf ab.
-	if (getFunctionValueType(typeInfo)?.purity === 'impure') {
-		modifiers.push('impure');
-	}
-	return modifiers;
-}
-
-/**
- * Der Funktionstyp eines Bezeichners, dessen Wert eine Funktion ist. Eine Referenz auf ein
- * Funktionsliteral kann als TypeOf(Funktion) ankommen - das ist der Funktionswert selbst, kein Typ.
- */
-function getFunctionValueType(typeInfo: TypeInfo | undefined): CompileTimeFunctionType | undefined {
-	const type = typeInfo?.type;
-	if (isFunctionType(type)) {
-		return type;
-	}
-	if (isTypeOfType(type) && isFunctionType(type.value)) {
-		return type.value;
-	}
-	return undefined;
-}
-
-function isImportDefinition(definition: DefinitionExpression): boolean {
-	const value = definition.type === 'definition'
-		? definition.value
-		: undefined;
-	return value?.type === 'functionCall' && isImportFunctionCall(value);
-}
-
-function pushSemanticToken(
-	tokens: SemanticTokenInfo[],
-	positioned: Positioned,
-	tokenType: SemanticTokenType,
-	modifiers: SemanticTokenModifier[],
-): void {
-	// LSP kennt keine mehrzeiligen Tokens.
-	if (positioned.startRowIndex !== positioned.endRowIndex) {
-		return;
-	}
-	const length = positioned.endColumnIndex - positioned.startColumnIndex;
-	if (length < 1) {
-		return;
-	}
-	// LSP hat keinen Tokentyp für Konstanten. JUL kennt keine Variablen - jede Bindung ist
-	// konstant, also trägt jeder Bezeichner readonly.
-	const allModifiers: SemanticTokenModifier[] = isBinding(tokenType)
-		? [...modifiers, 'readonly']
-		: modifiers;
-	tokens.push({
-		line: positioned.startRowIndex,
-		character: positioned.startColumnIndex,
-		length: length,
-		tokenType: semanticTokenTypes.indexOf(tokenType),
-		tokenModifiers: allModifiers.reduce(
-			(combined, modifier) => combined | (1 << semanticTokenModifiers.indexOf(modifier)),
-			0),
-	});
-}
-
-function isBinding(tokenType: SemanticTokenType): boolean {
-	switch (tokenType) {
-		case 'variable':
-		case 'parameter':
-		case 'property':
-			return true;
-		default:
-			return false;
-	}
-}
-//#endregion semantic tokens
 
 //#region tests
 /**
