@@ -22,9 +22,17 @@ export function getHover(
 	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
+		// Die aufgerufene Funktion zeigt die Signatur, gegen die dieser Aufruf geprüft wurde.
+		const parent = expression.parent;
+		const calledFunctionType = parent?.type === 'functionCall' && parent.functionExpression === expression
+			? parent.calledFunctionType
+			: undefined;
 		// Der Typ gehört der Stelle, nicht dem Namen: in einem branch ist er hier verengt.
 		// Die Beschreibung steht dagegen nur an der Definition.
-		return getTypeMarkdown(('typeInfo' in expression && expression.typeInfo) || symbol.typeInfo, symbol.description);
+		const typeInfo = calledFunctionType
+			? { type: calledFunctionType }
+			: ('typeInfo' in expression && expression.typeInfo) || symbol.typeInfo;
+		return getTypeMarkdown(typeInfo, symbol.description);
 	}
 
 	const declaredType = getDeclaredType(expression);

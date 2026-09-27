@@ -14,9 +14,9 @@ import {
 /**
  * Snapshot der Server-Antworten über echtes LSP. Sichert Umbauten an der Baumsuche ab:
  * der Bench sagt nur, dass es gleich schnell ist, dieser Test, dass es dasselbe findet.
- * Aufruf: npm test
- * Baseline neu schreiben: UPDATE_SNAPSHOT=1 npm test
- * Setzt einen gebauten Server voraus (npm run build).
+ * Aufruf: npm run test-snapshot (läuft nicht mit npm test, das sind nur die Unit-Tests)
+ * Baseline neu schreiben: UPDATE_SNAPSHOT=1 npm run test-snapshot
+ * Setzt einen gebauten Server voraus (npm run build, bzw. build-all im Compiler).
  */
 
 const maxPositionCount = 25;
@@ -193,7 +193,7 @@ function compareToBaseline(actual) {
 		return true;
 	}
 	if (!existsSync(baselinePath)) {
-		console.error('Baseline fehlt. Neu schreiben mit: UPDATE_SNAPSHOT=1 npm test');
+		console.error('Baseline fehlt. Neu schreiben mit: UPDATE_SNAPSHOT=1 npm run test-snapshot');
 		return false;
 	}
 	const expected = readFileSync(baselinePath, { encoding: 'utf8' });
@@ -208,7 +208,7 @@ function compareToBaseline(actual) {
 	console.error(`  erwartet: ${expectedRows[differenceIndex]}`);
 	console.error(`  gemessen: ${actualRows[differenceIndex]}`);
 	console.error(`  ${expectedRows.length} Zeilen erwartet, ${actualRows.length} gemessen`);
-	console.error('Wenn die Änderung gewollt ist: UPDATE_SNAPSHOT=1 npm test');
+	console.error('Wenn die Änderung gewollt ist: UPDATE_SNAPSHOT=1 npm run test-snapshot');
 	return false;
 }
 

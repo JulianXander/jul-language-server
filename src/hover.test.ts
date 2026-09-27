@@ -68,4 +68,18 @@ describe('hover', () => {
 		].join('\n');
 		expect(hoverAt(code)).to.equal(typeMarkdown('Integer'));
 	});
+
+	it('die aufgerufene Funktion zeigt Parametertypen, die auf ein Argument verweisen, am Aufruf aufgelöst', () => {
+		const code = [
+			's$ = create$(Or([] Integer) [])',
+			's$.pu¦sh(1)',
+			'',
+		].join('\n');
+		expect(hoverAt(code)).to.equal(typeMarkdown([
+			'(',
+			'  stream$: Stream(Any)',
+			'  value: Or(Empty Integer)',
+			') ~> Empty',
+		].join('\n')));
+	});
 });
