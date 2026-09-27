@@ -2717,15 +2717,15 @@ semanticTokens
   1:1 completion: n=0 
   1:1 signatureHelp: kein
   2:5 hover: ```jul (html: Text) :> Any ```
-  2:5 definition: ui/todo-list/dom.ts:16:17
+  2:5 definition: ui/todo-list/dom.ts:17:17
   2:5 completion: n=0 
   2:5 signatureHelp: kein
   3:8 hover: ```jul (element: Any) :> Any ```
-  3:8 definition: ui/todo-list/dom.ts:12:17
+  3:8 definition: ui/todo-list/dom.ts:13:17
   3:8 completion: n=0 
   3:8 signatureHelp: kein
   4:8 hover: ```jul (listener: Any) :> Any ```
-  4:8 definition: ui/todo-list/dom.ts:8:17
+  4:8 definition: ui/todo-list/dom.ts:9:17
   4:8 completion: n=0 
   4:8 signatureHelp: kein
   5:12 hover: ```jul Text ```
@@ -2761,7 +2761,7 @@ semanticTokens
   13:1 completion: n=0 
   13:1 signatureHelp: kein
   15:8 hover: ```jul (listener: Any) :> Any ```
-  15:8 definition: ui/todo-list/dom.ts:8:17
+  15:8 definition: ui/todo-list/dom.ts:9:17
   15:8 completion: n=104 addHtml,removeElement,subscribeEvent
   15:8 signatureHelp: (listener: Any) :> Any param=0
   16:10 hover: ```jul Any ```
@@ -2773,11 +2773,11 @@ semanticTokens
   17:6 completion: n=106 addHtml,removeElement,subscribeEvent
   17:6 signatureHelp: kein
   18:18 hover: ```jul (html: Text) :> Any ```
-  18:18 definition: ui/todo-list/dom.ts:16:17
+  18:18 definition: ui/todo-list/dom.ts:17:17
   18:18 completion: n=106 addHtml,removeElement,subscribeEvent
   18:18 signatureHelp: (html: Text) :> Any param=0
   19:27 hover: ```jul (element: Any) :> Any ```
-  19:27 definition: ui/todo-list/dom.ts:12:17
+  19:27 definition: ui/todo-list/dom.ts:13:17
   19:27 completion: n=106 addHtml,removeElement,subscribeEvent
   19:27 signatureHelp: (element: Any) :> Any param=0
   20:6 hover: kein
