@@ -53,7 +53,7 @@ semanticTokens
   4:7 completion: n=108 a,MyType,myFn
   4:7 signatureHelp: kein
   6:5 hover: ```jul (...args: Or(Empty List(Any))) ~> Empty ``` Gibt die args in der Konsole aus.
-  6:5 definition: jul-core-lib:/core-lib.jul:1253:1
+  6:5 definition: jul-core-lib:/core-lib.jul:1249:1
   6:5 completion: n=108 a,MyType,myFn
   6:5 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=0
   8:1 hover: ```jul [ f1: 4 f2: §asdf§ f3: () ~> 4 ] ```
@@ -258,7 +258,7 @@ semanticTokens
   63:7 completion: n=110 inlineObj,inlineList,someVar
   63:7 signatureHelp: kein
   66:5 hover: ```jul (...args: Or(Empty List(Any))) ~> Empty ``` Gibt die args in der Konsole aus.
-  66:5 definition: jul-core-lib:/core-lib.jul:1253:1
+  66:5 definition: jul-core-lib:/core-lib.jul:1249:1
   66:5 completion: n=109 inlineObj,inlineList,someVar
   66:5 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=0
   70:8 hover: ```jul TypeOf(Text) ``` sequence of characters (String)
@@ -336,7 +336,7 @@ semanticTokens
   5:5 completion: n=108 myVal,myEmpty,myList
   5:5 signatureHelp: kein
   10:10 hover: ```jul (...args: Or(Empty List(Any))) ~> Empty ``` Gibt die args in der Konsole aus.
-  10:10 definition: jul-core-lib:/core-lib.jul:1253:1
+  10:10 definition: jul-core-lib:/core-lib.jul:1249:1
   10:10 completion: n=108 myVal,myEmpty,myList
   10:10 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=0
   12:14 hover: kein
@@ -408,7 +408,7 @@ semanticTokens
   1: 1+12 variable(declaration,readonly) 16+5 function(defaultLibrary,impure)
   2: 1+3 function(defaultLibrary,impure) 5+12 variable(readonly)
   1:19 hover: ```jul (js: Text) ~> Any ``` Führt den gegebenen Text als JavaScript aus und liefert dessen Rückgabe...
-  1:19 definition: jul-core-lib:/core-lib.jul:1282:1
+  1:19 definition: jul-core-lib:/core-lib.jul:1278:1
   1:19 completion: n=105 cliArguments,true,false
   1:19 signatureHelp: (js: Text) ~> Any param=0
   2:9 hover: ```jul Any ```
@@ -430,8 +430,8 @@ symbols
   moveJs kind=14 10:5
     keine
 semanticTokens
-  1: 1+7 variable(declaration,readonly,stream) 11+6 function(defaultLibrary,impure)
-  2: 1+9 variable(declaration,readonly,stream) 13+7 variable(readonly,stream) 21+4 function(defaultLibrary,impure) 27+5 parameter(declaration,readonly) 37+5 parameter(readonly) 43+13 function(defaultLibrary)
+  1: 1+7 variable(declaration,readonly,stream) 11+9 function(defaultLibrary,impure)
+  2: 1+9 variable(declaration,readonly,stream) 13+7 variable(readonly,stream) 21+4 function(defaultLibrary,impure) 27+5 parameter(declaration,readonly) 37+5 parameter(readonly) 43+8 function(defaultLibrary)
   3: 1+9 variable(readonly,stream) 11+9 function(defaultLibrary,impure)
   4: 3+5 parameter(declaration,readonly)
   5: 3+10 variable(declaration,readonly) 16+5 parameter(readonly) 22+7 function(defaultLibrary)
@@ -440,25 +440,25 @@ semanticTokens
   10: 5+6 variable(declaration,readonly) 16+5 parameter(readonly) 22+7 function(defaultLibrary)
   13: 5+5 function(defaultLibrary,impure)
   15: 9+6 variable(readonly)
-  18: 31+5 parameter(readonly) 37+13 function(defaultLibrary)
+  18: 31+5 parameter(readonly) 37+8 function(defaultLibrary)
   19: 31+5 parameter(readonly)
-  1:12 hover: ```jul (delayMs: Float) ~> Stream(Float) ``` gibt alle delayMs die nächste Zahl aus, beginnend mit 1
-  1:12 definition: jul-core-lib:/core-lib.jul:1123:1
-  1:12 completion: n=106 timer1$,progress$,true
-  1:12 signatureHelp: (delayMs: Float) ~> Stream(Float) param=0
-  2:31 hover: ```jul Float ```
-  2:31 definition: console-progress/console-progress.jul:2:27
-  2:31 completion: n=107 timer1$,progress$,value
-  2:31 signatureHelp: kein
-  3:11 hover: ```jul ( stream$: Stream(Float) listener: (value: Float) :> Any ) ~> Empty ```
+  1:13 hover: ```jul ( delayMs: Float count: Or(Empty 0 PositiveInteger) ) ~> Stream(Integer) ``` Startwert: 0 Lie...
+  1:13 definition: jul-core-lib:/core-lib.jul:1126:1
+  1:13 completion: n=106 timer1$,progress$,true
+  1:13 signatureHelp: ( delayMs: Float count: Or(Empty 0 PositiveInteger) ) ~> Stream(Integer) param=0
+  2:28 hover: ```jul Integer ```
+  2:28 definition: console-progress/console-progress.jul:2:27
+  2:28 completion: n=107 timer1$,progress$,value
+  2:28 signatureHelp: kein
+  3:11 hover: ```jul ( stream$: Stream(Integer) listener: (value: Integer) :> Any ) ~> Empty ```
   3:11 definition: jul-core-lib:/core-lib.jul:1034:1
   3:11 completion: n=13 TypeOf,equal,deepEqual
   3:11 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
-  4:6 hover: ```jul Float ```
+  4:6 hover: ```jul Integer ```
   4:6 definition: console-progress/console-progress.jul:4:3
   4:6 completion: n=108 timer1$,progress$,value
   4:6 signatureHelp: kein
-  5:17 hover: ```jul Float ```
+  5:17 hover: ```jul Integer ```
   5:17 definition: console-progress/console-progress.jul:4:3
   5:17 completion: n=108 timer1$,progress$,value
   5:17 signatureHelp: ( first: Or(Integer Float) second: Or(Integer Float) ) -> Boolean param=1
@@ -470,7 +470,7 @@ semanticTokens
   7:7 definition: jul-core-lib:/core-lib.jul:1:1
   7:7 completion: n=108 timer1$,progress$,value
   7:7 signatureHelp: kein
-  8:12 hover: ```jul FiniteStream(Float) ```
+  8:12 hover: ```jul FiniteStream(Integer) ```
   8:12 definition: console-progress/console-progress.jul:1:1
   8:12 completion: n=108 timer1$,progress$,value
   8:12 signatureHelp: (stream$: Stream(Any)) ~> Empty param=1
@@ -478,7 +478,7 @@ semanticTokens
   9:7 definition: jul-core-lib:/core-lib.jul:2:1
   9:7 completion: n=109 timer1$,progress$,value
   9:7 signatureHelp: kein
-  10:17 hover: ```jul Float ```
+  10:17 hover: ```jul Integer ```
   10:17 definition: console-progress/console-progress.jul:4:3
   10:17 completion: n=109 timer1$,progress$,value
   10:17 signatureHelp: ( first: Or(Integer Float) second: Or(Integer Float) ) -> Boolean param=1
@@ -491,7 +491,7 @@ semanticTokens
   12:10 completion: n=109 timer1$,progress$,value
   12:10 signatureHelp: kein
   13:6 hover: ```jul (js: Text) ~> Any ``` Führt den gegebenen Text als JavaScript aus und liefert dessen Rückgabe...
-  13:6 definition: jul-core-lib:/core-lib.jul:1282:1
+  13:6 definition: jul-core-lib:/core-lib.jul:1278:1
   13:6 completion: n=109 timer1$,progress$,value
   13:6 signatureHelp: (js: Text) ~> Any param=0
   14:4 hover: ```jul (js: Text) ```
@@ -502,10 +502,10 @@ semanticTokens
   15:8 definition: kein
   15:8 completion: n=1 js
   15:8 signatureHelp: kein
-  18:31 hover: ```jul Float ```
-  18:31 definition: console-progress/console-progress.jul:4:3
-  18:31 completion: n=109 timer1$,progress$,value
-  18:31 signatureHelp: (...args: List(Float)) -> Float param=1
+  18:28 hover: ```jul Text ```
+  18:28 definition: kein
+  18:28 completion: n=1 js
+  18:28 signatureHelp: kein
   19:22 hover: ```jul Text ```
   19:22 definition: kein
   19:22 completion: n=1 js
@@ -522,66 +522,6 @@ semanticTokens
   22:1 definition: kein
   22:1 completion: n=2 stream$,listener
   22:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
-
-=== counter/counter.jul
-symbols
-  counter$ kind=14 2:1
-    keine
-  value kind=13 4:3
-    keine
-semanticTokens
-  2: 1+8 variable(declaration,readonly,stream) 12+6 function(defaultLibrary,impure)
-  3: 1+8 variable(readonly,stream) 10+9 function(defaultLibrary,impure)
-  4: 3+5 parameter(declaration,readonly)
-  5: 3+3 function(defaultLibrary,impure) 7+5 parameter(readonly)
-  6: 3+5 function(defaultLibrary,impure)
-  7: 32+5 parameter(readonly)
-  10: 5+5 parameter(readonly)
-  11: 13+8 variable(readonly,stream) 22+8 function(defaultLibrary,impure)
-  2:13 hover: ```jul (delayMs: Float) ~> Stream(Float) ``` gibt alle delayMs die nächste Zahl aus, beginnend mit 1
-  2:13 definition: jul-core-lib:/core-lib.jul:1123:1
-  2:13 completion: n=105 counter$,true,false
-  2:13 signatureHelp: (delayMs: Float) ~> Stream(Float) param=0
-  3:10 hover: ```jul ( stream$: Stream(Float) listener: (value: Float) :> Any ) ~> Empty ```
-  3:10 definition: jul-core-lib:/core-lib.jul:1034:1
-  3:10 completion: n=13 TypeOf,equal,deepEqual
-  3:10 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
-  4:6 hover: ```jul Float ```
-  4:6 definition: counter/counter.jul:4:3
-  4:6 completion: n=106 counter$,value,true
-  4:6 signatureHelp: kein
-  5:7 hover: ```jul Float ```
-  5:7 definition: counter/counter.jul:4:3
-  5:7 completion: n=0 
-  5:7 signatureHelp: kein
-  6:6 hover: ```jul (js: Text) ~> Any ``` Führt den gegebenen Text als JavaScript aus und liefert dessen Rückgabe...
-  6:6 definition: jul-core-lib:/core-lib.jul:1282:1
-  6:6 completion: n=106 counter$,value,true
-  6:6 signatureHelp: (js: Text) ~> Any param=0
-  7:19 hover: ```jul Text ```
-  7:19 definition: kein
-  7:19 completion: n=1 js
-  7:19 signatureHelp: kein
-  8:3 hover: ```jul Text ```
-  8:3 definition: kein
-  8:3 completion: n=1 js
-  8:3 signatureHelp: kein
-  10:6 hover: ```jul Float ```
-  10:6 definition: counter/counter.jul:4:3
-  10:6 completion: n=106 counter$,value,true
-  10:6 signatureHelp: kein
-  11:16 hover: ```jul FiniteStream(Float) ``` jul
-  11:16 definition: counter/counter.jul:2:1
-  11:16 completion: n=106 counter$,value,true
-  11:16 signatureHelp: (stream$: Stream(Any)) ~> Empty param=1
-  12:6 hover: kein
-  12:6 definition: kein
-  12:6 completion: n=106 counter$,value,true
-  12:6 signatureHelp: kein
-  13:1 hover: ```jul ( stream$: Stream(Any) listener: (value: Any) :> Any ) ```
-  13:1 definition: kein
-  13:1 completion: n=2 stream$,listener
-  13:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
 
 === fibonacci/fibonacci.jul
 symbols
@@ -670,7 +610,7 @@ semanticTokens
   5: 35+5 function(defaultLibrary) 41+9 function
   8: 8+9 function(defaultLibrary) 18+3 function(defaultLibrary) 37+5 parameter(declaration,readonly) 47+9 function 57+5 parameter(readonly)
   2:20 hover: ```jul (path: Text) ~> [ fibonacciHelper: ( countdown: Integer current: Integer previous: Integer ) ...
-  2:20 definition: jul-core-lib:/core-lib.jul:1246:1
+  2:20 definition: jul-core-lib:/core-lib.jul:1242:1
   2:20 completion: n=105 fibonacci,true,false
   2:20 signatureHelp: (path: Text) ~> Any param=0
   4:48 hover: ```jul (...args: List(Boolean)) -> Boolean ``` Liefert true, wenn alle args true sind
@@ -682,7 +622,7 @@ semanticTokens
   5:30 completion: n=0 
   5:30 signatureHelp: kein
   6:3 hover: ```jul ( name: Text callback: () :> Boolean ) ~> Empty ``` Registriert einen Test, den `jul test` au...
-  6:3 definition: jul-core-lib:/core-lib.jul:1261:1
+  6:3 definition: jul-core-lib:/core-lib.jul:1257:1
   6:3 completion: n=105 fibonacci,true,false
   6:3 signatureHelp: ( name: Text callback: () :> Boolean ) ~> Empty param=0
   7:22 hover: ```jul Text ```
@@ -812,7 +752,7 @@ semanticTokens
   5:18 completion: n=32 List,And,Or
   5:18 signatureHelp: ( dividend: Integer divisor: NonZeroInteger ) -> Integer param=1
   7:4 hover: ```jul ( count: Integer iteratee: (index: PositiveInteger) ~> Any ) ~> Empty ``` Führt den iteratee ...
-  7:4 definition: jul-core-lib:/core-lib.jul:1271:1
+  7:4 definition: jul-core-lib:/core-lib.jul:1267:1
   7:4 completion: n=105 divisibleBy,true,false
   7:4 signatureHelp: ( count: Integer iteratee: (index: PositiveInteger) ~> Any ) ~> Empty param=0
   8:3 hover: ```jul Integer ```
@@ -1194,7 +1134,7 @@ semanticTokens
   39: 1+16 namespace(declaration)
   40: 1+3 function(defaultLibrary,impure) 5+16 namespace
   4:18 hover: ```jul (path: Text) ~> 15 ``` Supported file types: .jul .js .json .yaml
-  4:18 definition: jul-core-lib:/core-lib.jul:1246:1
+  4:18 definition: jul-core-lib:/core-lib.jul:1242:1
   4:18 completion: n=114 valueImport,file2,someText
   4:18 signatureHelp: (path: Text) ~> Any param=0
   5:9 hover: ```jul 15 ``` value import the last expression is imported
@@ -1202,7 +1142,7 @@ semanticTokens
   5:9 completion: n=0 
   5:9 signatureHelp: kein
   9:15 hover: ```jul (path: Text) ~> [ someText: §test token 1§ logText: (value: Text) ~> Empty MyType: TypeOf(MyT...
-  9:15 definition: jul-core-lib:/core-lib.jul:1246:1
+  9:15 definition: jul-core-lib:/core-lib.jul:1242:1
   9:15 completion: n=114 valueImport,file2,someText
   9:15 signatureHelp: (path: Text) ~> Any param=0
   10:10 hover: ```jul [ someText: §test token 1§ logText: (value: Text) ~> Empty MyType: TypeOf(MyType) ] ``` defin...
@@ -1254,7 +1194,7 @@ semanticTokens
   23:1 completion: n=0 
   23:1 signatureHelp: kein
   27:20 hover: ```jul (path: Text) ~> §hello yaml§ ``` Supported file types: .jul .js .json .yaml
-  27:20 definition: jul-core-lib:/core-lib.jul:1246:1
+  27:20 definition: jul-core-lib:/core-lib.jul:1242:1
   27:20 completion: n=114 valueImport,file2,someText
   27:20 signatureHelp: (path: Text) ~> Any param=0
   28:8 hover: ```jul §hello yaml§ ``` yaml
@@ -1262,7 +1202,7 @@ semanticTokens
   28:8 completion: n=0 
   28:8 signatureHelp: kein
   31:20 hover: ```jul (path: Text) ~> §hello json§ ``` Supported file types: .jul .js .json .yaml
-  31:20 definition: jul-core-lib:/core-lib.jul:1246:1
+  31:20 definition: jul-core-lib:/core-lib.jul:1242:1
   31:20 completion: n=114 valueImport,file2,someText
   31:20 signatureHelp: (path: Text) ~> Any param=0
   32:8 hover: ```jul §hello json§ ``` json
@@ -1270,7 +1210,7 @@ semanticTokens
   32:8 completion: n=0 
   32:8 signatureHelp: kein
   35:21 hover: ```jul (path: Text) ~> [ greeting: §hello ts§ test2: 4f testfn1: (par1: Text) ~> Any testfn2: (par1:...
-  35:21 definition: jul-core-lib:/core-lib.jul:1246:1
+  35:21 definition: jul-core-lib:/core-lib.jul:1242:1
   35:21 completion: n=114 valueImport,file2,someText
   35:21 signatureHelp: (path: Text) ~> Any param=0
   36:11 hover: ```jul [ greeting: §hello ts§ test2: 4f testfn1: (par1: Text) ~> Any testfn2: (par1: Text) ~> Any ] ...
@@ -1278,7 +1218,7 @@ semanticTokens
   36:11 completion: n=0 
   36:11 signatureHelp: kein
   39:21 hover: ```jul (path: Text) ~> [ testfn1: (par1: Any) ~> Any testfn2: (par1: Any) ~> Any greeting: §hello js...
-  39:21 definition: jul-core-lib:/core-lib.jul:1246:1
+  39:21 definition: jul-core-lib:/core-lib.jul:1242:1
   39:21 completion: n=114 valueImport,file2,someText
   39:21 signatureHelp: (path: Text) ~> Any param=0
   40:11 hover: ```jul [ testfn1: (par1: Any) ~> Any testfn2: (par1: Any) ~> Any greeting: §hello js§ test2: 4f ] ``...
@@ -1475,7 +1415,7 @@ symbols
   x kind=13 14:22
     keine
 semanticTokens
-  1: 1+7 variable(declaration,readonly,stream) 11+6 function(defaultLibrary,impure)
+  1: 1+7 variable(declaration,readonly,stream) 11+9 function(defaultLibrary,impure)
   2: 1+7 variable(readonly,stream) 9+9 function(defaultLibrary,impure)
   3: 3+1 parameter(declaration,readonly)
   4: 3+7 variable(readonly) 11+3 function(defaultLibrary,impure) 25+1 parameter(readonly)
@@ -1488,27 +1428,27 @@ semanticTokens
   15: 1+9 variable(readonly,stream) 11+11 variable(readonly) 29+7 variable(readonly) 37+3 function(defaultLibrary,impure)
   17: 1+7 variable(readonly,stream) 9+8 function(defaultLibrary,impure)
   18: 1+8 variable(readonly,stream) 10+8 function(defaultLibrary,impure)
-  1:12 hover: ```jul (delayMs: Float) ~> Stream(Float) ``` gibt alle delayMs die nächste Zahl aus, beginnend mit 1
-  1:12 definition: jul-core-lib:/core-lib.jul:1123:1
-  1:12 completion: n=108 source$,mapped1$,mapped2$
-  1:12 signatureHelp: (delayMs: Float) ~> Stream(Float) param=0
-  2:10 hover: ```jul ( stream$: Stream(Float) listener: (value: Float) :> Any ) ~> Empty ```
+  1:13 hover: ```jul ( delayMs: Float count: Or(Empty 0 PositiveInteger) ) ~> Stream(Integer) ``` Startwert: 0 Lie...
+  1:13 definition: jul-core-lib:/core-lib.jul:1126:1
+  1:13 completion: n=108 source$,mapped1$,mapped2$
+  1:13 signatureHelp: ( delayMs: Float count: Or(Empty 0 PositiveInteger) ) ~> Stream(Integer) param=0
+  2:10 hover: ```jul ( stream$: Stream(Integer) listener: (value: Integer) :> Any ) ~> Empty ```
   2:10 definition: jul-core-lib:/core-lib.jul:1034:1
   2:10 completion: n=13 TypeOf,equal,deepEqual
   2:10 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
-  3:4 hover: ```jul Float ```
+  3:4 hover: ```jul Integer ```
   3:4 definition: stream.jul:3:3
   3:4 completion: n=109 source$,mapped1$,mapped2$
   3:4 signatureHelp: kein
   4:14 hover: ```jul (...args: Or(Empty List(Any))) ~> Empty ``` Gibt die args in der Konsole aus.
-  4:14 definition: jul-core-lib:/core-lib.jul:1253:1
+  4:14 definition: jul-core-lib:/core-lib.jul:1249:1
   4:14 completion: n=82 List,And,Or
   4:14 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=1
   5:1 hover: ```jul ( stream$: Stream(Any) listener: (value: Any) :> Any ) ```
   5:1 definition: kein
   5:1 completion: n=2 stream$,listener
   5:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
-  7:26 hover: ```jul Float ```
+  7:26 hover: ```jul Integer ```
   7:26 definition: stream.jul:7:26
   7:26 completion: n=109 source$,mapped1$,mapped2$
   7:26 signatureHelp: kein
@@ -1516,7 +1456,7 @@ semanticTokens
   8:27 definition: kein
   8:27 completion: n=109 source$,mapped1$,mapped2$
   8:27 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=1
-  10:26 hover: ```jul Float ```
+  10:26 hover: ```jul Integer ```
   10:26 definition: stream.jul:10:26
   10:26 completion: n=109 source$,mapped1$,mapped2$
   10:26 signatureHelp: kein
@@ -1524,11 +1464,11 @@ semanticTokens
   11:27 definition: kein
   11:27 completion: n=109 source$,mapped1$,mapped2$
   11:27 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=1
-  13:24 hover: ```jul FiniteStream(Float) ```
+  13:24 hover: ```jul FiniteStream(Integer) ```
   13:24 definition: stream.jul:1:1
   13:24 completion: n=0 
   13:24 signatureHelp: kein
-  14:27 hover: ```jul (value: [Float Integer Integer]) :> Any ```
+  14:27 hover: ```jul (value: [Integer Integer Integer]) :> Any ```
   14:27 definition: kein
   14:27 completion: n=2 stream$,listener
   14:27 signatureHelp: kein
@@ -2074,7 +2014,7 @@ semanticTokens
   19:23 completion: n=113 BlubType,typeFnShort,typeFnLong
   19:23 signatureHelp: kein
   21:4 hover: ```jul (...args: Or(Empty List(Any))) ~> Empty ``` Gibt die args in der Konsole aus.
-  21:4 definition: jul-core-lib:/core-lib.jul:1253:1
+  21:4 definition: jul-core-lib:/core-lib.jul:1249:1
   21:4 completion: n=113 BlubType,typeFnShort,typeFnLong
   21:4 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=0
   26:6 hover: kein
@@ -2145,7 +2085,7 @@ semanticTokens
   8:7 completion: n=106 someVar,a,true
   8:7 signatureHelp: kein
   9:5 hover: ```jul (...args: Or(Empty List(Any))) ~> Empty ``` Gibt die args in der Konsole aus.
-  9:5 definition: jul-core-lib:/core-lib.jul:1253:1
+  9:5 definition: jul-core-lib:/core-lib.jul:1249:1
   9:5 completion: n=106 someVar,a,true
   9:5 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=0
   10:2 hover: kein
@@ -2315,6 +2255,52 @@ semanticTokens
   62:13 completion: n=112 myVar,myVarIsText,Article
   62:13 signatureHelp: kein
 
+=== ui/counter/counter.jul
+symbols
+  counter$ kind=14 2:1
+    keine
+  value kind=13 4:3
+    keine
+semanticTokens
+  2: 1+8 variable(declaration,readonly,stream) 12+9 function(defaultLibrary,impure)
+  3: 1+8 variable(readonly,stream) 10+9 function(defaultLibrary,impure)
+  4: 3+5 parameter(declaration,readonly)
+  5: 3+3 function(defaultLibrary,impure) 7+5 parameter(readonly)
+  6: 3+5 function(defaultLibrary,impure)
+  7: 32+5 parameter(readonly)
+  2:16 hover: ```jul ( delayMs: Float count: Or(Empty 0 PositiveInteger) ) ~> FiniteStream(Integer) ``` Startwert:...
+  2:16 definition: jul-core-lib:/core-lib.jul:1126:1
+  2:16 completion: n=105 counter$,true,false
+  2:16 signatureHelp: ( delayMs: Float count: Or(Empty 0 PositiveInteger) ) ~> Stream(Integer) param=0
+  3:10 hover: ```jul ( stream$: Stream(Integer) listener: (value: Integer) :> Any ) ~> Empty ```
+  3:10 definition: jul-core-lib:/core-lib.jul:1034:1
+  3:10 completion: n=13 TypeOf,equal,deepEqual
+  3:10 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
+  4:6 hover: ```jul Integer ```
+  4:6 definition: ui/counter/counter.jul:4:3
+  4:6 completion: n=106 counter$,value,true
+  4:6 signatureHelp: kein
+  5:7 hover: ```jul Integer ```
+  5:7 definition: ui/counter/counter.jul:4:3
+  5:7 completion: n=0 
+  5:7 signatureHelp: kein
+  6:6 hover: ```jul (js: Text) ~> Any ``` Führt den gegebenen Text als JavaScript aus und liefert dessen Rückgabe...
+  6:6 definition: jul-core-lib:/core-lib.jul:1278:1
+  6:6 completion: n=106 counter$,value,true
+  6:6 signatureHelp: (js: Text) ~> Any param=0
+  7:19 hover: ```jul Text ```
+  7:19 definition: kein
+  7:19 completion: n=1 js
+  7:19 signatureHelp: kein
+  8:3 hover: ```jul Text ```
+  8:3 definition: kein
+  8:3 completion: n=1 js
+  8:3 signatureHelp: kein
+  10:1 hover: ```jul ( stream$: Stream(Any) listener: (value: Any) :> Any ) ```
+  10:1 definition: kein
+  10:1 completion: n=2 stream$,listener
+  10:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
+
 === ui/dialog/dialog.jul
 symbols
   appendHtml kind=8 2:2
@@ -2404,7 +2390,7 @@ semanticTokens
   59: 2+6 variable(readonly) 9+9 function(impure)
   60: 2+7 variable(readonly,stream)
   62: 1+11 function(impure) 23+7 function(impure)
-  64: 3+8 variable(declaration,readonly,stream) 14+6 function(defaultLibrary,impure)
+  64: 3+8 variable(declaration,readonly,stream) 14+9 function(defaultLibrary,impure)
   65: 3+7 variable(declaration,readonly,stream) 13+8 function(impure)
   67: 4+8 variable(readonly,stream) 13+4 function(defaultLibrary,impure)
   68: 6+5 parameter(declaration,readonly) 64+5 parameter(readonly)
@@ -2440,7 +2426,7 @@ semanticTokens
   19:5 completion: n=117 appendHtml,elementById,findElement
   19:5 signatureHelp: kein
   22:22 hover: ```jul ( source$: Stream(Text) notifier$: Stream(Any) ) ~> FiniteStream(Text) ``` Liefert die Werte ...
-  22:22 definition: jul-core-lib:/core-lib.jul:1229:1
+  22:22 definition: jul-core-lib:/core-lib.jul:1225:1
   22:22 completion: n=21 findElement,onClick,onDialogClose
   22:22 signatureHelp: ( source$: Stream(Any) notifier$: Stream(Any) ) ~> FiniteStream(Any) param=1
   30:7 hover: ```jul ( title: Or(Text Stream(Text)) question: Or(Text Stream(Text)) ) ~> FiniteStream(Or(Empty §ok...
@@ -2539,28 +2525,28 @@ symbols
     keine
   output kind=14 22:1
     keine
-  name$ kind=14 23:1
+  name$ kind=14 24:1
     keine
-  age$ kind=14 24:1
+  age$ kind=14 26:1
     keine
-  ageVisible$ kind=14 25:1
+  ageVisible$ kind=14 28:1
     keine
-  value kind=13 28:3
+  value kind=13 31:3
     keine
-  data$ kind=14 32:1
-    value kind=13 33:3
+  data$ kind=14 35:1
+    value kind=13 36:3
       keine
-    name kind=8 34:4
+    name kind=8 37:4
       keine
-    age kind=8 34:9
+    age kind=8 37:9
       keine
-    ageVisible kind=8 34:13
+    ageVisible kind=8 37:13
       keine
-    name kind=8 36:4
+    name kind=8 39:4
       keine
-    age kind=8 37:4
+    age kind=8 40:4
       keine
-  value kind=13 43:3
+  value kind=13 46:3
     keine
 semanticTokens
   2: 2+11 variable(declaration,readonly)
@@ -2578,19 +2564,19 @@ semanticTokens
   19: 2+6 variable(readonly,stream)
   21: 1+8 variable(declaration,readonly) 12+11 function(impure)
   22: 1+6 variable(declaration,readonly) 10+11 function(impure)
-  23: 1+5 variable(declaration,readonly,stream) 9+11 function(impure) 21+11 function(impure) 41+9 function(impure)
-  24: 1+4 variable(declaration,readonly,stream) 8+11 function(impure) 20+11 function(impure) 39+12 function(impure)
-  25: 1+11 variable(declaration,readonly,stream) 15+11 function(impure) 27+11 function(impure) 54+9 function(impure)
-  27: 1+11 variable(readonly,stream) 13+9 function(defaultLibrary,impure)
-  28: 3+5 parameter(declaration,readonly) 13+8 variable(readonly) 22+9 function(impure) 32+3 function(defaultLibrary) 36+5 parameter(readonly)
-  32: 1+5 variable(declaration,readonly,stream) 9+8 function(defaultLibrary,impure) 18+5 variable(readonly,stream) 24+4 variable(readonly,stream) 29+11 variable(readonly,stream) 42+4 function(defaultLibrary,impure)
-  33: 3+5 parameter(declaration,readonly)
-  34: 4+4 variable(declaration,readonly) 9+3 variable(declaration,readonly) 13+10 variable(declaration,readonly) 27+5 parameter(readonly)
-  36: 4+4 property(declaration,readonly) 11+4 variable(readonly)
-  37: 4+3 property(declaration,readonly) 12+10 variable(readonly)
-  38: 15+3 variable(readonly)
-  42: 1+5 variable(readonly,stream) 7+9 function(defaultLibrary,impure)
-  43: 3+5 parameter(declaration,readonly) 13+6 variable(readonly) 20+7 function(impure) 28+6 function(defaultLibrary) 35+5 parameter(readonly)
+  24: 1+5 variable(declaration,readonly,stream) 9+11 function(impure) 21+11 function(impure) 41+9 function(impure)
+  26: 1+4 variable(declaration,readonly,stream) 8+11 function(impure) 20+11 function(impure) 39+12 function(impure)
+  28: 1+11 variable(declaration,readonly,stream) 15+11 function(impure) 27+11 function(impure) 54+9 function(impure)
+  30: 1+11 variable(readonly,stream) 13+9 function(defaultLibrary,impure)
+  31: 3+5 parameter(declaration,readonly) 13+8 variable(readonly) 22+9 function(impure) 32+3 function(defaultLibrary) 36+5 parameter(readonly)
+  35: 1+5 variable(declaration,readonly,stream) 9+8 function(defaultLibrary,impure) 18+5 variable(readonly,stream) 24+4 variable(readonly,stream) 29+11 variable(readonly,stream) 42+4 function(defaultLibrary,impure)
+  36: 3+5 parameter(declaration,readonly)
+  37: 4+4 variable(declaration,readonly) 9+3 variable(declaration,readonly) 13+10 variable(declaration,readonly) 27+5 parameter(readonly)
+  39: 4+4 property(declaration,readonly) 11+4 variable(readonly)
+  40: 4+3 property(declaration,readonly) 12+10 variable(readonly)
+  41: 15+3 variable(readonly)
+  45: 1+5 variable(readonly,stream) 7+9 function(defaultLibrary,impure)
+  46: 3+5 parameter(declaration,readonly) 13+6 variable(readonly) 20+7 function(impure) 28+6 function(defaultLibrary) 35+5 parameter(readonly)
   1:1 hover: kein
   1:1 definition: kein
   1:1 completion: n=0 
@@ -2627,46 +2613,46 @@ semanticTokens
   21:18 definition: ui/dynamic-form/dom.ts:1:17
   21:18 completion: n=118 elementById,integerValue,isChecked
   21:18 signatureHelp: (id: Text) ~> Any param=0
-  23:26 hover: ```jul (id: Text) ~> Any ```
-  23:26 definition: ui/dynamic-form/dom.ts:1:17
-  23:26 completion: n=118 elementById,integerValue,isChecked
-  23:26 signatureHelp: (id: Text) ~> Any param=0
-  25:32 hover: ```jul (id: Text) ~> Any ```
-  25:32 definition: ui/dynamic-form/dom.ts:1:17
-  25:32 completion: n=118 elementById,integerValue,isChecked
-  25:32 signatureHelp: (id: Text) ~> Any param=0
-  28:22 hover: ```jul ( element: Any hidden: Boolean ) ~> Empty ```
-  28:22 definition: ui/dynamic-form/dom.ts:15:17
-  28:22 completion: n=90 elementById,integerValue,isChecked
-  28:22 signatureHelp: ( element: Any hidden: Boolean ) ~> Empty param=1
-  32:24 hover: ```jul Stream(Or(Empty Integer)) ```
-  32:24 definition: ui/dynamic-form/dynamic-form.jul:24:1
-  32:24 completion: n=0 
-  32:24 signatureHelp: kein
-  34:16 hover: ```jul Boolean ```
-  34:16 definition: ui/dynamic-form/dynamic-form.jul:34:13
-  34:16 completion: n=0 
-  34:16 signatureHelp: kein
-  36:8 hover: kein
-  36:8 definition: kein
-  36:8 completion: n=122 elementById,integerValue,isChecked
-  36:8 signatureHelp: kein
-  38:9 hover: ```jul true ```
-  38:9 definition: jul-core-lib:/core-lib.jul:1:1
-  38:9 completion: n=122 elementById,integerValue,isChecked
-  38:9 signatureHelp: kein
-  40:2 hover: kein
-  40:2 definition: kein
-  40:2 completion: n=122 elementById,integerValue,isChecked
-  40:2 signatureHelp: kein
-  42:9 hover: ```jul ( stream$: Stream([ name: Text age: Or(Empty Integer) ]) listener: (value: [ name: Text age: ...
-  42:9 definition: jul-core-lib:/core-lib.jul:1034:1
-  42:9 completion: n=20 integerValue,isChecked,onInput
-  42:9 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
-  44:1 hover: ```jul ( stream$: Stream(Any) listener: (value: Any) :> Any ) ```
-  44:1 definition: kein
-  44:1 completion: n=2 stream$,listener
-  44:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
+  24:26 hover: ```jul (id: Text) ~> Any ```
+  24:26 definition: ui/dynamic-form/dom.ts:1:17
+  24:26 completion: n=118 elementById,integerValue,isChecked
+  24:26 signatureHelp: (id: Text) ~> Any param=0
+  28:32 hover: ```jul (id: Text) ~> Any ```
+  28:32 definition: ui/dynamic-form/dom.ts:1:17
+  28:32 completion: n=118 elementById,integerValue,isChecked
+  28:32 signatureHelp: (id: Text) ~> Any param=0
+  31:22 hover: ```jul ( element: Any hidden: Boolean ) ~> Empty ```
+  31:22 definition: ui/dynamic-form/dom.ts:15:17
+  31:22 completion: n=90 elementById,integerValue,isChecked
+  31:22 signatureHelp: ( element: Any hidden: Boolean ) ~> Empty param=1
+  35:24 hover: ```jul Stream(Or(Empty Integer)) ```
+  35:24 definition: ui/dynamic-form/dynamic-form.jul:26:1
+  35:24 completion: n=0 
+  35:24 signatureHelp: kein
+  37:16 hover: ```jul Boolean ```
+  37:16 definition: ui/dynamic-form/dynamic-form.jul:37:13
+  37:16 completion: n=0 
+  37:16 signatureHelp: kein
+  39:8 hover: kein
+  39:8 definition: kein
+  39:8 completion: n=122 elementById,integerValue,isChecked
+  39:8 signatureHelp: kein
+  41:9 hover: ```jul true ```
+  41:9 definition: jul-core-lib:/core-lib.jul:1:1
+  41:9 completion: n=122 elementById,integerValue,isChecked
+  41:9 signatureHelp: kein
+  43:2 hover: kein
+  43:2 definition: kein
+  43:2 completion: n=122 elementById,integerValue,isChecked
+  43:2 signatureHelp: kein
+  45:9 hover: ```jul ( stream$: Stream([ name: Text age: Or(Empty Integer) ]) listener: (value: [ name: Text age: ...
+  45:9 definition: jul-core-lib:/core-lib.jul:1034:1
+  45:9 completion: n=20 integerValue,isChecked,onInput
+  45:9 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
+  47:1 hover: ```jul ( stream$: Stream(Any) listener: (value: Any) :> Any ) ```
+  47:1 definition: kein
+  47:1 completion: n=2 stream$,listener
+  47:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
 
 === ui/dynamic-form/dynamic-form2.jul
 symbols
@@ -2736,7 +2722,7 @@ semanticTokens
   4:13 completion: n=116 body,stackPanel,label
   4:13 signatureHelp: Any param=0
   6:9 hover: ```jul (...sources: Or(Empty List(Stream(Any)))) ~> Stream(Or(Empty List(Any))) ``` Wie RxJS combine...
-  6:9 definition: jul-core-lib:/core-lib.jul:1203:1
+  6:9 definition: jul-core-lib:/core-lib.jul:1199:1
   6:9 completion: n=116 body,stackPanel,label
   6:9 signatureHelp: (...sources: Or(Empty List(Stream(Any)))) ~> Stream(Or(Empty List(Any))) param=0
   8:12 hover: ```jul Any ```
@@ -2804,18 +2790,18 @@ symbols
     keine
 semanticTokens
   1: 2+10 variable(declaration,readonly)
-  3: 1+6 function(defaultLibrary,impure) 15+9 function(defaultLibrary,impure)
+  3: 1+9 function(defaultLibrary,impure) 18+9 function(defaultLibrary,impure)
   4: 3+5 parameter(declaration,readonly)
   5: 3+10 function(impure) 33+5 parameter(readonly)
   1:17 hover: ```jul (path: Text) ~> [addMessage: (message: Text) ~> Any] ``` Supported file types: .jul .js .json...
-  1:17 definition: jul-core-lib:/core-lib.jul:1246:1
+  1:17 definition: jul-core-lib:/core-lib.jul:1242:1
   1:17 completion: n=105 addMessage,true,false
   1:17 signatureHelp: (path: Text) ~> Any param=0
-  3:13 hover: ```jul Float ```
-  3:13 definition: kein
-  3:13 completion: n=1 delayMs
-  3:13 signatureHelp: kein
-  4:6 hover: ```jul Float ```
+  3:14 hover: ```jul Float ```
+  3:14 definition: kein
+  3:14 completion: n=2 delayMs,count
+  3:14 signatureHelp: kein
+  4:6 hover: ```jul Integer ```
   4:6 definition: ui/preserve-dom/main.jul:4:3
   4:6 completion: n=106 addMessage,value,true
   4:6 signatureHelp: kein
