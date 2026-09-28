@@ -470,7 +470,7 @@ semanticTokens
   7:7 definition: jul-core-lib:/core-lib.jul:1:1
   7:7 completion: n=107 timer1$,progress$,value
   7:7 signatureHelp: kein
-  8:12 hover: ```jul Stream(Float) ```
+  8:12 hover: ```jul FiniteStream(Float) ```
   8:12 definition: console-progress/console-progress.jul:1:1
   8:12 completion: n=107 timer1$,progress$,value
   8:12 signatureHelp: (stream$: Stream(Any)) ~> Empty param=1
@@ -570,7 +570,7 @@ semanticTokens
   10:6 definition: counter/counter.jul:4:3
   10:6 completion: n=105 counter$,value,true
   10:6 signatureHelp: kein
-  11:16 hover: ```jul Stream(Float) ``` jul
+  11:16 hover: ```jul FiniteStream(Float) ``` jul
   11:16 definition: counter/counter.jul:2:1
   11:16 completion: n=105 counter$,value,true
   11:16 signatureHelp: (stream$: Stream(Any)) ~> Empty param=1
@@ -1524,7 +1524,7 @@ semanticTokens
   11:27 definition: kein
   11:27 completion: n=108 source$,mapped1$,mapped2$
   11:27 signatureHelp: (...args: Or(Empty List(Any))) ~> Empty param=1
-  13:24 hover: ```jul Stream(Float) ```
+  13:24 hover: ```jul FiniteStream(Float) ```
   13:24 definition: stream.jul:1:1
   13:24 completion: n=0 
   13:24 signatureHelp: kein
@@ -2443,11 +2443,11 @@ semanticTokens
   22:22 definition: jul-core-lib:/core-lib.jul:1217:1
   22:22 completion: n=21 findElement,onClick,onDialogClose
   22:22 signatureHelp: ( source$: Stream(Any) notifier$: Stream(Any) ) ~> FiniteStream(Any) param=1
-  30:7 hover: ```jul ( title: Or(Text Stream(Text)) question: Or(Text Stream(Text)) ) ~> Stream(Or(Empty §ok§ §can...
+  30:7 hover: ```jul ( title: Or(Text Stream(Text)) question: Or(Text Stream(Text)) ) ~> FiniteStream(Or(Empty §ok...
   30:7 definition: ui/dialog/dialog.jul:30:1
   30:7 completion: n=113 appendHtml,elementById,findElement
   30:7 signatureHelp: kein
-  33:3 hover: ```jul ( title: Or(Text Stream(Text)) question: Or(Text Stream(Text)) ) ~> Stream(Or(Empty §ok§ §can...
+  33:3 hover: ```jul ( title: Or(Text Stream(Text)) question: Or(Text Stream(Text)) ) ~> FiniteStream(Or(Empty §ok...
   33:3 definition: kein
   33:3 completion: n=117 appendHtml,elementById,findElement
   33:3 signatureHelp: kein
