@@ -29,7 +29,7 @@ describe('getIgnoreCommentCodeActions', () => {
 				start: { line: 1, character: 0 },
 				end: { line: 1, character: 0 },
 			},
-			newText: '\t#jul-ignore JUL2800\n',
+			newText: '\t#ignore JUL2800\n',
 		}]);
 	});
 	// Fehler lassen sich nicht abschalten.
@@ -40,8 +40,8 @@ describe('getIgnoreCommentCodeActions', () => {
 		expect(actions).to.deep.equal([]);
 	});
 	// Eine Warnung über den Kommentar selbst behebt man am Kommentar, nicht mit einem weiteren.
-	it('offers nothing for warnings about jul-ignore itself', () => {
-		const actions = getIgnoreCommentCodeActions(uri, ['#jul-ignore JUL2800', 'x = 1'], [
+	it('offers nothing for warnings about #ignore itself', () => {
+		const actions = getIgnoreCommentCodeActions(uri, ['#ignore JUL2800', 'x = 1'], [
 			diagnostic(ErrorCode.unusedIgnoreComment, 0, 0, DiagnosticSeverity.Warning),
 		]);
 		expect(actions).to.deep.equal([]);

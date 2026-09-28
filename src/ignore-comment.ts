@@ -2,7 +2,7 @@ import { ErrorCode, errorInfos } from 'jul-compiler/out/compiler-errors.js';
 import { CodeAction, CodeActionKind, Diagnostic, TextEdit } from 'vscode-languageserver';
 
 /**
- * Quick Fix "Warnung hier abschalten": eine Zeile `#jul-ignore JUL<nr>` direkt über der Zeile,
+ * Quick Fix "Warnung hier abschalten": eine Zeile `#ignore JUL<nr>` direkt über der Zeile,
  * in der die Warnung beginnt, gleich eingerückt. Der Kommentar gilt für genau diese Zeile.
  */
 export function getIgnoreCommentCodeActions(
@@ -36,12 +36,12 @@ export function createIgnoreCommentEdit(line: string, rowIndex: number, code: nu
 			start: { line: rowIndex, character: 0 },
 			end: { line: rowIndex, character: 0 },
 		},
-		newText: `${indent}#jul-ignore JUL${code}\n`,
+		newText: `${indent}#ignore JUL${code}\n`,
 	};
 }
 
 /**
- * Nur Warnungen, und nicht die Warnungen über jul-ignore selbst: die behebt man am Kommentar.
+ * Nur Warnungen, und nicht die Warnungen über #ignore selbst: die behebt man am Kommentar.
  */
 function isSuppressible(code: number): boolean {
 	if (code === ErrorCode.unusedIgnoreComment
