@@ -19,7 +19,7 @@ function diagnostic(code: number, line: number, character: number, severity: Dia
 
 describe('getIgnoreCommentCodeActions', () => {
 	it('inserts the comment above the line with the indentation of that line', () => {
-		const lines = ['f = () =>', '\tseconds$ = timer$(1f)', '\tseconds$'];
+		const lines = ['f = () =>', '\tseconds$ = interval$(1f)', '\tseconds$'];
 		const actions = getIgnoreCommentCodeActions(uri, lines, [
 			diagnostic(ErrorCode.streamNeverCompleted, 1, 12, DiagnosticSeverity.Warning),
 		]);
