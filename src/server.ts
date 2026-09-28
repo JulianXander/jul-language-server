@@ -71,6 +71,7 @@ import {
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isTestFilePath, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
+import { getIgnoreCommentCodeActions } from './ignore-comment.js';
 import {
 	createRenameWorkspaceEdit,
 	getFieldAccessTypeFields,
@@ -1109,9 +1110,11 @@ connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
 	if (!parsedFile) {
 		return [];
 	}
+	const lines = documents.get(documentUri)?.getText().split('\n') ?? [];
 	return [
 		...getSpaceIndentationCodeActions(documentUri, parsedFile, params),
 		...getAutoImportCodeActions(documentUri, parsedFile, params),
+		...getIgnoreCommentCodeActions(documentUri, lines, params.context.diagnostics),
 	];
 });
 //#endregion codeAction
