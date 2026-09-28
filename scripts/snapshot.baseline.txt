@@ -1269,19 +1269,19 @@ semanticTokens
   32:8 definition: import/import.jul:31:1
   32:8 completion: n=0 
   32:8 signatureHelp: kein
-  35:21 hover: ```jul (path: Text) ~> [ greeting: §hello ts§ test2: 4f testfn1: (par1: Text) :> Any testfn2: (par1:...
+  35:21 hover: ```jul (path: Text) ~> [ greeting: §hello ts§ test2: 4f testfn1: (par1: Text) ~> Any testfn2: (par1:...
   35:21 definition: jul-core-lib:/core-lib.jul:1201:1
   35:21 completion: n=112 valueImport,file2,someText
   35:21 signatureHelp: (path: Text) ~> Any param=0
-  36:11 hover: ```jul [ greeting: §hello ts§ test2: 4f testfn1: (par1: Text) :> Any testfn2: (par1: Text) :> Any ] ...
+  36:11 hover: ```jul [ greeting: §hello ts§ test2: 4f testfn1: (par1: Text) ~> Any testfn2: (par1: Text) ~> Any ] ...
   36:11 definition: import/import.jul:35:1
   36:11 completion: n=0 
   36:11 signatureHelp: kein
-  39:21 hover: ```jul (path: Text) ~> [ testfn1: (par1: Any) :> Any testfn2: (par1: Any) :> Any greeting: §hello js...
+  39:21 hover: ```jul (path: Text) ~> [ testfn1: (par1: Any) ~> Any testfn2: (par1: Any) ~> Any greeting: §hello js...
   39:21 definition: jul-core-lib:/core-lib.jul:1201:1
   39:21 completion: n=112 valueImport,file2,someText
   39:21 signatureHelp: (path: Text) ~> Any param=0
-  40:11 hover: ```jul [ testfn1: (par1: Any) :> Any testfn2: (par1: Any) :> Any greeting: §hello js§ test2: 4f ] ``...
+  40:11 hover: ```jul [ testfn1: (par1: Any) ~> Any testfn2: (par1: Any) ~> Any greeting: §hello js§ test2: 4f ] ``...
   40:11 definition: import/import.jul:39:1
   40:11 completion: n=0 
   40:11 signatureHelp: kein
@@ -2384,26 +2384,26 @@ semanticTokens
   16: 2+4 parameter(declaration,readonly) 8+2 typeConstructor(defaultLibrary) 11+4 type(defaultLibrary) 16+6 typeConstructor(defaultLibrary) 23+4 type(defaultLibrary)
   17: 2+6 parameter(declaration,readonly) 10+6 typeConstructor(defaultLibrary) 17+3 type(defaultLibrary)
   19: 4+4 parameter(readonly)
-  20: 4+9 parameter(declaration,readonly) 15+4 type(defaultLibrary) 24+7 parameter(readonly) 32+7 function 40+9 parameter(readonly)
+  20: 4+9 parameter(declaration,readonly) 15+4 type(defaultLibrary) 24+7 parameter(readonly) 32+7 function(impure) 40+9 parameter(readonly)
   21: 4+10 parameter(declaration,readonly) 16+6 typeConstructor(defaultLibrary) 23+4 type(defaultLibrary)
   22: 4+10 parameter(readonly) 15+10 function(defaultLibrary,impure) 26+6 parameter(readonly) 34+9 function(defaultLibrary,impure)
-  23: 6+5 parameter(declaration,readonly) 16+7 parameter(readonly) 24+7 function 32+5 parameter(readonly)
+  23: 6+5 parameter(declaration,readonly) 16+7 parameter(readonly) 24+7 function(impure) 32+5 parameter(readonly)
   30: 1+8 function(declaration,impure)
   31: 2+5 parameter(declaration,readonly) 9+2 typeConstructor(defaultLibrary) 12+4 type(defaultLibrary) 17+6 typeConstructor(defaultLibrary) 24+4 type(defaultLibrary)
   32: 2+8 parameter(declaration,readonly) 12+2 typeConstructor(defaultLibrary) 15+4 type(defaultLibrary) 20+6 typeConstructor(defaultLibrary) 27+4 type(defaultLibrary)
   34: 2+7 variable(declaration,readonly,stream) 12+7 function(defaultLibrary,impure) 20+2 typeConstructor(defaultLibrary)
-  35: 2+6 variable(declaration,readonly) 11+10 function
-  48: 2+8 function(impure) 11+6 variable(readonly) 18+11 function 36+5 parameter(readonly) 42+7 variable(readonly,stream)
-  49: 2+8 function(impure) 11+6 variable(readonly) 18+11 function 35+8 parameter(readonly) 44+7 variable(readonly,stream)
-  50: 2+6 variable(readonly) 9+13 function
+  35: 2+6 variable(declaration,readonly) 11+10 function(impure)
+  48: 2+8 function(impure) 11+6 variable(readonly) 18+11 function(impure) 36+5 parameter(readonly) 42+7 variable(readonly,stream)
+  49: 2+8 function(impure) 11+6 variable(readonly) 18+11 function(impure) 35+8 parameter(readonly) 44+7 variable(readonly,stream)
+  50: 2+6 variable(readonly) 9+13 function(impure)
   51: 4+11 parameter(declaration,readonly)
-  52: 4+6 variable(readonly) 11+13 function
+  52: 4+6 variable(readonly) 11+13 function(impure)
   53: 4+6 variable(declaration,readonly) 15+11 parameter(readonly)
   56: 4+7 variable(readonly,stream) 12+4 function(defaultLibrary,impure) 17+6 variable(readonly)
   57: 4+7 variable(readonly,stream) 12+8 function(defaultLibrary,impure)
-  59: 2+6 variable(readonly) 9+9 function
+  59: 2+6 variable(readonly) 9+9 function(impure)
   60: 2+7 variable(readonly,stream)
-  62: 1+11 function 23+7 function
+  62: 1+11 function(impure) 23+7 function(impure)
   64: 3+8 variable(declaration,readonly,stream) 14+6 function(defaultLibrary,impure)
   65: 3+7 variable(declaration,readonly,stream) 13+8 function(impure)
   67: 4+8 variable(readonly,stream) 13+4 function(defaultLibrary,impure)
@@ -2414,16 +2414,16 @@ semanticTokens
   74: 7+6 parameter(declaration,readonly) 15+2 typeConstructor(defaultLibrary)
   77: 7+8 variable(readonly,stream) 16+8 function(defaultLibrary,impure)
   78: 7+7 variable(declaration,readonly) 19+6 parameter(readonly)
-  81: 7+11 function 26+7 function 34+7 variable(readonly)
+  81: 7+11 function(impure) 26+7 function(impure) 34+7 variable(readonly)
   1:1 hover: kein
   1:1 definition: kein
   1:1 completion: n=0 
   1:1 signatureHelp: kein
-  4:7 hover: ```jul ( parent: Any selector: Text ) :> Any ```
+  4:7 hover: ```jul ( parent: Any selector: Text ) ~> Any ```
   4:7 definition: ui/dialog/dom.ts:5:17
   4:7 completion: n=0 
   4:7 signatureHelp: kein
-  7:8 hover: ```jul (element: Any) :> Any ```
+  7:8 hover: ```jul (element: Any) ~> Any ```
   7:8 definition: ui/dialog/dom.ts:17:17
   7:8 completion: n=0 
   7:8 signatureHelp: kein
@@ -2467,14 +2467,14 @@ semanticTokens
   45:2 definition: kein
   45:2 completion: n=0 
   45:2 signatureHelp: kein
-  49:26 hover: ```jul ( parent: Any selector: Text ) :> Any ```
+  49:26 hover: ```jul ( parent: Any selector: Text ) ~> Any ```
   49:26 definition: ui/dialog/dom.ts:5:17
   49:26 completion: n=90 appendHtml,elementById,findElement
-  49:26 signatureHelp: ( parent: Any selector: Text ) :> Any param=1
-  52:13 hover: ```jul (element: Any) :> Any ```
+  49:26 signatureHelp: ( parent: Any selector: Text ) ~> Any param=1
+  52:13 hover: ```jul (element: Any) ~> Any ```
   52:13 definition: ui/dialog/dom.ts:17:17
   52:13 completion: n=90 appendHtml,elementById,findElement
-  52:13 signatureHelp: (element: Any) :> Any param=1
+  52:13 signatureHelp: (element: Any) ~> Any param=1
   55:10 hover: kein
   55:10 definition: kein
   55:10 completion: n=118 appendHtml,elementById,findElement
@@ -2482,7 +2482,7 @@ semanticTokens
   58:2 hover: ```jul ( dialog: Any listener: (returnValue: Text) :> Any ) ```
   58:2 definition: kein
   58:2 completion: n=2 dialog,listener
-  58:2 signatureHelp: ( dialog: Any listener: (returnValue: Text) :> Any ) :> Any param=1
+  58:2 signatureHelp: ( dialog: Any listener: (returnValue: Text) :> Any ) ~> Any param=1
   62:16 hover: ```jul Text ```
   62:16 definition: kein
   62:16 completion: n=1 id
@@ -2574,15 +2574,15 @@ semanticTokens
   14: 2+7 parameter(declaration,readonly)
   15: 2+4 parameter(declaration,readonly) 9+5 parameter(declaration,readonly) 16+3 type(defaultLibrary) 24+3 type(defaultLibrary)
   17: 2+6 variable(declaration,readonly,stream) 11+7 function(defaultLibrary,impure) 19+6 typeConstructor(defaultLibrary) 26+4 parameter(readonly) 32+10 property(readonly) 43+7 parameter(readonly) 51+4 parameter(readonly)
-  18: 2+7 parameter(readonly) 10+7 function 24+6 variable(readonly,stream) 31+4 function(defaultLibrary,impure) 36+7 parameter(readonly) 44+4 parameter(readonly)
+  18: 2+7 parameter(readonly) 10+7 function(impure) 24+6 variable(readonly,stream) 31+4 function(defaultLibrary,impure) 36+7 parameter(readonly) 44+4 parameter(readonly)
   19: 2+6 variable(readonly,stream)
-  21: 1+8 variable(declaration,readonly) 12+11 function
-  22: 1+6 variable(declaration,readonly) 10+11 function
-  23: 1+5 variable(declaration,readonly,stream) 9+11 function(impure) 21+11 function 41+9 function
-  24: 1+4 variable(declaration,readonly,stream) 8+11 function(impure) 20+11 function 39+12 function
-  25: 1+11 variable(declaration,readonly,stream) 15+11 function(impure) 27+11 function 54+9 function
+  21: 1+8 variable(declaration,readonly) 12+11 function(impure)
+  22: 1+6 variable(declaration,readonly) 10+11 function(impure)
+  23: 1+5 variable(declaration,readonly,stream) 9+11 function(impure) 21+11 function(impure) 41+9 function(impure)
+  24: 1+4 variable(declaration,readonly,stream) 8+11 function(impure) 20+11 function(impure) 39+12 function(impure)
+  25: 1+11 variable(declaration,readonly,stream) 15+11 function(impure) 27+11 function(impure) 54+9 function(impure)
   27: 1+11 variable(readonly,stream) 13+9 function(defaultLibrary,impure)
-  28: 3+5 parameter(declaration,readonly) 13+8 variable(readonly) 22+9 function 32+3 function(defaultLibrary) 36+5 parameter(readonly)
+  28: 3+5 parameter(declaration,readonly) 13+8 variable(readonly) 22+9 function(impure) 32+3 function(defaultLibrary) 36+5 parameter(readonly)
   32: 1+5 variable(declaration,readonly,stream) 9+8 function(defaultLibrary,impure) 18+5 variable(readonly,stream) 24+4 variable(readonly,stream) 29+11 variable(readonly,stream) 42+4 function(defaultLibrary,impure)
   33: 3+5 parameter(declaration,readonly)
   34: 4+4 variable(declaration,readonly) 9+3 variable(declaration,readonly) 13+10 variable(declaration,readonly) 27+5 parameter(readonly)
@@ -2590,20 +2590,20 @@ semanticTokens
   37: 4+3 property(declaration,readonly) 12+10 variable(readonly)
   38: 15+3 variable(readonly)
   42: 1+5 variable(readonly,stream) 7+9 function(defaultLibrary,impure)
-  43: 3+5 parameter(declaration,readonly) 13+6 variable(readonly) 20+7 function 28+6 function(defaultLibrary) 35+5 parameter(readonly)
+  43: 3+5 parameter(declaration,readonly) 13+6 variable(readonly) 20+7 function(impure) 28+6 function(defaultLibrary) 35+5 parameter(readonly)
   1:1 hover: kein
   1:1 definition: kein
   1:1 completion: n=0 
   1:1 signatureHelp: kein
-  3:7 hover: ```jul (input: Any) :> Or(Empty Integer) ``` undefined, solange das Feld leer ist oder keine ganze Z...
+  3:7 hover: ```jul (input: Any) ~> Or(Empty Integer) ``` undefined, solange das Feld leer ist oder keine ganze Z...
   3:7 definition: ui/dynamic-form/dom.ts:29:17
   3:7 completion: n=0 
   3:7 signatureHelp: kein
-  5:5 hover: ```jul ( input: Any listener: () :> Any ) :> Empty ``` Ruft listener bei jeder Eingabe auf, auch bei...
+  5:5 hover: ```jul ( input: Any listener: () :> Any ) ~> Empty ``` Ruft listener bei jeder Eingabe auf, auch bei...
   5:5 definition: ui/dynamic-form/dom.ts:41:17
   5:5 completion: n=0 
   5:5 signatureHelp: kein
-  7:5 hover: ```jul ( element: Any text: Text ) :> Empty ``` Setzt den Text per textContent, er wird also nie als...
+  7:5 hover: ```jul ( element: Any text: Text ) ~> Empty ``` Setzt den Text per textContent, er wird also nie als...
   7:5 definition: ui/dynamic-form/dom.ts:8:17
   7:5 completion: n=0 
   7:5 signatureHelp: kein
@@ -2623,22 +2623,22 @@ semanticTokens
   18:26 definition: ui/dynamic-form/dynamic-form.jul:17:2
   18:26 completion: n=119 elementById,integerValue,isChecked
   18:26 signatureHelp: ( stream$: Stream(Any) value: Any ) ~> Empty param=1
-  21:18 hover: ```jul (id: Text) :> Any ```
+  21:18 hover: ```jul (id: Text) ~> Any ```
   21:18 definition: ui/dynamic-form/dom.ts:1:17
   21:18 completion: n=116 elementById,integerValue,isChecked
-  21:18 signatureHelp: (id: Text) :> Any param=0
-  23:26 hover: ```jul (id: Text) :> Any ```
+  21:18 signatureHelp: (id: Text) ~> Any param=0
+  23:26 hover: ```jul (id: Text) ~> Any ```
   23:26 definition: ui/dynamic-form/dom.ts:1:17
   23:26 completion: n=116 elementById,integerValue,isChecked
-  23:26 signatureHelp: (id: Text) :> Any param=0
-  25:32 hover: ```jul (id: Text) :> Any ```
+  23:26 signatureHelp: (id: Text) ~> Any param=0
+  25:32 hover: ```jul (id: Text) ~> Any ```
   25:32 definition: ui/dynamic-form/dom.ts:1:17
   25:32 completion: n=116 elementById,integerValue,isChecked
-  25:32 signatureHelp: (id: Text) :> Any param=0
-  28:22 hover: ```jul ( element: Any hidden: Boolean ) :> Empty ```
+  25:32 signatureHelp: (id: Text) ~> Any param=0
+  28:22 hover: ```jul ( element: Any hidden: Boolean ) ~> Empty ```
   28:22 definition: ui/dynamic-form/dom.ts:15:17
   28:22 completion: n=88 elementById,integerValue,isChecked
-  28:22 signatureHelp: ( element: Any hidden: Boolean ) :> Empty param=1
+  28:22 signatureHelp: ( element: Any hidden: Boolean ) ~> Empty param=1
   32:24 hover: ```jul Stream(Or(Empty Integer)) ```
   32:24 definition: ui/dynamic-form/dynamic-form.jul:24:1
   32:24 completion: n=0 
@@ -2806,8 +2806,8 @@ semanticTokens
   1: 2+10 variable(declaration,readonly)
   3: 1+6 function(defaultLibrary,impure) 15+9 function(defaultLibrary,impure)
   4: 3+5 parameter(declaration,readonly)
-  5: 3+10 function 33+5 parameter(readonly)
-  1:17 hover: ```jul (path: Text) ~> [addMessage: (message: Text) :> Any] ``` Supported file types: .jul .js .json...
+  5: 3+10 function(impure) 33+5 parameter(readonly)
+  1:17 hover: ```jul (path: Text) ~> [addMessage: (message: Text) ~> Any] ``` Supported file types: .jul .js .json...
   1:17 definition: jul-core-lib:/core-lib.jul:1201:1
   1:17 completion: n=103 addMessage,true,false
   1:17 signatureHelp: (path: Text) ~> Any param=0
@@ -2847,24 +2847,24 @@ semanticTokens
   3: 2+13 variable(declaration,readonly)
   4: 2+14 variable(declaration,readonly)
   7: 1+12 variable(declaration,readonly)
-  15: 1+14 function
+  15: 1+14 function(impure)
   16: 3+6 parameter(declaration,readonly) 10+5 parameter(declaration,readonly)
   17: 5+5 parameter(readonly)
-  18: 15+7 function 23+12 variable(readonly)
-  19: 18+13 function 32+6 parameter(readonly) 39+13 property(readonly)
+  18: 15+7 function(impure) 23+12 variable(readonly)
+  19: 18+13 function(impure) 32+6 parameter(readonly) 39+13 property(readonly)
   1:1 hover: kein
   1:1 definition: kein
   1:1 completion: n=0 
   1:1 signatureHelp: kein
-  2:5 hover: ```jul (html: Text) :> Any ```
+  2:5 hover: ```jul (html: Text) ~> Any ```
   2:5 definition: ui/todo-list/dom.ts:17:17
   2:5 completion: n=0 
   2:5 signatureHelp: kein
-  3:8 hover: ```jul (element: Any) :> Any ```
+  3:8 hover: ```jul (element: Any) ~> Any ```
   3:8 definition: ui/todo-list/dom.ts:13:17
   3:8 completion: n=0 
   3:8 signatureHelp: kein
-  4:8 hover: ```jul (listener: Any) :> Any ```
+  4:8 hover: ```jul (listener: Any) ~> Any ```
   4:8 definition: ui/todo-list/dom.ts:9:17
   4:8 completion: n=0 
   4:8 signatureHelp: kein
@@ -2900,10 +2900,10 @@ semanticTokens
   13:1 definition: kein
   13:1 completion: n=0 
   13:1 signatureHelp: kein
-  15:8 hover: ```jul (listener: Any) :> Any ```
+  15:8 hover: ```jul (listener: Any) ~> Any ```
   15:8 definition: ui/todo-list/dom.ts:9:17
   15:8 completion: n=106 addHtml,removeElement,subscribeEvent
-  15:8 signatureHelp: (listener: Any) :> Any param=0
+  15:8 signatureHelp: (listener: Any) ~> Any param=0
   16:10 hover: ```jul Any ```
   16:10 definition: ui/todo-list/todo-list.jul:16:10
   16:10 completion: n=108 addHtml,removeElement,subscribeEvent
@@ -2912,14 +2912,14 @@ semanticTokens
   17:6 definition: ui/todo-list/todo-list.jul:16:10
   17:6 completion: n=108 addHtml,removeElement,subscribeEvent
   17:6 signatureHelp: kein
-  18:18 hover: ```jul (html: Text) :> Any ```
+  18:18 hover: ```jul (html: Text) ~> Any ```
   18:18 definition: ui/todo-list/dom.ts:17:17
   18:18 completion: n=108 addHtml,removeElement,subscribeEvent
-  18:18 signatureHelp: (html: Text) :> Any param=0
-  19:27 hover: ```jul (element: Any) :> Any ```
+  18:18 signatureHelp: (html: Text) ~> Any param=0
+  19:27 hover: ```jul (element: Any) ~> Any ```
   19:27 definition: ui/todo-list/dom.ts:13:17
   19:27 completion: n=108 addHtml,removeElement,subscribeEvent
-  19:27 signatureHelp: (element: Any) :> Any param=0
+  19:27 signatureHelp: (element: Any) ~> Any param=0
   20:6 hover: kein
   20:6 definition: kein
   20:6 completion: n=108 addHtml,removeElement,subscribeEvent
@@ -2927,4 +2927,4 @@ semanticTokens
   21:1 hover: ```jul (listener: Any) ```
   21:1 definition: kein
   21:1 completion: n=1 listener
-  21:1 signatureHelp: (listener: Any) :> Any param=0
+  21:1 signatureHelp: (listener: Any) ~> Any param=0
