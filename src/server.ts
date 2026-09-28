@@ -1351,6 +1351,7 @@ function isImportPath(expression: PositionedExpression | undefined): boolean {
 const diagnosticSeverities: { [Severity in CompilerErrorSeverity]: DiagnosticSeverity; } = {
 	error: DiagnosticSeverity.Error,
 	warning: DiagnosticSeverity.Warning,
+	information: DiagnosticSeverity.Information,
 	hint: DiagnosticSeverity.Hint,
 };
 
