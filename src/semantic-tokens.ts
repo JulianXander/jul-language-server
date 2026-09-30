@@ -102,7 +102,7 @@ function addSemanticToken(
 				return;
 			}
 			// import und test bekommen ebenfalls keinen Semantic Token: beide sind nur als direkter
-			// Aufruf erlaubt (JUL3040, JUL2704), sollen also wie ein Keyword gefärbt werden
+			// Aufruf erlaubt (JUL3140, JUL2704), sollen also wie ein Keyword gefärbt werden
 			// (Grammatik-Scopes keyword.control.import.jul/keyword.control.test.jul), nicht wie eine
 			// eingebaute Funktion/Variable.
 			if (keywordFunctionNames.includes(expression.name.name)) {
