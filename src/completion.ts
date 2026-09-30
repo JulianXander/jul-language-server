@@ -327,6 +327,40 @@ export function getDictionaryLiteralFieldCompletionItems(expression: PositionedE
 	return declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 }
 
+/**
+ * Ob an der Cursorposition ein Feldname stehen kann und ob daneben auch ein Wert gültig ist:
+ * - `'exclusive'`: nur ein Feldname ist gültig (z.B. `x: MyType = [f]`, `f(a = 1 r)`)
+ * - `'mixed'`: Feldname und Wert sind gültig (einziges Argument, z.B. `f(r)`)
+ * - `'none'`: kein Feldname möglich (z.B. nach einem positionalen Argument, `f(1 r)`)
+ * Unterschieden wird nur in der Argumentliste eines Aufrufs, denn nur dort ist neben dem
+ * benannten auch das positionale Argument gültig. Überall sonst bleibt es bei `'exclusive'`,
+ * ob dort überhaupt Feldnamen angeboten werden, entscheidet der erwartete Typ.
+ */
+export function getFieldNamePositionKind(
+	expression: PositionedExpression | undefined,
+): 'exclusive' | 'mixed' | 'none' {
+	// Ist das Argument selbst ein Dictionary-Literal, steht der Cursor in dessen Klammern.
+	if (expression?.type === 'empty'
+		|| expression?.type === 'dictionary'
+		|| expression?.type === 'object') {
+		return 'exclusive';
+	}
+	const list = expression?.type === 'list' ? expression
+		: expression?.parent?.type === 'list' ? expression.parent
+			: undefined;
+	const functionCall = list?.parent;
+	if (!list
+		|| functionCall?.type !== 'functionCall'
+		|| functionCall.arguments !== list) {
+		return 'exclusive';
+	}
+	// Positionale und benannte Argumente lassen sich nicht mischen: steht schon ein
+	// positionales Argument da, kann keines mehr benannt werden.
+	return list.values.length === 1 && expression !== list
+		? 'mixed'
+		: 'none';
+}
+
 export function dictionaryTypeToCompletionItems(
 	fields: CompileTimeDictionary,
 ): CompletionItem[] {

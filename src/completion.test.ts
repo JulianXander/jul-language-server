@@ -2,10 +2,10 @@ import { expect } from 'chai';
 import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
-import { ParsedFile, ParseFunctionCall } from 'jul-compiler/out/syntax-tree.js';
+import { ParsedFile, ParseFunctionCall, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
-import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -354,6 +354,79 @@ x: MyType = [f]
 		}
 		const completionItems = getDictionaryLiteralFieldCompletionItems(reference);
 		expect(completionItems?.map(item => item.label)).to.include('f1');
+	});
+});
+
+describe('getFieldNamePositionKind', () => {
+	// Die zuletzt getippte reference im Aufruf in der letzten Zeile von code.
+	function lastArgumentReference(code: string): PositionedExpression {
+		const parsed = parse(code);
+		const functionCall = parsed.checked!.expressions!.at(-1);
+		if (functionCall?.type !== 'functionCall') {
+			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);
+		}
+		const argumentsExpression = functionCall.arguments;
+		const lastArgument = argumentsExpression?.type === 'list'
+			? argumentsExpression.values.at(-1)
+			: argumentsExpression?.type === 'binding'
+				? argumentsExpression.fields.at(-1)?.name
+				: undefined;
+		if (lastArgument?.type !== 'reference') {
+			throw new Error(`Erwartet reference, bekommen ${lastArgument?.type}`);
+		}
+		return lastArgument;
+	}
+
+	// Realer Fall aus jul-examples/ui/tic-tac-toe: bei `subscribeEvent(res)` wurde `resetElement`
+	// nicht vorgeschlagen, sondern nur die Parameternamen. Als einziges Argument kann `res` aber
+	// ebenso gut der Anfang eines positionalen Arguments sein.
+	it('erlaubt beim einzigen Argument eines Aufrufs Feldname und Wert', () => {
+		const reference = lastArgumentReference(`f = (element: Integer event: Integer) => element
+resetElement = 5
+f(res)
+`);
+		expect(getFieldNamePositionKind(reference)).to.equal('mixed');
+	});
+
+	// Positionale und benannte Argumente lassen sich nicht mischen.
+	it('erlaubt nach einem positionalen Argument keinen Feldnamen', () => {
+		const reference = lastArgumentReference(`f = (element: Integer event: Integer) => element
+resetElement = 5
+f(1 res)
+`);
+		expect(getFieldNamePositionKind(reference)).to.equal('none');
+	});
+
+	it('erlaubt nach einem benannten Argument nur einen Feldnamen', () => {
+		const reference = lastArgumentReference(`f = (element: Integer event: Integer) => element
+f(element = 1 ev)
+`);
+		expect(getFieldNamePositionKind(reference)).to.equal('exclusive');
+	});
+
+	// Das Argument ist schon ein Dictionary-Literal, der Cursor steht in dessen Klammern.
+	it('erlaubt im Dictionary-Literal als einzigem Argument nur einen Feldnamen', () => {
+		const parsed = parse(`MyType = [f1: Integer]
+f = (value: MyType) => value
+f([])
+`);
+		const functionCall = parsed.checked!.expressions![2];
+		if (functionCall?.type !== 'functionCall' || functionCall.arguments?.type !== 'list') {
+			throw new Error('Erwartet functionCall mit list arguments');
+		}
+		expect(getFieldNamePositionKind(functionCall.arguments.values[0])).to.equal('exclusive');
+	});
+
+	// Der erwartete Typ ist ein Dictionary, eine List wäre dort ein Typfehler.
+	it('erlaubt in einem Literal mit erwartetem Dictionary-Typ nur einen Feldnamen', () => {
+		const parsed = parse(`MyType = [f1: Integer]
+x: MyType = [f]
+`);
+		const definition = parsed.checked!.expressions![1];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'list') {
+			throw new Error('Erwartet definition mit list value');
+		}
+		expect(getFieldNamePositionKind(definition.value.values[0])).to.equal('exclusive');
 	});
 });
 

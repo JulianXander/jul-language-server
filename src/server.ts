@@ -86,6 +86,7 @@ import {
 	getCompletionSortText,
 	getDictionaryLiteralFieldCompletionItems,
 	getExpectedPositionKind,
+	getFieldNamePositionKind,
 	getFirstArgumentSymbolFilter,
 	getInfixFunctionCall,
 	isTypeSymbol,
@@ -571,7 +572,21 @@ connection.onCompletion(completionParams => {
 	//#region dictionary literal field
 	const dictionaryLiteralFieldCompletionItems = getDictionaryLiteralFieldCompletionItems(expression);
 	if (dictionaryLiteralFieldCompletionItems) {
-		return dictionaryLiteralFieldCompletionItems;
+		switch (getFieldNamePositionKind(expression)) {
+			case 'exclusive':
+				return dictionaryLiteralFieldCompletionItems;
+			case 'mixed':
+				// positionale Argumente sind der Normalfall, die Feldnamen kommen dahinter
+				return [
+					...symbolsToCompletionItems(allScopes, undefined, positionKind),
+					...dictionaryLiteralFieldCompletionItems.map(completionItem => ({
+						...completionItem,
+						sortText: '2' + (completionItem.sortText ?? completionItem.label),
+					})),
+				];
+			case 'none':
+				break;
+		}
 	}
 	//#endregion dictionary literal field
 
