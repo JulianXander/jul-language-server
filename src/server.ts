@@ -39,7 +39,7 @@ import {
 	isCoreLibPath,
 	isImportFunctionCall,
 } from 'jul-compiler/out/parser/parser.js';
-import { loadFile, ProjectHost } from 'jul-compiler/out/project-loader.js';
+import { loadFile, ProjectHost } from 'jul-compiler/out/compiler/project-loader.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {

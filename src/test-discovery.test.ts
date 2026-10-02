@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { join, resolve } from 'path';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
-import { createInMemoryHost, loadFile } from 'jul-compiler/out/project-loader.js';
+import { createInMemoryHost, loadFile } from 'jul-compiler/out/compiler/project-loader.js';
 import { DiscoveredTest, findTests } from './test-discovery.js';
 
 const folder = resolve('/test-discovery-test');
