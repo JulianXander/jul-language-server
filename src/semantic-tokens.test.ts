@@ -12,9 +12,9 @@ const filePath = join(folder, 'main.jul');
  * Die Tokens als "name: typ(modifier,...)" in Quelltextreihenfolge, readonly weggelassen:
  * das trägt jede Bindung, es würde jeden Eintrag verlängern, ohne etwas zu unterscheiden.
  */
-function tokensOf(code: string): string[] {
+function tokensOf(code: string, otherFiles: Record<string, string> = {}): string[] {
 	const documents: ParsedDocuments = {};
-	const host = createInMemoryHost({ [filePath]: code }, { cloneUnchecked: true });
+	const host = createInMemoryHost({ [filePath]: code, ...otherFiles }, { cloneUnchecked: true });
 	const parsed = loadFile(filePath, documents, host);
 	if (typeof parsed === 'string') {
 		throw new Error(parsed);
@@ -77,6 +77,16 @@ x: Pair(Integer) = [1]`, 'Pair: typeConstructor()');
 
 	it('ein Parameter mit Wert-Typ bleibt parameter', () => {
 		expectToken(`f = (a: Integer) => a`, 'a: parameter(declaration)');
+	});
+
+	it('ein importierter Typ im Destructuring ist type', () => {
+		const otherFiles = { [join(folder, 'other.jul')]: 'GameState = Or(1 2)\nf = (a: Integer) => a' };
+		const tokens = tokensOf(`(
+	f
+	GameState
+) = import(§./other.jul§)`, otherFiles);
+		expect(tokens).to.include('GameState: type(declaration)');
+		expect(tokens).to.include('f: function(declaration)');
 	});
 
 	it('eine Funktion, die eine Funktion liefert, bleibt function', () => {

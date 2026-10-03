@@ -138,12 +138,19 @@ function addSemanticToken(
 				isTypeValue(expression.typeInfo?.type) ? 'type' : 'parameter',
 				['declaration']);
 			return;
-		case 'destructuringField':
-			pushSemanticToken(tokens, expression.name, 'variable', ['declaration']);
+		case 'destructuringField': {
+			// Der Typ steht am Symbol, nicht am Feld selbst.
+			const symbol = findSymbolInScopes(expression.name.name, scopes);
+			pushSemanticToken(
+				tokens,
+				expression.name,
+				getSemanticTokenType(symbol?.typeInfo, symbol),
+				['declaration', ...getSemanticTokenModifiers(symbol?.typeInfo, false)]);
 			if (expression.source) {
 				pushSemanticToken(tokens, expression.source, 'property', []);
 			}
 			return;
+		}
 		case 'singleDictionaryField':
 		case 'singleDictionaryTypeField':
 			if (expression.name.type === 'name') {
