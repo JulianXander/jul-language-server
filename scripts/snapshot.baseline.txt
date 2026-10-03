@@ -559,7 +559,7 @@ semanticTokens
   6: 2+4 parameter(declaration,readonly)
   8: 4+5 parameter(readonly)
   9: 4+6 parameter(readonly) 11+6 function(defaultLibrary) 20+3 function(defaultLibrary) 31+4 parameter(readonly)
-  11: 4+4 variable(declaration,readonly) 11+18 variable(readonly) 30+4 parameter(readonly) 35+2 parameter(readonly) 38+5 parameter(readonly) 44+3 function(defaultLibrary) 51+4 parameter(readonly)
+  11: 4+4 variable(declaration,readonly) 11+18 variable(readonly) 30+6 parameter(readonly) 37+4 parameter(readonly) 42+2 parameter(readonly) 45+5 parameter(readonly) 51+3 function(defaultLibrary) 58+4 parameter(readonly)
   12: 4+2 parameter(readonly) 7+4 variable(readonly) 12+6 parameter(readonly) 19+10 function(defaultLibrary) 30+5 parameter(readonly) 37+5 parameter(readonly)
   14: 1+10 variable(declaration,readonly)
   20: 1+10 variable(declaration,readonly) 14+10 variable(readonly) 25+9 function(defaultLibrary) 38+11 parameter(declaration,readonly) 50+5 parameter(declaration,readonly) 60+11 parameter(readonly) 72+3 function(defaultLibrary) 76+5 parameter(readonly)
@@ -605,10 +605,10 @@ semanticTokens
   10:4 definition: kein
   10:4 completion: n=117 aggregateRecursive,testValues,sumBuiltin
   10:4 signatureHelp: kein
-  11:28 hover: ```jul Any ```
-  11:28 definition: core-lib/aggregate/aggregate.jul:1:1
-  11:28 completion: n=117 aggregateRecursive,testValues,sumBuiltin
-  11:28 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) :> Any param=0
+  11:32 hover: ```jul List(Any) ```
+  11:32 definition: core-lib/aggregate/aggregate.jul:2:2
+  11:32 completion: n=117 aggregateRecursive,testValues,sumBuiltin
+  11:32 signatureHelp: kein
   12:22 hover: ```jul ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any ``` Liefert das Element an der ...
   12:22 definition: jul-core-lib:/core-lib.jul:655:1
   12:22 completion: n=42 aggregateRecursive,fn,List
@@ -1666,7 +1666,7 @@ semanticTokens
   49:17 definition: object-example.jul:37:1
   49:17 completion: n=119 myList,myList2,myListValue
   49:17 signatureHelp: kein
-  56:9 hover: ```jul [ a: 1 b: [ b1: 1 b2: 112344 a: 1 b: 2 c: 3 (and 1 more field) ] c: 3 ] ```
+  56:9 hover: ```jul [ a: 1 b: [ b1: 1 b2: 112344 a: 1 b: 2 c: 3 # and 1 more field ] c: 3 ] ```
   56:9 definition: object-example.jul:56:1
   56:9 completion: n=119 myList,myList2,myListValue
   56:9 signatureHelp: kein
