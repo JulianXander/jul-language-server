@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { join, resolve } from 'path';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, SymbolLocation } from 'jul-compiler/out/checker/reference-index.js';
-import { createInMemoryHost, loadFile } from 'jul-compiler/out/project-loader.js';
+import { createInMemoryHost, loadFile } from 'jul-compiler/out/compiler/project-loader.js';
 import { PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
 import {
 	createRenameWorkspaceEdit,

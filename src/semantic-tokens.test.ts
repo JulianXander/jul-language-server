@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { join, resolve } from 'path';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
-import { createInMemoryHost, loadFile } from 'jul-compiler/out/project-loader.js';
+import { createInMemoryHost, loadFile } from 'jul-compiler/out/compiler/project-loader.js';
 import { reportAtCaller } from 'jul-compiler/src/test-util.js';
 import { getSemanticTokens, semanticTokenLegend } from './semantic-tokens.js';
 
