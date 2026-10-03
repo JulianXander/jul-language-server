@@ -1,5 +1,6 @@
 import { MarkupContent } from 'vscode-languageserver';
-import { ParsedDocuments, resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/checker.js';
+import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
+import { resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import { ParsedFile, TypeInfo } from 'jul-compiler/out/syntax-tree.js';
 import { findExpressionInParsedFile, getSymbolDefinition } from './symbol-lookup.js';
 import { getDeclaredType } from './util.js';

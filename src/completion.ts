@@ -1,16 +1,5 @@
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
-import {
-	dereferenceNameFromObject,
-	getStreamGetValueType,
-	isFunctionType,
-	isListType,
-	isParametersType,
-	isSubtypeOf,
-	isTupleType,
-	isTypeOfType,
-	resolveAlias,
-	typeToString,
-} from 'jul-compiler/out/checker/checker.js';
+import { dereferenceNameFromObject, getStreamGetValueType, isFunctionType, isListType, isParametersType, isSubtypeOf, isTupleType, isTypeOfType, resolveAlias, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import {
 	CompileTimeDictionary,
 	CompileTimeType,

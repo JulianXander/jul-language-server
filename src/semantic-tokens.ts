@@ -12,11 +12,8 @@ import {
 	SymbolTable,
 	TypeInfo,
 } from 'jul-compiler/out/syntax-tree.js';
-import {
-	findSymbolInScopesWithBuiltIns,
-	isFunctionType,
-	isTypeOfType,
-} from 'jul-compiler/out/checker/checker.js';
+import { findSymbolInScopesWithBuiltIns } from 'jul-compiler/out/checker/checker.js';
+import { isFunctionType, isTypeOfType } from 'jul-compiler/out/checker/type-algebra.js';
 import { pushScope } from './symbol-lookup.js';
 
 // Die Grammatik rät den Bezeichnertyp an der Schreibweise. Der checker weiß ihn - Werte und Typen

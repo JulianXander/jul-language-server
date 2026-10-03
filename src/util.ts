@@ -1,10 +1,4 @@
-import {
-	dereferenceIndexFromObject,
-	dereferenceNameFromObject,
-	isFunctionType,
-	isParametersType,
-	resolvePlaceholders,
-} from 'jul-compiler/out/checker/checker.js';
+import { dereferenceIndexFromObject, dereferenceNameFromObject, isFunctionType, isParametersType, resolvePlaceholders } from 'jul-compiler/out/checker/type-algebra.js';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import {

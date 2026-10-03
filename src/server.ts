@@ -56,18 +56,8 @@ import {
 	SymbolTable,
 	TextLiteralType,
 } from 'jul-compiler/out/syntax-tree.js';
-import {
-	builtInSymbols,
-	checkTypes,
-	findSymbolInScopesWithBuiltIns,
-	isDictionaryLiteralType,
-	isFunctionType,
-	isParameterReference,
-	isParametersType,
-	isTextLiteralType,
-	ParsedDocuments,
-	typeToString,
-} from 'jul-compiler/out/checker/checker.js';
+import { builtInSymbols, checkTypes, findSymbolInScopesWithBuiltIns, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
+import { isDictionaryLiteralType, isFunctionType, isParameterReference, isParametersType, isTextLiteralType, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isTestFilePath, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
