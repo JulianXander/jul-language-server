@@ -206,8 +206,14 @@ function getSemanticTokenType(
 	return 'variable';
 }
 
-/** Der Wert ist selbst ein Typ, kein Wert dieses Typs. */
+/**
+ * Der Wert ist selbst ein Typ, kein Wert dieses Typs. Ein Tuple-Literal, dessen Elemente alle
+ * Typen sind (auch verschachtelt, z.B. [[Cell Cell] [Cell Cell]]), ist ein Tuple-Typ.
+ */
 function isTypeValue(type: CompileTimeType | undefined): boolean {
+	if (type?.julType === 'tuple') {
+		return type.ElementTypes.length > 0 && type.ElementTypes.every(isTypeValue);
+	}
 	return isTypeOfType(type) || type?.julType === 'type';
 }
 

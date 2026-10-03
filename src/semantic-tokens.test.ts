@@ -54,6 +54,14 @@ x = f(1)`, 'f: function()');
 		expectToken(`x: List(Integer) = [1]`, 'List: typeConstructor(defaultLibrary)');
 	});
 
+	it('ein verschachteltes Tuple aus Typen ist type', () => {
+		expectToken(`Cell = Or(1 2)
+Board = [
+	[Cell Cell]
+	[Cell Cell]
+]`, 'Board: type(declaration)');
+	});
+
 	it('Or ist typeConstructor', () => {
 		expectToken(`x: Or(Integer Text) = 1`, 'Or: typeConstructor(defaultLibrary)');
 	});
