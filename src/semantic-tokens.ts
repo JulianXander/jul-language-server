@@ -132,7 +132,11 @@ function addSemanticToken(
 			return;
 		}
 		case 'parameter':
-			pushSemanticToken(tokens, expression.name, 'parameter', ['declaration']);
+			pushSemanticToken(
+				tokens,
+				expression.name,
+				isTypeValue(expression.typeInfo?.type) ? 'type' : 'parameter',
+				['declaration']);
 			return;
 		case 'destructuringField':
 			pushSemanticToken(tokens, expression.name, 'variable', ['declaration']);
@@ -175,7 +179,10 @@ function getSemanticTokenType(
 		return 'namespace';
 	}
 	if (symbol?.definition?.type === 'parameter') {
-		return 'parameter';
+		// Ein Parameter vom Typ Type (T: Type) steht für einen Typ und wird wie einer gefärbt.
+		return isTypeValue(symbol.definition.typeInfo?.type)
+			? 'type'
+			: 'parameter';
 	}
 	// Der unaufgelöste Typ genügt: gefragt ist die Art des Bezeichners, nicht sein Inhalt.
 	// resolvePlaceholders pro Referenz kostet mehr als der ganze restliche Durchlauf.

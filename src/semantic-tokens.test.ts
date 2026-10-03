@@ -67,6 +67,18 @@ x = f(1)`, 'f: function()');
 x: Pair(Integer) = [1]`, 'Pair: typeConstructor()');
 	});
 
+	it('ein Parameter vom Typ Type ist an der Deklaration type', () => {
+		expectToken(`f = (T: Type) => 0`, 'T: type(declaration)');
+	});
+
+	it('ein Parameter vom Typ Type ist an der Referenz type', () => {
+		expectToken(`f = (T: Type a: T) => a`, 'T: type()');
+	});
+
+	it('ein Parameter mit Wert-Typ bleibt parameter', () => {
+		expectToken(`f = (a: Integer) => a`, 'a: parameter(declaration)');
+	});
+
 	it('eine Funktion, die eine Funktion liefert, bleibt function', () => {
 		expectToken(`f = () => (x: Integer) => x
 g = f()`, 'f: function()');
