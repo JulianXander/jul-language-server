@@ -2,10 +2,10 @@ import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import {
 	dereferenceNameFromObject,
 	getStreamGetValueType,
-	getTypeError,
 	isFunctionType,
 	isListType,
 	isParametersType,
+	isSubtypeOf,
 	isTupleType,
 	isTypeOfType,
 	resolveAlias,
@@ -46,10 +46,10 @@ export function getInfixFunctionCall(expression: PositionedExpression | undefine
 
 /**
  * Filtert bei der Funktionsauswahl im Infix-Aufruf (`a.f(...)`) auf Funktionen, deren erster
- * Parameter `prefixArgumentType` laut `getTypeError` überhaupt annehmen würde - das ist ein
- * harter Filter statt nur Sortierung, weil `getTypeError` dieselbe Regel anwendet, die der
- * Checker beim tatsächlichen Aufruf ohnehin durchsetzen würde (kein Raten, siehe
- * docs/completion-relevance.md in jul-compiler).
+ * Parameter `prefixArgumentType` annehmen könnte - das ist ein harter Filter statt nur Sortierung,
+ * weil `isSubtypeOf` dieselbe Regel anwendet, die der Checker beim tatsächlichen Aufruf ohnehin
+ * durchsetzen würde (kein Raten, siehe docs/completion-relevance.md in jul-compiler). Weg fällt
+ * nur, was bewiesen nicht passt, unbekannt bleibt drin.
  */
 export function getFirstArgumentSymbolFilter(
 	prefixArgumentType: CompileTimeType | undefined,
@@ -78,8 +78,7 @@ export function getFirstArgumentSymbolFilter(
 				if (!firstParameterType) {
 					return false;
 				}
-				const typeError = getTypeError(undefined, prefixArgumentType, firstParameterType);
-				return !typeError;
+				return isSubtypeOf(prefixArgumentType, firstParameterType) !== false;
 			}
 		}
 		return false;
