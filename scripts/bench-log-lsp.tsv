@@ -203,3 +203,15 @@
 2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.13	0.27	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
 2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	documentSymbol	3	2.86	3.30	3.30	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
 2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	semanticTokens	3	3.66	5.62	5.62	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	11	38.16	376.26	376.26	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	246.89	267.48	267.48	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	173.60	205.69	205.69	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	209.90	249.99	249.99	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	193.06	205.06	205.06	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	660.90	671.96	671.96	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	hover	564	0.09	0.19	0.63	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	definition	564	0.06	0.10	0.24	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	completion	564	1.66	2.45	3.92	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.09	0.88	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	documentSymbol	3	2.83	3.16	3.16	Compiler: lazy Fehlermeldungen (AssignabilityError)
+2026-10-04 07:10:53	4b6464d	jul-compiler 5f6429f+	ADV-DEV-56627	yugioh	semanticTokens	3	3.75	5.51	5.51	Compiler: lazy Fehlermeldungen (AssignabilityError)
