@@ -257,7 +257,7 @@ connection.onInitialized(() => {
  * gesendete URI (z.B. "C:" -> "c:") - ein Roundtrip über den Pfad würde die URI-Strings
  * auseinanderlaufen lassen, unter denen der Client seine offenen Dokumente führt.
  */
-function sendDiagnosticsForFile(uri: string, parsed: ParsedFile): void {
+function sendDiagnosticsForFile(uri: string, parsed: ParsedFile, version?: number): void {
 	const { errors } = parsed.checked!;
 	const diagnostics: Diagnostic[] = errors.map(error => {
 		const diagnostic: Diagnostic = {
@@ -287,7 +287,7 @@ function sendDiagnosticsForFile(uri: string, parsed: ParsedFile): void {
 		}
 		return diagnostic;
 	});
-	connection.sendDiagnostics({ uri, diagnostics });
+	connection.sendDiagnostics({ uri, diagnostics, version });
 }
 
 /**
@@ -308,17 +308,70 @@ function recheckDependents(filePath: string): void {
 
 // This event is emitted when the text document first opened or when its content has changed.
 // parse document, fill parsedDocuments and sendDiagnostics
-documents.onDidChangeContent(change => {
-	const textDocument = change.document;
+function processDocumentChange(textDocument: TextDocument): void {
 	const text = textDocument.getText();
 	if (text.length > maxFileSize) {
 		return;
 	}
 	const path = uriToPath(textDocument.uri);
 	const parsed = parseDocumentByCode(text, path);
-	sendDiagnosticsForFile(textDocument.uri, parsed);
+	sendDiagnosticsForFile(textDocument.uri, parsed, textDocument.version);
 	// Andere Dateien importieren evtl. diese - ihre Typen/Referenzen müssen neu berechnet werden.
 	recheckDependents(path);
+}
+
+/**
+ * Parsen und Checken kostet bei großen Dateien über 100 ms und läuft im einzigen Thread des Servers.
+ * Würde jeder Tastendruck sofort verarbeitet, staut sich beim schnellen Tippen eine Warteschlange auf
+ * und die Diagnostics hinken sekundenlang hinterher. Änderungen derselben Datei, die innerhalb von
+ * changeDebounceMs eintreffen, werden deshalb zusammengefasst. Das erste Öffnen einer Datei läuft
+ * sofort. Anfragen, die den Syntaxbaum lesen, rufen vorher flushPendingChanges auf, damit sie nie
+ * einen veralteten Stand sehen.
+ */
+const changeDebounceMs = 100;
+const pendingChanges = new Map<string, { document: TextDocument, timer: NodeJS.Timeout }>();
+const settledUris = new Set<string>();
+
+function flushPendingChange(uri: string): void {
+	const pending = pendingChanges.get(uri);
+	if (!pending) {
+		return;
+	}
+	clearTimeout(pending.timer);
+	pendingChanges.delete(uri);
+	processDocumentChange(pending.document);
+}
+
+function flushPendingChanges(): void {
+	[...pendingChanges.keys()].forEach(flushPendingChange);
+}
+
+documents.onDidChangeContent(change => {
+	const textDocument = change.document;
+	const uri = textDocument.uri;
+	if (!settledUris.has(uri)) {
+		settledUris.add(uri);
+		processDocumentChange(textDocument);
+		return;
+	}
+	const pending = pendingChanges.get(uri);
+	if (pending) {
+		clearTimeout(pending.timer);
+	}
+	pendingChanges.set(uri, {
+		document: textDocument,
+		timer: setTimeout(() => flushPendingChange(uri), changeDebounceMs),
+	});
+});
+
+documents.onDidClose(close => {
+	const uri = close.document.uri;
+	const pending = pendingChanges.get(uri);
+	if (pending) {
+		clearTimeout(pending.timer);
+		pendingChanges.delete(uri);
+	}
+	settledUris.delete(uri);
 });
 
 /**
@@ -364,6 +417,7 @@ function parseDocumentByPath(path: string): void {
 //#endregion diagnostics
 
 connection.onDidChangeWatchedFiles(changeParams => {
+	flushPendingChanges();
 	// Monitored files have change in VSCode
 	const changedFilePaths = changeParams.changes
 		.map(fileChange => uriToPath(fileChange.uri))
@@ -411,6 +465,7 @@ connection.onDidChangeWatchedFiles(changeParams => {
 //#region autocomplete
 // This handler provides the initial list of the completion items.
 connection.onCompletion(completionParams => {
+	flushPendingChanges();
 	const documentUri = completionParams.textDocument.uri;
 	const documentPath = uriToPath(documentUri);
 	const parsedFile = parsedDocuments[documentPath];
@@ -858,6 +913,7 @@ const coreLibUri = 'jul-core-lib:/core-lib.jul';
 connection.onRequest('jul/coreLibContent', () =>
 	tryReadTextFile(coreLibPath) ?? '');
 connection.onDefinition((definitionParams) => {
+	flushPendingChanges();
 	const documentUri = definitionParams.textDocument.uri;
 	const documentPath = uriToPath(documentUri);
 	const parsedFile = parsedDocuments[documentPath];
@@ -1176,6 +1232,7 @@ connection.onDocumentHighlight(highlightParams => {
 
 //#region document symbols
 connection.onDocumentSymbol(documentSymbolParams => {
+	flushPendingChanges();
 	const documentUri = documentSymbolParams.textDocument.uri;
 	const documentPath = uriToPath(documentUri);
 	const parsedFile = parsedDocuments[documentPath];
@@ -1366,6 +1423,7 @@ function uriToPath(uri: string): string {
 }
 
 function getParsedFileByUri(uri: string): ParsedFile | undefined {
+	flushPendingChanges();
 	const path = uriToPath(uri);
 	const parsed = parsedDocuments[path];
 	return parsed;

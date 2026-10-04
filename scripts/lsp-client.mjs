@@ -17,7 +17,7 @@ const requestTimeout = 30000;
 export function startServer() {
 	const child = fork(serverPath, ['--node-ipc'], { execArgv: [] });
 	const pendingRequests = new Map();
-	/** uri -> resolve, wird von publishDiagnostics bedient */
+	/** uri -> { minVersion, resolve }, wird von publishDiagnostics bedient */
 	const pendingDiagnostics = new Map();
 	let nextId = 1;
 
@@ -35,10 +35,11 @@ export function startServer() {
 		}
 		if (message.method === 'textDocument/publishDiagnostics') {
 			const uri = message.params.uri;
-			const resolveDiagnostics = pendingDiagnostics.get(uri);
-			if (resolveDiagnostics) {
+			const pending = pendingDiagnostics.get(uri);
+			// Veraltete Stände (Version kleiner als erwartet) überspringen, sonst endet die Wartezeit zu früh
+			if (pending && (pending.minVersion === undefined || message.params.version >= pending.minVersion)) {
 				pendingDiagnostics.delete(uri);
-				resolveDiagnostics(message.params.diagnostics);
+				pending.resolve(message.params.diagnostics);
 			}
 		}
 	});
@@ -68,16 +69,22 @@ export function startServer() {
 		});
 	}
 
-	/** muss vor der auslösenden Notification aufgerufen werden, sonst geht die Antwort verloren */
-	function waitForDiagnostics(uri) {
+	/**
+	 * muss vor der auslösenden Notification aufgerufen werden, sonst geht die Antwort verloren.
+	 * Mit minVersion zählen nur Diagnostics, die mindestens diesen Dokumentstand melden.
+	 */
+	function waitForDiagnostics(uri, minVersion) {
 		return new Promise((resolveDiagnostics, rejectDiagnostics) => {
 			const timeout = setTimeout(() => {
 				pendingDiagnostics.delete(uri);
 				rejectDiagnostics(new Error(`timeout bei diagnostics für ${uri}`));
 			}, requestTimeout);
-			pendingDiagnostics.set(uri, (diagnostics) => {
-				clearTimeout(timeout);
-				resolveDiagnostics(diagnostics);
+			pendingDiagnostics.set(uri, {
+				minVersion: minVersion,
+				resolve: (diagnostics) => {
+					clearTimeout(timeout);
+					resolveDiagnostics(diagnostics);
+				},
 			});
 		});
 	}

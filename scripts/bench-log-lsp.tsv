@@ -171,3 +171,23 @@
 2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.09	0.22	Add als Typfunktion fuer add
 2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	documentSymbol	3	3.45	4.04	4.04	Add als Typfunktion fuer add
 2026-09-27 10:53:37	2a29468+	jul-compiler e0f4ecf+	ADV-DEV-56627	yugioh	semanticTokens	3	3.33	5.03	5.03	Add als Typfunktion fuer add
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	didOpen -> diagnostics	11	47.06	420.97	420.97	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	177.04	199.01	199.01	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	1322.68	1376.37	1376.37	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	1367.12	1424.96	1424.96	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	hover	564	0.10	0.26	1.43	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	definition	564	0.06	0.10	0.24	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	completion	564	2.14	3.24	5.92	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.11	4.55	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	documentSymbol	3	3.31	3.73	3.73	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:49:25	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	semanticTokens	3	3.68	5.24	5.24	Baseline vor Debounce: Tipp-Messung (10 Anschlaege a 40 ms an Zeile 47)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	didOpen -> diagnostics	11	46.36	409.27	409.27	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	284.99	294.37	294.37	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	235.38	243.38	243.38	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	284.02	294.09	294.09	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	hover	564	0.09	0.24	0.60	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	definition	564	0.06	0.14	0.26	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	completion	564	2.14	3.31	6.05	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.12	0.34	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	documentSymbol	3	3.02	3.93	3.93	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	semanticTokens	3	3.61	5.25	5.25	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)

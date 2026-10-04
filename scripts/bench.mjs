@@ -36,6 +36,12 @@ import {
 
 const requestRunCount = 3;
 const maxPositionCount = 200;
+// Zeile 47 (0-basiert 46), wo schnelles Tippen im yugioh-Projekt auffiel
+const typingLine = 46;
+const keystrokeCount = 10;
+// ~ 25 Anschläge pro Sekunde, schneller als normales Tippen
+const keystrokeGap = 40;
+const typingBurstCount = 5;
 
 const logPath = resolve(import.meta.dirname, 'bench-log-lsp.tsv');
 const chartScript = resolve(import.meta.dirname, 'bench-chart.mjs');
@@ -90,6 +96,61 @@ async function measureChange(client, filePath, runCount) {
 		}
 	}
 	return durations;
+}
+
+/**
+ * Schnelles Tippen: keystrokeCount Ziffern hintereinander ans Ende einer Zeile, jeweils als eigene
+ * didChange. Gemessen wird ab dem letzten Tastendruck:
+ * - bis die Diagnostics des letzten Stands da sind (Version im publishDiagnostics)
+ * - bis auch die Importeure gecheckt sind (eine Anfrage danach wird erst nach dem ganzen Handler
+ *   beantwortet, der Server arbeitet einthreadig)
+ * Ein Server, der pro Tastendruck alles neu rechnet, staut hier auf. Danach werden die Ziffern
+ * wieder entfernt.
+ */
+async function measureTyping(client, filePath, burstCount) {
+	const text = readFileSync(filePath, { encoding: 'utf8' });
+	const uri = pathToFileURL(filePath).href;
+	const rows = text.split('\n');
+	const line = Math.min(typingLine, rows.length - 1);
+	const character = rows[line].length;
+	const toDiagnostics = [];
+	const toDependents = [];
+	let version = 1000;
+	for (let burst = 0; burst < burstCount; burst++) {
+		let lastSend = 0;
+		const finalVersion = version + keystrokeCount;
+		const diagnosticsPromise = client.waitForDiagnostics(uri, finalVersion);
+		for (let keystroke = 0; keystroke < keystrokeCount; keystroke++) {
+			version++;
+			const position = { line: line, character: character + keystroke };
+			client.notify('textDocument/didChange', {
+				textDocument: { uri: uri, version: version },
+				contentChanges: [{ range: { start: position, end: position }, text: String((keystroke + 1) % 10) }],
+			});
+			lastSend = performance.now();
+			await new Promise(resolveDelay => setTimeout(resolveDelay, keystrokeGap));
+		}
+		await diagnosticsPromise;
+		toDiagnostics.push(performance.now() - lastSend);
+		await client.request('textDocument/documentSymbol', { textDocument: { uri: uri } });
+		toDependents.push(performance.now() - lastSend);
+		// Ziffern wieder entfernen
+		version++;
+		const revertPromise = client.waitForDiagnostics(uri, version);
+		client.notify('textDocument/didChange', {
+			textDocument: { uri: uri, version: version },
+			contentChanges: [{
+				range: {
+					start: { line: line, character: character },
+					end: { line: line, character: character + keystrokeCount },
+				},
+				text: '',
+			}],
+		});
+		await revertPromise;
+		await client.request('textDocument/documentSymbol', { textDocument: { uri: uri } });
+	}
+	return { toDiagnostics, toDependents };
 }
 
 async function measureRequest(client, method, filePath, positions, extraParams) {
@@ -148,6 +209,9 @@ async function main() {
 			label: 'didChange -> diagnostics',
 			values: stats(await measureChange(client, largestFile, 5)),
 		});
+		const typing = await measureTyping(client, largestFile, typingBurstCount);
+		results.push({ label: 'tippen -> diagnostics', values: stats(typing.toDiagnostics) });
+		results.push({ label: 'tippen -> importeure fertig', values: stats(typing.toDependents) });
 		for (const [label, method, extraParams] of [
 			['hover', 'textDocument/hover', {}],
 			['definition', 'textDocument/definition', {}],
