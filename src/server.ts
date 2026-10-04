@@ -23,7 +23,6 @@ import {
 	Range,
 	SignatureHelp,
 	SymbolKind,
-	TextDocumentIdentifier,
 	TextDocuments,
 	TextDocumentSyncKind,
 	TextEdit,
@@ -44,7 +43,6 @@ import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
 	CompileTimeType,
-	forEachChild,
 	ImportedDependency,
 	PositionedExpression,
 	Parameter,
@@ -62,6 +60,7 @@ import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'ju
 import { isDefined, isTestFilePath, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
 import { createChangeDebouncer } from './change-debouncer.js';
+import { emptyLiteralsNotification, EmptyLiteralsParams, findEmptyLiterals } from './empty-literals.js';
 import { getIgnoreCommentCodeActions } from './ignore-comment.js';
 import {
 	createRenameWorkspaceEdit,
@@ -317,6 +316,12 @@ function processDocumentChange(textDocument: TextDocument): void {
 	const path = uriToPath(textDocument.uri);
 	const parsed = parseDocumentByCode(text, path);
 	sendDiagnosticsForFile(textDocument.uri, parsed, textDocument.version);
+	const emptyLiterals: EmptyLiteralsParams = {
+		uri: textDocument.uri,
+		version: textDocument.version,
+		ranges: findEmptyLiterals(parsed),
+	};
+	connection.sendNotification(emptyLiteralsNotification, emptyLiterals);
 	// Andere Dateien importieren evtl. diese - ihre Typen/Referenzen müssen neu berechnet werden.
 	recheckDependents(path);
 }
@@ -812,32 +817,6 @@ function getFunctionSymbolFromFunctionCall(functionCall: ParseFunctionCall, scop
 	}
 }
 //#endregion function signature help
-
-//#region empty literals
-// Das Empty-Literal [] ist ein eigener Wert, wird im Editor aber wie ein leeres Klammernpaar
-// gefärbt: die bracket pair colorization übermalt jede Farbe aus Grammatik und Semantic Tokens.
-// Nur eine Decoration liegt darüber, und die braucht diese Positionen. Siehe extension.ts.
-connection.onRequest('jul/emptyLiterals', (params: TextDocumentIdentifier) => {
-	const parsedFile = getParsedFileByUri(params.uri);
-	const expressions = parsedFile?.checked?.expressions;
-	if (!expressions) {
-		return [];
-	}
-	const ranges: Range[] = [];
-	expressions.forEach(expression => collectEmptyLiterals(expression, ranges));
-	return ranges;
-});
-
-function collectEmptyLiterals(expression: PositionedExpression, ranges: Range[]): void {
-	if (expression.type === 'empty') {
-		ranges.push(positionedToRange(expression));
-	}
-	forEachChild(expression, child => {
-		collectEmptyLiterals(child, ranges);
-		return undefined;
-	});
-}
-//#endregion empty literals
 
 connection.languages.semanticTokens.on(params =>
 	// Dateien über maxFileSize stehen gar nicht erst in parsedDocuments.
