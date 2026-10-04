@@ -132,6 +132,16 @@ function addSemanticToken(
 			return;
 		}
 		case 'parameter':
+			if (expression.source) {
+				// Alias (enabled = value): source ist der Parameter, name nur die lokale Konstante.
+				pushSemanticToken(tokens, expression.source, 'parameter', []);
+				pushSemanticToken(
+					tokens,
+					expression.name,
+					getSemanticTokenType(expression.typeInfo, undefined),
+					['declaration', ...getSemanticTokenModifiers(expression.typeInfo, false)]);
+				return;
+			}
 			pushSemanticToken(
 				tokens,
 				expression.name,
@@ -185,7 +195,8 @@ function getSemanticTokenType(
 	if (symbol?.definition && isImportDefinition(symbol.definition)) {
 		return 'namespace';
 	}
-	if (symbol?.definition?.type === 'parameter') {
+	// Mit Alias (enabled = value) ist der Name nur eine lokale Konstante, kein Parameter.
+	if (symbol?.definition?.type === 'parameter' && !symbol.definition.source) {
 		// Ein Parameter vom Typ Type (T: Type) steht für einen Typ und wird wie einer gefärbt.
 		return isTypeValue(symbol.definition.typeInfo?.type)
 			? 'type'

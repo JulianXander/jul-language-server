@@ -83,6 +83,18 @@ x: Pair(Integer) = [1]`, 'Pair: typeConstructor()');
 		expectToken(`f = (T: Type a: T) => a`, 'T: type()');
 	});
 
+	it('bei einem Parameter-Alias ist source der parameter', () => {
+		expectToken(`f = (enabled = value) => enabled`, 'value: parameter()');
+	});
+
+	it('bei einem Parameter-Alias ist der Name eine lokale Konstante', () => {
+		expectToken(`f = (enabled = value) => enabled`, 'enabled: variable(declaration)');
+	});
+
+	it('die Verwendung eines Parameter-Alias ist variable', () => {
+		expectToken(`f = (enabled = value) => enabled`, 'enabled: variable()');
+	});
+
 	it('ein Parameter mit Wert-Typ bleibt parameter', () => {
 		expectToken(`f = (a: Integer) => a`, 'a: parameter(declaration)');
 	});

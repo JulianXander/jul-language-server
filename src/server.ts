@@ -662,7 +662,7 @@ connection.onCompletion(completionParams => {
 			const completionItems: CompletionItem[] = [];
 			innerParamsType.singleNames.forEach((singleName, index) => {
 				const isAlreadyDeclared = expression.singleFields.some(declaredParameter =>
-					declaredParameter.source === singleName.name
+					declaredParameter.source?.name === singleName.name
 					|| (!declaredParameter.source && declaredParameter.name.name === singleName.name));
 				if (!isAlreadyDeclared) {
 					completionItems.push(parameterToCompletionItem(singleName, index, false));
