@@ -19,6 +19,8 @@ export function startServer() {
 	const pendingRequests = new Map();
 	/** uri -> { minVersion, resolve }, wird von publishDiagnostics bedient */
 	const pendingDiagnostics = new Map();
+	/** sieht jede publishDiagnostics, auch die, auf die niemand wartet */
+	const diagnosticsListeners = new Set();
 	let nextId = 1;
 
 	child.on('message', (message) => {
@@ -35,6 +37,7 @@ export function startServer() {
 		}
 		if (message.method === 'textDocument/publishDiagnostics') {
 			const uri = message.params.uri;
+			diagnosticsListeners.forEach(listener => listener(uri, message.params));
 			const pending = pendingDiagnostics.get(uri);
 			// Veraltete Stände (Version kleiner als erwartet) überspringen, sonst endet die Wartezeit zu früh
 			if (pending && (pending.minVersion === undefined || message.params.version >= pending.minVersion)) {
@@ -93,6 +96,11 @@ export function startServer() {
 		notify: notify,
 		request: request,
 		waitForDiagnostics: waitForDiagnostics,
+		/** listener(uri, params) bei jeder publishDiagnostics, liefert die Abmeldefunktion */
+		listenDiagnostics: (listener) => {
+			diagnosticsListeners.add(listener);
+			return () => diagnosticsListeners.delete(listener);
+		},
 		stop: () => child.kill(),
 	};
 }

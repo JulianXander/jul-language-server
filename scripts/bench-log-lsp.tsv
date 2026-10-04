@@ -191,3 +191,15 @@
 2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.12	0.34	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
 2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	documentSymbol	3	3.02	3.93	3.93	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
 2026-10-04 06:50:35	4f1bb87+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	semanticTokens	3	3.61	5.25	5.25	Debounce 100 ms im didChange-Handler (didChange einzeln +100 ms durch Wartezeit, erwartet)
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	didOpen -> diagnostics	11	47.93	423.07	423.07	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	294.81	301.48	301.48	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	227.79	250.98	250.98	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	272.77	302.47	302.47	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	252.20	252.87	252.87	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	695.18	698.30	698.30	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	hover	564	0.08	0.20	0.59	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	definition	564	0.06	0.11	0.30	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	completion	564	2.13	3.13	5.27	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.13	0.27	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	documentSymbol	3	2.86	3.30	3.30	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu
+2026-10-04 06:59:39	d73d009+	jul-compiler 5f6429f	ADV-DEV-56627	yugioh	semanticTokens	3	3.66	5.62	5.62	Debouncer als Modul mit max. Wartezeit 500 ms (Dauertippen 3 s), Messung dauertippen neu

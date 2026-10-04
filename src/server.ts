@@ -61,6 +61,7 @@ import { isDictionaryLiteralType, isFunctionType, isParameterReference, isParame
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isTestFilePath, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
+import { createChangeDebouncer } from './change-debouncer.js';
 import { getIgnoreCommentCodeActions } from './ignore-comment.js';
 import {
 	createRenameWorkspaceEdit,
@@ -321,57 +322,25 @@ function processDocumentChange(textDocument: TextDocument): void {
 }
 
 /**
- * Parsen und Checken kostet bei großen Dateien über 100 ms und läuft im einzigen Thread des Servers.
- * Würde jeder Tastendruck sofort verarbeitet, staut sich beim schnellen Tippen eine Warteschlange auf
- * und die Diagnostics hinken sekundenlang hinterher. Änderungen derselben Datei, die innerhalb von
- * changeDebounceMs eintreffen, werden deshalb zusammengefasst. Das erste Öffnen einer Datei läuft
- * sofort. Anfragen, die den Syntaxbaum lesen, rufen vorher flushPendingChanges auf, damit sie nie
- * einen veralteten Stand sehen.
+ * Änderungen derselben Datei werden zusammengefasst, siehe change-debouncer.ts. Anfragen, die den
+ * Syntaxbaum lesen, rufen vorher flushPendingChanges auf und sehen so nie einen veralteten Stand.
  */
-const changeDebounceMs = 100;
-const pendingChanges = new Map<string, { document: TextDocument, timer: NodeJS.Timeout }>();
-const settledUris = new Set<string>();
-
-function flushPendingChange(uri: string): void {
-	const pending = pendingChanges.get(uri);
-	if (!pending) {
-		return;
-	}
-	clearTimeout(pending.timer);
-	pendingChanges.delete(uri);
-	processDocumentChange(pending.document);
-}
+const changeDebouncer = createChangeDebouncer<TextDocument>(
+	(_uri, textDocument) => processDocumentChange(textDocument),
+	100,
+	500,
+);
 
 function flushPendingChanges(): void {
-	[...pendingChanges.keys()].forEach(flushPendingChange);
+	changeDebouncer.flushAll();
 }
 
 documents.onDidChangeContent(change => {
-	const textDocument = change.document;
-	const uri = textDocument.uri;
-	if (!settledUris.has(uri)) {
-		settledUris.add(uri);
-		processDocumentChange(textDocument);
-		return;
-	}
-	const pending = pendingChanges.get(uri);
-	if (pending) {
-		clearTimeout(pending.timer);
-	}
-	pendingChanges.set(uri, {
-		document: textDocument,
-		timer: setTimeout(() => flushPendingChange(uri), changeDebounceMs),
-	});
+	changeDebouncer.schedule(change.document.uri, change.document);
 });
 
 documents.onDidClose(close => {
-	const uri = close.document.uri;
-	const pending = pendingChanges.get(uri);
-	if (pending) {
-		clearTimeout(pending.timer);
-		pendingChanges.delete(uri);
-	}
-	settledUris.delete(uri);
+	changeDebouncer.forget(close.document.uri);
 });
 
 /**

@@ -38,10 +38,13 @@ const requestRunCount = 3;
 const maxPositionCount = 200;
 // Zeile 47 (0-basiert 46), wo schnelles Tippen im yugioh-Projekt auffiel
 const typingLine = 46;
-const keystrokeCount = 10;
 // ~ 25 Anschläge pro Sekunde, schneller als normales Tippen
 const keystrokeGap = 40;
+const burstKeystrokeCount = 10;
 const typingBurstCount = 5;
+// 3 s ohne Pause über 100 ms
+const continuousKeystrokeCount = 75;
+const continuousRunCount = 3;
 
 const logPath = resolve(import.meta.dirname, 'bench-log-lsp.tsv');
 const chartScript = resolve(import.meta.dirname, 'bench-chart.mjs');
@@ -106,8 +109,11 @@ async function measureChange(client, filePath, runCount) {
  *   beantwortet, der Server arbeitet einthreadig)
  * Ein Server, der pro Tastendruck alles neu rechnet, staut hier auf. Danach werden die Ziffern
  * wieder entfernt.
+ * Zusätzlich: größter Abstand zwischen zwei Diagnostics der Datei vom ersten Anschlag bis zum
+ * letzten Stand (maxGaps). Ein Debounce ohne Obergrenze liefert beim Dauertippen gar nichts, bis
+ * die Pause kommt.
  */
-async function measureTyping(client, filePath, burstCount) {
+async function measureTyping(client, filePath, burstCount, keystrokeCount) {
 	const text = readFileSync(filePath, { encoding: 'utf8' });
 	const uri = pathToFileURL(filePath).href;
 	const rows = text.split('\n');
@@ -115,9 +121,17 @@ async function measureTyping(client, filePath, burstCount) {
 	const character = rows[line].length;
 	const toDiagnostics = [];
 	const toDependents = [];
+	const maxGaps = [];
 	let version = 1000;
 	for (let burst = 0; burst < burstCount; burst++) {
 		let lastSend = 0;
+		const publishTimes = [];
+		const stopListening = client.listenDiagnostics((publishedUri) => {
+			if (publishedUri === uri) {
+				publishTimes.push(performance.now());
+			}
+		});
+		const typingStart = performance.now();
 		const finalVersion = version + keystrokeCount;
 		const diagnosticsPromise = client.waitForDiagnostics(uri, finalVersion);
 		for (let keystroke = 0; keystroke < keystrokeCount; keystroke++) {
@@ -131,7 +145,10 @@ async function measureTyping(client, filePath, burstCount) {
 			await new Promise(resolveDelay => setTimeout(resolveDelay, keystrokeGap));
 		}
 		await diagnosticsPromise;
+		stopListening();
 		toDiagnostics.push(performance.now() - lastSend);
+		const times = [typingStart, ...publishTimes];
+		maxGaps.push(Math.max(...times.slice(1).map((time, index) => time - times[index])));
 		await client.request('textDocument/documentSymbol', { textDocument: { uri: uri } });
 		toDependents.push(performance.now() - lastSend);
 		// Ziffern wieder entfernen
@@ -150,7 +167,7 @@ async function measureTyping(client, filePath, burstCount) {
 		await revertPromise;
 		await client.request('textDocument/documentSymbol', { textDocument: { uri: uri } });
 	}
-	return { toDiagnostics, toDependents };
+	return { toDiagnostics, toDependents, maxGaps };
 }
 
 async function measureRequest(client, method, filePath, positions, extraParams) {
@@ -209,9 +226,12 @@ async function main() {
 			label: 'didChange -> diagnostics',
 			values: stats(await measureChange(client, largestFile, 5)),
 		});
-		const typing = await measureTyping(client, largestFile, typingBurstCount);
+		const typing = await measureTyping(client, largestFile, typingBurstCount, burstKeystrokeCount);
 		results.push({ label: 'tippen -> diagnostics', values: stats(typing.toDiagnostics) });
 		results.push({ label: 'tippen -> importeure fertig', values: stats(typing.toDependents) });
+		const continuous = await measureTyping(client, largestFile, continuousRunCount, continuousKeystrokeCount);
+		results.push({ label: 'dauertippen -> diagnostics', values: stats(continuous.toDiagnostics) });
+		results.push({ label: 'dauertippen -> max Abstand diagnostics', values: stats(continuous.maxGaps) });
 		for (const [label, method, extraParams] of [
 			['hover', 'textDocument/hover', {}],
 			['definition', 'textDocument/definition', {}],
