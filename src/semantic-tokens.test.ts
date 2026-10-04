@@ -46,6 +46,11 @@ describe('semantic tokens', () => {
 x = f(1)`, 'f: function()');
 	});
 
+	it('ein JSON-Import ist eine Konstante und damit variable', () => {
+		expect(tokensOf(`data = import(§./data.json§)`, { [join(folder, 'data.json')]: '{"a": 1}' }))
+			.to.include('data: variable(declaration)');
+	});
+
 	it('ein Typ ist type', () => {
 		expectToken(`x: Integer = 1`, 'Integer: type(defaultLibrary)');
 	});

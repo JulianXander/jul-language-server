@@ -1,10 +1,8 @@
 import { SemanticTokens, SemanticTokensBuilder } from 'vscode-languageserver';
-import { isImportFunctionCall } from 'jul-compiler/out/parser/parser.js';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
 	CompileTimeFunctionType,
 	CompileTimeType,
-	DefinitionExpression,
 	forEachChild,
 	ParsedFile,
 	PositionedExpression,
@@ -18,7 +16,7 @@ import { pushScope } from './symbol-lookup.js';
 
 // Die Grammatik rät den Bezeichnertyp an der Schreibweise. Der checker weiß ihn - Werte und Typen
 // teilen in JUL denselben Namensraum, dort rät die Grammatik zwangsläufig falsch.
-const semanticTokenTypes = ['namespace', 'type', 'typeConstructor', 'function', 'parameter', 'variable', 'property'] as const;
+const semanticTokenTypes = ['type', 'typeConstructor', 'function', 'parameter', 'variable', 'property'] as const;
 const semanticTokenModifiers = ['declaration', 'defaultLibrary', 'readonly', 'stream', 'impure'] as const;
 export const semanticTokenLegend = {
 	tokenTypes: [...semanticTokenTypes],
@@ -191,10 +189,6 @@ function getSemanticTokenType(
 	typeInfo: TypeInfo | undefined,
 	symbol: SymbolDefinition | undefined,
 ): SemanticTokenType {
-	// Vor allen Typprüfungen: ein importiertes Modul kann selbst eine Funktion oder ein Typ sein.
-	if (symbol?.definition && isImportDefinition(symbol.definition)) {
-		return 'namespace';
-	}
 	// Mit Alias (enabled = value) ist der Name nur eine lokale Konstante, kein Parameter.
 	if (symbol?.definition?.type === 'parameter' && !symbol.definition.source) {
 		// Ein Parameter vom Typ Type (T: Type) steht für einen Typ und wird wie einer gefärbt.
@@ -262,13 +256,6 @@ function getFunctionValueType(typeInfo: TypeInfo | undefined): CompileTimeFuncti
 		return type.value;
 	}
 	return undefined;
-}
-
-function isImportDefinition(definition: DefinitionExpression): boolean {
-	const value = definition.type === 'definition'
-		? definition.value
-		: undefined;
-	return value?.type === 'functionCall' && isImportFunctionCall(value);
 }
 
 function pushSemanticToken(

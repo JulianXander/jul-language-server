@@ -175,13 +175,13 @@ semanticTokens
   27: 5+9 variable(readonly)
   35: 2+1 parameter(declaration,readonly) 4+1 parameter(declaration,readonly) 10+1 parameter(readonly)
   38: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary) 10+1 parameter(declaration,readonly) 13+7 type(defaultLibrary) 25+1 parameter(readonly)
-  42: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary) 10+1 parameter(declaration,readonly) 13+4 type(defaultLibrary) 26+1 parameter(readonly)
+  42: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary) 10+1 variable(declaration,readonly) 13+4 type(defaultLibrary) 20+1 parameter(readonly) 26+1 parameter(readonly)
   45: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary) 10+1 parameter(declaration,readonly) 13+2 typeConstructor(defaultLibrary) 19+7 type(defaultLibrary) 32+1 parameter(readonly)
   48: 2+1 parameter(declaration,readonly) 4+1 parameter(declaration,readonly) 9+4 parameter(declaration,readonly) 18+1 parameter(readonly)
   52: 2+1 variable(readonly) 7+4 variable(readonly) 12+1 variable(readonly) 18+1 variable(readonly)
   56: 2+1 parameter(declaration,readonly) 5+4 type(defaultLibrary)
   57: 2+1 parameter(declaration,readonly) 5+5 type(defaultLibrary)
-  58: 2+1 parameter(declaration,readonly) 5+5 type(defaultLibrary)
+  58: 2+1 variable(declaration,readonly) 5+5 type(defaultLibrary) 13+1 parameter(readonly)
   59: 5+4 parameter(declaration,readonly) 11+4 typeConstructor(defaultLibrary) 16+4 type(defaultLibrary)
   60: 6+1 parameter(readonly)
   63: 2+1 parameter(declaration,readonly) 8+3 function(defaultLibrary,impure) 12+1 parameter(readonly)
@@ -555,7 +555,7 @@ semanticTokens
   2: 2+6 parameter(declaration,readonly) 10+4 typeConstructor(defaultLibrary) 15+3 type(defaultLibrary)
   3: 2+4 parameter(declaration,readonly)
   4: 2+2 parameter(declaration,readonly) 7+3 parameter(declaration,readonly) 11+3 parameter(declaration,readonly) 15+1 parameter(declaration,readonly) 21+3 type(defaultLibrary)
-  5: 2+5 parameter(declaration,readonly)
+  5: 2+5 parameter(declaration,readonly) 9+15 type(defaultLibrary)
   6: 2+4 parameter(declaration,readonly)
   7: 6+6 typeConstructor(defaultLibrary) 13+2 parameter(readonly) 17+10 property(readonly)
   8: 4+5 parameter(readonly)
@@ -566,7 +566,7 @@ semanticTokens
   20: 1+10 variable(declaration,readonly) 14+10 variable(readonly) 25+9 function(defaultLibrary) 35+7 type(defaultLibrary) 46+11 parameter(declaration,readonly) 58+5 parameter(declaration,readonly) 68+11 parameter(readonly) 80+3 function(defaultLibrary) 84+5 parameter(readonly)
   22: 1+12 variable(declaration,readonly) 16+10 variable(readonly) 27+18 function
   24: 3+3 parameter(declaration,readonly) 7+3 parameter(declaration,readonly) 15+3 parameter(readonly) 19+3 function(defaultLibrary) 23+3 parameter(readonly)
-  1:12 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) ...
+  1:12 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
   1:12 definition: core-lib/aggregate/aggregate.jul:1:1
   1:12 completion: n=111 aggregateRecursive,testValues,sumBuiltin
   1:12 signatureHelp: kein
@@ -582,10 +582,10 @@ semanticTokens
   4:12 definition: core-lib/aggregate/aggregate.jul:4:11
   4:12 completion: n=119 aggregateRecursive,testValues,sumBuiltin
   4:12 signatureHelp: kein
-  5:4 hover: ```jul Any ```
-  5:4 definition: core-lib/aggregate/aggregate.jul:5:2
-  5:4 completion: n=116 aggregateRecursive,testValues,sumBuiltin
-  5:4 signatureHelp: kein
+  5:12 hover: ```jul TypeOf(GreaterInteger(0)) ```
+  5:12 definition: jul-core-lib:/core-lib.jul:101:1
+  5:12 completion: n=116 aggregateRecursive,testValues,sumBuiltin
+  5:12 signatureHelp: kein
   6:3 hover: ```jul Any ```
   6:3 definition: core-lib/aggregate/aggregate.jul:6:2
   6:3 completion: n=116 aggregateRecursive,testValues,sumBuiltin
@@ -594,7 +594,7 @@ semanticTokens
   7:15 definition: core-lib/aggregate/aggregate.jul:4:2
   7:15 completion: n=117 aggregateRecursive,testValues,sumBuiltin
   7:15 signatureHelp: kein
-  8:5 hover: ```jul Any ```
+  8:5 hover: ```jul GreaterInteger(0) ```
   8:5 definition: core-lib/aggregate/aggregate.jul:5:2
   8:5 completion: n=116 aggregateRecursive,testValues,sumBuiltin
   8:5 signatureHelp: kein
@@ -641,7 +641,7 @@ semanticTokens
   22:23 hover: ```jul [1 2 3] ```
   22:23 definition: core-lib/aggregate/aggregate.jul:14:1
   22:23 completion: n=111 aggregateRecursive,testValues,sumBuiltin
-  22:23 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) :> Any param=1
+  22:23 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=1
   23:2 hover: kein
   23:2 definition: kein
   23:2 completion: n=111 aggregateRecursive,testValues,sumBuiltin
@@ -650,7 +650,7 @@ semanticTokens
   24:14 definition: kein
   24:14 completion: n=113 aggregateRecursive,testValues,sumBuiltin
   24:14 signatureHelp: kein
-  25:2 hover: kein
+  25:2 hover: ```jul GreaterInteger(0) ```
   25:2 definition: kein
   25:2 completion: n=111 aggregateRecursive,testValues,sumBuiltin
   25:2 signatureHelp: kein
@@ -658,10 +658,10 @@ semanticTokens
   26:2 definition: kein
   26:2 completion: n=111 aggregateRecursive,testValues,sumBuiltin
   26:2 signatureHelp: kein
-  27:1 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) ...
+  27:1 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
   27:1 definition: kein
   27:1 completion: n=111 aggregateRecursive,testValues,sumBuiltin
-  27:1 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) :> Any param=4
+  27:1 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=4
 
 === core-lib/aggregate/aggregate.test.jul
 symbols
@@ -715,26 +715,26 @@ semanticTokens
   11:4 definition: kein
   11:4 completion: n=0 
   11:4 signatureHelp: kein
-  12:17 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) ...
+  12:17 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
   12:17 definition: core-lib/aggregate/aggregate.jul:1:1
   12:17 completion: n=39 aggregateRecursive,List,And
-  12:17 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) :> Any param=1
-  13:3 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) ...
+  12:17 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=1
+  13:3 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
   13:3 definition: kein
   13:3 completion: n=109 aggregateRecursive,testValues,true
-  13:3 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) :> Any param=1
+  13:3 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=1
   14:15 hover: ```jul ( acc: Any val: Any i: Any ) :> Any ```
   14:15 definition: kein
   14:15 completion: n=111 aggregateRecursive,testValues,acc
   14:15 signatureHelp: kein
-  15:3 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) ...
+  15:3 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
   15:3 definition: kein
   15:3 completion: n=109 aggregateRecursive,testValues,true
-  15:3 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) :> Any param=1
-  16:3 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) ...
+  15:3 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=1
+  16:3 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
   16:3 definition: kein
   16:3 completion: n=109 aggregateRecursive,testValues,true
-  16:3 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: Any curr: Any ) :> Any param=1
+  16:3 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=1
   17:7 hover: ```jul ( first: Any second: Any ) -> Boolean ``` Liefert true, wenn die beiden Werte gleich sind (Re...
   17:7 definition: jul-core-lib:/core-lib.jul:265:1
   17:7 completion: n=34 List,And,Or
@@ -838,10 +838,10 @@ symbols
   javascriptImport kind=14 39:1
     keine
 semanticTokens
-  4: 1+11 namespace(declaration)
-  5: 1+3 function(defaultLibrary,impure) 5+11 namespace
-  9: 1+5 namespace(declaration)
-  10: 1+3 function(defaultLibrary,impure) 5+5 namespace 11+8 property(readonly)
+  4: 1+11 variable(declaration,readonly)
+  5: 1+3 function(defaultLibrary,impure) 5+11 variable(readonly)
+  9: 1+5 variable(declaration,readonly)
+  10: 1+3 function(defaultLibrary,impure) 5+5 variable(readonly) 11+8 property(readonly)
   14: 2+8 variable(declaration,readonly)
   15: 2+5 function(declaration,impure) 10+7 property(readonly)
   16: 2+6 type(declaration)
@@ -850,14 +850,14 @@ semanticTokens
   20: 2+1 parameter(readonly)
   21: 1+5 variable(declaration,readonly) 8+6 type
   22: 2+5 property(declaration,readonly)
-  27: 1+10 namespace(declaration)
-  28: 1+3 function(defaultLibrary,impure) 5+10 namespace
-  31: 1+10 namespace(declaration)
-  32: 1+3 function(defaultLibrary,impure) 5+10 namespace
-  35: 1+16 namespace(declaration)
-  36: 1+3 function(defaultLibrary,impure) 5+16 namespace
-  39: 1+16 namespace(declaration)
-  40: 1+3 function(defaultLibrary,impure) 5+16 namespace
+  27: 1+10 variable(declaration,readonly)
+  28: 1+3 function(defaultLibrary,impure) 5+10 variable(readonly)
+  31: 1+10 variable(declaration,readonly)
+  32: 1+3 function(defaultLibrary,impure) 5+10 variable(readonly)
+  35: 1+16 variable(declaration,readonly)
+  36: 1+3 function(defaultLibrary,impure) 5+16 variable(readonly)
+  39: 1+16 variable(declaration,readonly)
+  40: 1+3 function(defaultLibrary,impure) 5+16 variable(readonly)
   4:18 hover: ```jul (path: Text) ~> 15 ``` Supported file types: .jul .js .json .yaml
   4:18 definition: jul-core-lib:/core-lib.jul:1315:1
   4:18 completion: n=117 valueImport,file2,someText
@@ -1414,7 +1414,7 @@ semanticTokens
   72: 2+1 property(declaration,readonly)
   78: 1+13 function(declaration,impure) 21+13 parameter(declaration,readonly) 36+6 type 47+3 function(defaultLibrary,impure)
   80: 1+11 function(declaration,impure) 16+1 parameter(declaration,readonly) 21+1 parameter(declaration,readonly) 30+3 function(defaultLibrary,impure)
-  83: 1+7 function(declaration,impure) 12+2 parameter(declaration,readonly) 16+7 type(defaultLibrary) 28+2 parameter(declaration,readonly) 39+3 function(defaultLibrary,impure) 43+2 parameter(readonly)
+  83: 1+7 function(declaration,impure) 12+2 variable(declaration,readonly) 16+7 type(defaultLibrary) 26+1 parameter(readonly) 28+2 variable(declaration,readonly) 33+1 parameter(readonly) 39+3 function(defaultLibrary,impure) 43+2 variable(readonly)
   84: 1+13 function(declaration) 18+2 parameter(declaration,readonly) 23+1 parameter(declaration,readonly) 26+7 type(defaultLibrary) 34+1 parameter(declaration,readonly) 37+4 type(defaultLibrary)
   85: 1+13 function 15+7 function(impure)
   88: 1+3 function(declaration) 8+1 parameter(declaration,readonly) 11+7 type(defaultLibrary) 19+1 parameter(declaration,readonly) 22+4 type(defaultLibrary)
@@ -2272,7 +2272,7 @@ semanticTokens
   20: 1+3 function(defaultLibrary,impure) 5+4 variable(readonly)
   21: 1+3 function(defaultLibrary,impure) 5+1 variable(readonly)
   24: 1+13 function(declaration) 18+7 parameter(declaration,readonly) 28+4 parameter(declaration,readonly) 34+4 type(defaultLibrary) 39+4 parameter(declaration,readonly) 45+7 type(defaultLibrary)
-  27: 1+13 function 16+4 parameter(declaration,readonly) 28+6 parameter(declaration,readonly)
+  27: 1+13 function 16+4 variable(declaration,readonly) 23+4 parameter(readonly) 28+6 variable(declaration,readonly) 37+4 parameter(readonly)
   30: 2+1 property(declaration,readonly) 8+1 property(declaration,readonly)
   35: 5+1 property(declaration,readonly) 11+1 property(declaration,readonly)
   1:7 hover: ```jul TypeOf([ a: List(Text) b: Or(Empty Text) ]) ```
@@ -3116,44 +3116,194 @@ symbols
     keine
   GameBoard kind=14 3:1
     keine
-  GameState kind=14 8:1
-    gameBoard kind=8 9:2
+  GameStatus kind=14 8:1
+    keine
+  GameState kind=14 10:1
+    gameBoard kind=8 11:2
       keine
-    currentPlayer kind=8 10:2
+    currentPlayer kind=8 12:2
       keine
-  allEqual kind=12 13:1
-    values kind=13 13:13
+    status kind=8 13:2
       keine
-    expected kind=13 13:31
+  PositionedCell kind=14 16:1
+    rowIndex kind=8 17:2
       keine
-    value kind=13 14:14
+    columnIndex kind=8 18:2
       keine
-  isTied kind=12 16:1
-    gameBoard kind=13 16:11
+    value kind=8 19:2
       keine
-    row kind=13 17:17
+  CellChange kind=14 21:1
+    rowIndex kind=8 22:2
       keine
-    cell kind=13 17:42
+    columnIndex kind=8 23:2
       keine
-  checkWinner kind=12 19:1
-    gameBoard kind=13 20:2
+    value kind=8 24:2
       keine
-    player kind=13 21:2
+    enabled kind=8 25:2
       keine
-    rowIndex kind=13 22:2
+  GameStateChange kind=14 30:1
+    cellChanges kind=8 31:2
       keine
-    columnIndex kind=13 23:2
+    currentPlayer kind=8 32:2
       keine
-    row kind=14 25:2
+    status kind=8 33:2
       keine
-    column kind=14 26:2
-      value kind=13 26:27
+  allEqual kind=12 36:1
+    values kind=13 36:13
+      keine
+    expected kind=13 36:31
+      keine
+    value kind=13 37:14
+      keine
+  isTied kind=12 39:1
+    gameBoard kind=13 39:11
+      keine
+    row kind=13 40:17
+      keine
+    cell kind=13 40:42
+      keine
+  isBoardEmpty kind=12 42:1
+    gameBoard kind=13 42:17
+      keine
+    row kind=13 43:17
+      keine
+    cell kind=13 43:42
+      keine
+  checkWinner kind=12 45:1
+    gameBoard kind=13 46:2
+      keine
+    player kind=13 47:2
+      keine
+    rowIndex kind=13 48:2
+      keine
+    columnIndex kind=13 49:2
+      keine
+    row kind=14 51:2
+      keine
+    column kind=14 52:2
+      value kind=13 52:27
         keine
-    topLeftDiagonal kind=14 27:2
+    topLeftDiagonal kind=14 53:2
       keine
-    bottomLeftDiagonal kind=14 32:2
+    bottomLeftDiagonal kind=14 58:2
       keine
-    isWinner kind=14 37:2
+    isWinner kind=14 63:2
+      keine
+  cellsOf kind=12 71:1
+    gameBoard kind=13 71:12
+      keine
+    cellsByRow kind=14 72:2
+      rowIndex kind=13 73:4
+        keine
+      columnIndex kind=13 74:5
+        keine
+      rowIndex kind=8 75:5
+        keine
+      columnIndex kind=8 76:5
+        keine
+      value kind=8 77:5
+        keine
+  disableEmptyCells kind=12 84:1
+    gameBoard kind=13 84:22
+      keine
+    emptyCells kind=14 85:2
+      cell kind=13 85:42
+        keine
+    cell kind=13 87:4
+      keine
+    rowIndex kind=8 87:22
+      keine
+    columnIndex kind=8 87:47
+      keine
+    enabled kind=8 87:78
+      keine
+  computeMoveDelta kind=12 92:1
+    gameState kind=13 93:2
+      keine
+    rowIndex kind=13 94:2
+      keine
+    columnIndex kind=13 95:2
+      keine
+    currentPlayer kind=14 97:2
+      keine
+    currentRow kind=14 98:2
+      keine
+    newRow kind=14 99:2
+      keine
+    newGameBoard kind=14 100:2
+      keine
+    isWinner kind=14 101:2
+      keine
+    status kind=14 102:2
+      tie kind=14 105:4
+        keine
+    clickedChange kind=14 109:2
+      rowIndex kind=8 109:19
+        keine
+      columnIndex kind=8 109:39
+        keine
+      value kind=8 109:65
+        keine
+      enabled kind=8 109:87
+        keine
+    cellChanges kind=8 111:3
+      keine
+    currentPlayer kind=8 117:3
+      keine
+    status kind=8 124:3
+      keine
+  computeResetDelta kind=12 128:1
+    gameState kind=13 128:22
+      keine
+    isRunning kind=14 129:2
+      keine
+    changedCells kind=14 130:2
+      cell kind=13 131:4
+        keine
+    cellChanges kind=14 134:2
+      cell kind=13 135:4
+        keine
+      rowIndex kind=8 138:6
+        keine
+      columnIndex kind=8 139:6
+        keine
+      enabled kind=8 140:6
+        keine
+      rowIndex kind=8 143:6
+        keine
+      columnIndex kind=8 144:6
+        keine
+      value kind=8 145:6
+        keine
+      enabled kind=8 146:6
+        keine
+    cellChanges kind=8 150:3
+      keine
+    currentPlayer kind=8 151:3
+      keine
+    status kind=8 152:3
+      keine
+  applyDelta kind=12 155:1
+    gameState kind=13 155:15
+      keine
+    delta kind=13 155:36
+      keine
+    newGameBoard kind=14 156:2
+      gameBoard kind=13 159:4
+        keine
+      cellChange kind=13 159:28
+        keine
+      row kind=14 160:4
+        keine
+      newValue kind=13 162:6
+        keine
+      newRow kind=14 163:6
+        keine
+    gameBoard kind=8 168:3
+      keine
+    currentPlayer kind=8 169:3
+      keine
+    status kind=8 170:3
       keine
 semanticTokens
   1: 1+6 type(declaration) 10+2 typeConstructor(defaultLibrary)
@@ -3162,193 +3312,662 @@ semanticTokens
   4: 3+4 type 8+4 type 13+4 type
   5: 3+4 type 8+4 type 13+4 type
   6: 3+4 type 8+4 type 13+4 type
-  8: 1+9 type(declaration)
-  9: 2+9 property(declaration,readonly) 13+9 type
-  10: 2+13 property(declaration,readonly) 17+6 type
-  13: 1+8 function(declaration) 13+6 parameter(declaration,readonly) 21+4 typeConstructor(defaultLibrary) 26+3 type(defaultLibrary) 31+8 parameter(declaration,readonly) 44+7 type(defaultLibrary)
-  14: 2+6 parameter(readonly) 9+3 function(defaultLibrary) 14+5 parameter(declaration,readonly) 24+5 parameter(readonly) 30+5 function(defaultLibrary) 36+8 parameter(readonly)
-  16: 1+6 function(declaration) 11+9 parameter(declaration,readonly) 22+9 type 36+7 type(defaultLibrary)
-  17: 2+9 parameter(readonly) 12+3 function(defaultLibrary) 17+3 parameter(declaration,readonly) 33+3 parameter(readonly) 37+3 function(defaultLibrary) 42+4 parameter(declaration,readonly) 59+3 function(defaultLibrary) 63+4 parameter(readonly) 68+5 function(defaultLibrary)
-  19: 1+11 function(declaration)
-  20: 2+9 parameter(declaration,readonly) 13+9 type
-  21: 2+6 parameter(declaration,readonly) 10+6 type
-  22: 2+8 parameter(declaration,readonly) 12+2 typeConstructor(defaultLibrary)
-  23: 2+11 parameter(declaration,readonly) 15+2 typeConstructor(defaultLibrary)
-  24: 6+7 type(defaultLibrary)
-  25: 2+3 variable(declaration,readonly) 8+9 parameter(readonly) 18+10 function(defaultLibrary) 29+8 parameter(readonly)
-  26: 2+6 variable(declaration,readonly) 11+5 function(defaultLibrary) 22+3 function(defaultLibrary) 27+5 parameter(declaration,readonly) 37+9 parameter(readonly) 47+10 function(defaultLibrary) 58+5 parameter(readonly) 65+10 function(defaultLibrary) 76+11 parameter(readonly)
-  27: 2+15 variable(declaration,readonly)
-  28: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
-  29: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
-  30: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
-  32: 2+18 variable(declaration,readonly)
-  33: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
-  34: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
-  35: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
-  37: 2+8 variable(declaration,readonly) 13+2 function(defaultLibrary)
-  38: 3+8 function 12+3 variable(readonly) 16+6 parameter(readonly)
-  39: 3+8 function 12+6 variable(readonly) 19+6 parameter(readonly)
-  40: 3+8 function 12+15 variable(readonly) 28+6 parameter(readonly)
-  41: 3+8 function 12+18 variable(readonly) 31+6 parameter(readonly)
+  8: 1+10 type(declaration) 14+2 typeConstructor(defaultLibrary)
+  10: 1+9 type(declaration)
+  11: 2+9 property(declaration,readonly) 13+9 type
+  12: 2+13 property(declaration,readonly) 17+6 type
+  13: 2+6 property(declaration,readonly) 10+10 type
+  16: 1+14 type(declaration)
+  17: 2+8 property(declaration,readonly) 12+2 typeConstructor(defaultLibrary)
+  18: 2+11 property(declaration,readonly) 15+2 typeConstructor(defaultLibrary)
+  19: 2+5 property(declaration,readonly) 9+4 type
+  21: 1+10 type(declaration)
+  22: 2+8 property(declaration,readonly) 12+2 typeConstructor(defaultLibrary)
+  23: 2+11 property(declaration,readonly) 15+2 typeConstructor(defaultLibrary)
+  24: 2+5 property(declaration,readonly) 9+2 typeConstructor(defaultLibrary) 15+4 type
+  25: 2+7 property(declaration,readonly) 11+2 typeConstructor(defaultLibrary) 17+7 type(defaultLibrary)
+  30: 1+15 type(declaration)
+  31: 2+11 property(declaration,readonly) 15+2 typeConstructor(defaultLibrary) 21+4 typeConstructor(defaultLibrary) 26+10 type
+  32: 2+13 property(declaration,readonly) 17+6 type
+  33: 2+6 property(declaration,readonly) 10+10 type
+  36: 1+8 function(declaration) 13+6 parameter(declaration,readonly) 21+4 typeConstructor(defaultLibrary) 26+3 type(defaultLibrary) 31+8 parameter(declaration,readonly) 44+7 type(defaultLibrary)
+  37: 2+6 parameter(readonly) 9+3 function(defaultLibrary) 14+5 parameter(declaration,readonly) 24+5 parameter(readonly) 30+5 function(defaultLibrary) 36+8 parameter(readonly)
+  39: 1+6 function(declaration) 11+9 parameter(declaration,readonly) 22+9 type 36+7 type(defaultLibrary)
+  40: 2+9 parameter(readonly) 12+3 function(defaultLibrary) 17+3 variable(declaration,readonly) 23+5 parameter(readonly) 33+3 variable(readonly) 37+3 function(defaultLibrary) 42+4 variable(declaration,readonly) 49+5 parameter(readonly) 59+3 function(defaultLibrary) 63+4 variable(readonly) 68+5 function(defaultLibrary)
+  42: 1+12 function(declaration) 17+9 parameter(declaration,readonly) 28+9 type 42+7 type(defaultLibrary)
+  43: 2+9 parameter(readonly) 12+3 function(defaultLibrary) 17+3 variable(declaration,readonly) 23+5 parameter(readonly) 33+3 variable(readonly) 37+3 function(defaultLibrary) 42+4 variable(declaration,readonly) 49+5 parameter(readonly) 59+4 variable(readonly) 64+5 function(defaultLibrary)
+  45: 1+11 function(declaration)
+  46: 2+9 parameter(declaration,readonly) 13+9 type
+  47: 2+6 parameter(declaration,readonly) 10+6 type
+  48: 2+8 parameter(declaration,readonly) 12+2 typeConstructor(defaultLibrary)
+  49: 2+11 parameter(declaration,readonly) 15+2 typeConstructor(defaultLibrary)
+  50: 6+7 type(defaultLibrary)
+  51: 2+3 variable(declaration,readonly) 8+9 parameter(readonly) 18+10 function(defaultLibrary) 29+8 parameter(readonly)
+  52: 2+6 variable(declaration,readonly) 11+5 function(defaultLibrary) 22+3 function(defaultLibrary) 27+5 parameter(declaration,readonly) 37+9 parameter(readonly) 47+10 function(defaultLibrary) 58+5 parameter(readonly) 65+10 function(defaultLibrary) 76+11 parameter(readonly)
+  53: 2+15 variable(declaration,readonly)
+  54: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
+  55: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
+  56: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
+  58: 2+18 variable(declaration,readonly)
+  59: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
+  60: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
+  61: 3+9 parameter(readonly) 13+10 function(defaultLibrary) 27+10 function(defaultLibrary)
+  63: 2+8 variable(declaration,readonly) 13+2 function(defaultLibrary)
+  64: 3+8 function 12+3 variable(readonly) 16+6 parameter(readonly)
+  65: 3+8 function 12+6 variable(readonly) 19+6 parameter(readonly)
+  66: 3+8 function 12+15 variable(readonly) 28+6 parameter(readonly)
+  67: 3+8 function 12+18 variable(readonly) 31+6 parameter(readonly)
+  71: 1+7 function(declaration) 12+9 parameter(declaration,readonly) 23+9 type 37+2 typeConstructor(defaultLibrary) 43+4 typeConstructor(defaultLibrary) 48+14 type
+  72: 2+10 variable(declaration,readonly) 15+5 function(defaultLibrary) 26+3 function(defaultLibrary)
+  73: 4+8 variable(declaration,readonly) 15+5 parameter(readonly) 25+5 function(defaultLibrary) 36+3 function(defaultLibrary)
+  74: 5+11 variable(declaration,readonly) 19+5 parameter(readonly)
+  75: 5+8 property(declaration,readonly) 16+8 variable(readonly)
+  76: 5+11 property(declaration,readonly) 19+11 variable(readonly)
+  77: 5+5 property(declaration,readonly) 13+9 parameter(readonly) 23+10 function(defaultLibrary) 34+8 variable(readonly) 44+10 function(defaultLibrary) 55+11 variable(readonly)
+  81: 2+10 variable(readonly) 13+7 function(defaultLibrary)
+  84: 1+17 function(declaration) 22+9 parameter(declaration,readonly) 33+9 type 47+2 typeConstructor(defaultLibrary) 53+4 typeConstructor(defaultLibrary) 58+10 type
+  85: 2+10 variable(declaration,readonly) 15+7 function 23+9 parameter(readonly) 34+6 function(defaultLibrary) 42+4 variable(declaration,readonly) 49+5 parameter(readonly) 59+4 variable(readonly) 64+5 property(readonly) 70+5 function(defaultLibrary)
+  86: 2+10 variable(readonly) 13+3 function(defaultLibrary)
+  87: 4+4 variable(declaration,readonly) 11+5 parameter(readonly) 22+8 property(declaration,readonly) 33+4 variable(readonly) 38+8 property(readonly) 47+11 property(declaration,readonly) 61+4 variable(readonly) 66+11 property(readonly) 78+7 property(declaration,readonly)
+  92: 1+16 function(declaration)
+  93: 2+9 parameter(declaration,readonly) 13+9 type
+  94: 2+8 parameter(declaration,readonly) 12+2 typeConstructor(defaultLibrary)
+  95: 2+11 parameter(declaration,readonly) 15+2 typeConstructor(defaultLibrary)
+  96: 6+15 type
+  97: 2+13 variable(declaration,readonly) 18+9 parameter(readonly) 28+13 property(readonly)
+  98: 2+10 variable(declaration,readonly) 15+9 parameter(readonly) 25+9 property(readonly) 35+10 function(defaultLibrary) 46+8 parameter(readonly)
+  99: 2+6 variable(declaration,readonly) 11+10 variable(readonly) 22+10 function(defaultLibrary) 33+11 parameter(readonly) 45+13 variable(readonly)
+  100: 2+12 variable(declaration,readonly) 17+9 parameter(readonly) 27+9 property(readonly) 37+10 function(defaultLibrary) 48+8 parameter(readonly) 57+6 variable(readonly)
+  101: 2+8 variable(declaration,readonly) 13+11 function 25+12 variable(readonly) 38+13 variable(readonly) 52+8 parameter(readonly) 61+11 parameter(readonly)
+  102: 2+6 variable(declaration,readonly) 10+10 type 25+8 variable(readonly)
+  105: 4+3 variable(declaration,readonly) 10+6 function 17+12 variable(readonly)
+  106: 6+3 variable(readonly)
+  109: 2+13 variable(declaration,readonly) 19+8 property(declaration,readonly) 30+8 parameter(readonly) 39+11 property(declaration,readonly) 53+11 parameter(readonly) 65+5 property(declaration,readonly) 73+13 variable(readonly) 87+7 property(declaration,readonly)
+  111: 3+11 property(declaration,readonly) 19+6 variable(readonly)
+  112: 20+13 variable(readonly)
+  113: 16+13 variable(readonly) 33+17 function 51+12 variable(readonly)
+  115: 16+13 variable(readonly)
+  117: 3+13 property(declaration,readonly) 21+6 variable(readonly)
+  119: 7+13 variable(readonly)
+  122: 15+13 variable(readonly)
+  123: 15+13 variable(readonly)
+  124: 3+6 property(declaration,readonly) 12+6 variable(readonly)
+  128: 1+17 function(declaration) 22+9 parameter(declaration,readonly) 33+9 type 47+15 type
+  129: 2+9 variable(declaration,readonly) 14+9 parameter(readonly) 24+6 property(readonly) 31+5 function(defaultLibrary)
+  130: 2+12 variable(declaration,readonly) 17+7 function 25+9 parameter(readonly) 35+9 property(readonly) 46+6 function(defaultLibrary)
+  131: 4+4 variable(declaration,readonly) 11+5 parameter(readonly) 21+2 function(defaultLibrary) 24+3 function(defaultLibrary) 28+4 variable(readonly) 33+5 property(readonly) 39+5 function(defaultLibrary) 50+3 function(defaultLibrary) 54+9 variable(readonly)
+  134: 2+11 variable(declaration,readonly) 16+12 variable(readonly) 29+3 function(defaultLibrary)
+  135: 4+4 variable(declaration,readonly) 11+5 parameter(readonly)
+  136: 6+4 variable(readonly) 11+5 property(readonly) 17+5 function(defaultLibrary)
+  138: 6+8 property(declaration,readonly) 17+4 variable(readonly) 22+8 property(readonly)
+  139: 6+11 property(declaration,readonly) 20+4 variable(readonly) 25+11 property(readonly)
+  140: 6+7 property(declaration,readonly)
+  143: 6+8 property(declaration,readonly) 17+4 variable(readonly) 22+8 property(readonly)
+  144: 6+11 property(declaration,readonly) 20+4 variable(readonly) 25+11 property(readonly)
+  145: 6+5 property(declaration,readonly)
+  146: 6+7 property(declaration,readonly)
+  150: 3+11 property(declaration,readonly) 17+11 variable(readonly)
+  151: 3+13 property(declaration,readonly)
+  152: 3+6 property(declaration,readonly)
+  155: 1+10 function(declaration) 15+9 parameter(declaration,readonly) 26+9 type 36+5 parameter(declaration,readonly) 43+15 type 63+9 type
+  156: 2+12 variable(declaration,readonly) 17+5 parameter(readonly) 23+11 property(readonly) 35+9 function(defaultLibrary)
+  157: 3+9 type
+  158: 3+9 parameter(readonly) 13+9 property(readonly)
+  159: 4+9 variable(declaration,readonly) 16+11 parameter(readonly) 28+10 variable(declaration,readonly) 41+5 parameter(readonly)
+  160: 4+3 variable(declaration,readonly) 10+9 variable(readonly) 20+10 function(defaultLibrary) 31+10 variable(readonly) 42+8 property(readonly)
+  161: 6+10 variable(readonly) 17+5 property(readonly)
+  162: 6+8 parameter(declaration,readonly) 16+4 type
+  163: 6+6 variable(declaration,readonly) 15+3 variable(readonly) 19+10 function(defaultLibrary) 30+10 variable(readonly) 41+11 property(readonly) 53+8 parameter(readonly)
+  164: 6+9 variable(readonly) 16+10 function(defaultLibrary) 27+10 variable(readonly) 38+8 property(readonly) 47+6 variable(readonly)
+  165: 11+9 variable(readonly)
+  168: 3+9 property(declaration,readonly) 15+12 variable(readonly)
+  169: 3+13 property(declaration,readonly) 19+5 parameter(readonly) 25+13 property(readonly)
+  170: 3+6 property(declaration,readonly) 12+5 parameter(readonly) 18+6 property(readonly)
   1:11 hover: ```jul (...ChoiceTypes: List(Type)) -> TypeOf(Or(§x§ §o§)) ``` UnionType
   1:11 definition: jul-core-lib:/core-lib.jul:34:1
-  1:11 completion: n=114 Player,Cell,GameBoard
+  1:11 completion: n=124 Player,Cell,GameBoard
   1:11 signatureHelp: (...ChoiceTypes: List(Type)) -> Type param=0
-  3:7 hover: ```jul [[TypeOf(Cell) TypeOf(Cell) TypeOf(Cell)] [TypeOf(Cell) TypeOf(Cell) TypeOf(Cell)] [TypeOf(Ce...
-  3:7 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:3:1
-  3:7 completion: n=114 Player,Cell,GameBoard
-  3:7 signatureHelp: kein
-  5:9 hover: ```jul TypeOf(Or(§§ Player)) ```
-  5:9 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:2:1
-  5:9 completion: n=114 Player,Cell,GameBoard
-  5:9 signatureHelp: kein
   7:1 hover: ```jul [[TypeOf(Cell) TypeOf(Cell) TypeOf(Cell)] [TypeOf(Cell) TypeOf(Cell) TypeOf(Cell)] [TypeOf(Ce...
   7:1 definition: kein
-  7:1 completion: n=114 Player,Cell,GameBoard
+  7:1 completion: n=124 Player,Cell,GameBoard
   7:1 signatureHelp: kein
-  9:11 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
-  9:11 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:9:2
-  9:11 completion: n=114 Player,Cell,GameBoard
-  9:11 signatureHelp: kein
-  11:1 hover: ```jul TypeOf([ gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] currentPlayer: Playe...
-  11:1 definition: kein
-  11:1 completion: n=114 Player,Cell,GameBoard
-  11:1 signatureHelp: kein
-  14:23 hover: ```jul ( value: Any index: PositiveInteger ) :> Boolean ```
-  14:23 definition: kein
-  14:23 completion: n=119 Player,Cell,GameBoard
-  14:23 signatureHelp: kein
-  17:40 hover: ```jul ( values: Or(Empty List(Cell)) predicate: ( value: Cell index: PositiveInteger ) :> Boolean )...
-  17:40 definition: jul-core-lib:/core-lib.jul:939:1
-  17:40 completion: n=40 allEqual,List,And
-  17:40 signatureHelp: ( values: Or(Empty List(Any)) predicate: ( value: Any index: PositiveInteger ) :> Boolean ) :> Boole... param=1
-  20:11 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
-  20:11 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:20:2
-  20:11 completion: n=123 Player,Cell,GameBoard
-  20:11 signatureHelp: kein
-  22:11 hover: kein
-  22:11 definition: kein
-  22:11 completion: n=123 Player,Cell,GameBoard
-  22:11 signatureHelp: kein
-  24:8 hover: ```jul TypeOf(Boolean) ``` true or false
-  24:8 definition: jul-core-lib:/core-lib.jul:78:1
-  24:8 completion: n=123 Player,Cell,GameBoard
-  24:8 signatureHelp: kein
-  26:45 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
-  26:45 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:20:2
-  26:45 completion: n=124 Player,Cell,GameBoard
-  26:45 signatureHelp: ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any param=1
-  28:20 hover: ```jul ( values: Or(Empty List(Any)) index: PositiveInteger ) -> [Cell Cell Cell] ``` Liefert das El...
-  28:20 definition: jul-core-lib:/core-lib.jul:671:1
-  28:20 completion: n=41 allEqual,isTied,checkWinner
-  28:20 signatureHelp: ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any param=1
-  30:20 hover: ```jul ( values: Or(Empty List(Any)) index: PositiveInteger ) -> [Cell Cell Cell] ``` Liefert das El...
-  30:20 definition: jul-core-lib:/core-lib.jul:671:1
-  30:20 completion: n=41 allEqual,isTied,checkWinner
-  30:20 signatureHelp: ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any param=1
-  32:12 hover: ```jul [Cell Cell Cell] ```
-  32:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:32:2
-  32:12 completion: n=123 Player,Cell,GameBoard
-  32:12 signatureHelp: kein
-  34:20 hover: ```jul ( values: Or(Empty List(Any)) index: PositiveInteger ) -> [Cell Cell Cell] ``` Liefert das El...
-  34:20 definition: jul-core-lib:/core-lib.jul:671:1
-  34:20 completion: n=41 allEqual,isTied,checkWinner
-  34:20 signatureHelp: ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any param=1
-  36:2 hover: ```jul [Cell Cell Cell] ```
-  36:2 definition: kein
-  36:2 completion: n=123 Player,Cell,GameBoard
-  36:2 signatureHelp: kein
-  38:12 hover: ```jul [Cell Cell Cell] ```
-  38:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:25:2
-  38:12 completion: n=123 Player,Cell,GameBoard
-  38:12 signatureHelp: kein
-  40:18 hover: ```jul [Cell Cell Cell] ```
-  40:18 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:27:2
-  40:18 completion: n=123 Player,Cell,GameBoard
-  40:18 signatureHelp: kein
-  42:2 hover: ```jul (...args: List(Boolean)) ```
-  42:2 definition: kein
-  42:2 completion: n=123 Player,Cell,GameBoard
-  42:2 signatureHelp: (...args: List(Boolean)) -> Boolean param=0
+  14:1 hover: ```jul TypeOf([ gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] currentPlayer: Playe...
+  14:1 definition: kein
+  14:1 completion: n=124 Player,Cell,GameBoard
+  14:1 signatureHelp: kein
+  21:8 hover: ```jul TypeOf([ rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) value: Or(Empty Cell) enabled: Or(Empty B...
+  21:8 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:21:1
+  21:8 completion: n=124 Player,Cell,GameBoard
+  21:8 signatureHelp: kein
+  30:10 hover: ```jul TypeOf([ cellChanges: Or(Empty List(CellChange)) currentPlayer: Player status: GameStatus ]) ...
+  30:10 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:30:1
+  30:10 completion: n=124 Player,Cell,GameBoard
+  30:10 signatureHelp: kein
+  37:23 hover: ```jul ( value: Any index: PositiveInteger ) :> Boolean ```
+  37:23 definition: kein
+  37:23 completion: n=129 Player,Cell,GameBoard
+  37:23 signatureHelp: kein
+  46:11 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
+  46:11 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:46:2
+  46:11 completion: n=133 Player,Cell,GameBoard
+  46:11 signatureHelp: kein
+  52:45 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
+  52:45 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:46:2
+  52:45 completion: n=134 Player,Cell,GameBoard
+  52:45 signatureHelp: ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any param=1
+  58:12 hover: ```jul [Cell Cell Cell] ```
+  58:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:58:2
+  58:12 completion: n=133 Player,Cell,GameBoard
+  58:12 signatureHelp: kein
+  64:12 hover: ```jul [Cell Cell Cell] ```
+  64:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:51:2
+  64:12 completion: n=133 Player,Cell,GameBoard
+  64:12 signatureHelp: kein
+  72:15 hover: ```jul ( start: Integer end: Integer ) -> Or(Empty List(Or(1 3 And(LessInteger(3) GreaterInteger(1))...
+  72:15 definition: jul-core-lib:/core-lib.jul:813:1
+  72:15 completion: n=126 Player,Cell,GameBoard
+  72:15 signatureHelp: ( start: Integer end: Integer ) -> Or(Empty List(Integer)) param=0
+  78:3 hover: kein
+  78:3 definition: kein
+  78:3 completion: n=128 Player,Cell,GameBoard
+  78:3 signatureHelp: kein
+  86:9 hover: ```jul Or(Empty List(Or( [ rowIndex: 1 columnIndex: 1 value: Cell ] [ rowIndex: 1 columnIndex: 2 val...
+  86:9 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:85:2
+  86:9 completion: n=126 Player,Cell,GameBoard
+  86:9 signatureHelp: ( values: Or(Empty List(Any)) transform: ( value: Any index: PositiveInteger ) :> Any ) :> Or(Empty ... param=1
+  95:12 hover: ```jul Or(1 2 3) ```
+  95:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:95:2
+  95:12 completion: n=134 Player,Cell,GameBoard
+  95:12 signatureHelp: kein
+  101:37 hover: ```jul Or([Or([Player Cell Cell] [Cell Player Cell] [Cell Cell Player]) [Cell Cell Cell] [Cell Cell ...
+  101:37 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:100:2
+  101:37 completion: n=134 Player,Cell,GameBoard
+  101:37 signatureHelp: kein
+  107:10 hover: ```jul true ```
+  107:10 definition: jul-core-lib:/core-lib.jul:1:1
+  107:10 completion: n=135 Player,Cell,GameBoard
+  107:10 signatureHelp: kein
+  113:33 hover: ```jul (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Or(Empty List([ rowIndex...
+  113:33 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:84:1
+  113:33 completion: n=134 Player,Cell,GameBoard
+  113:33 signatureHelp: (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Or(Empty List([ rowIndex: Or(1 ... param=0
+  121:9 hover: kein
+  121:9 definition: kein
+  121:9 completion: n=134 Player,Cell,GameBoard
+  121:9 signatureHelp: kein
+  129:24 hover: ```jul Or(§running§ §tie§ §win§) ```
+  129:24 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:13:2
+  129:24 completion: n=128 Player,Cell,GameBoard
+  129:24 signatureHelp: kein
+  136:14 hover: ```jul Or(§§ Player) ```
+  136:14 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:77:5
+  136:14 completion: n=129 Player,Cell,GameBoard
+  136:14 signatureHelp: kein
+  142:9 hover: ```jul false ```
+  142:9 definition: jul-core-lib:/core-lib.jul:2:1
+  142:9 completion: n=129 Player,Cell,GameBoard
+  142:9 signatureHelp: kein
+  148:2 hover: ```jul ( values: Or(Empty List(Any)) transform: ( value: Any index: PositiveInteger ) :> Any ) ```
+  148:2 definition: kein
+  148:2 completion: n=128 Player,Cell,GameBoard
+  148:2 signatureHelp: ( values: Or(Empty List(Any)) transform: ( value: Any index: PositiveInteger ) :> Any ) :> Or(Empty ... param=1
+  155:38 hover: ```jul [ cellChanges: Or(Empty List(CellChange)) currentPlayer: Player status: GameStatus ] ```
+  155:38 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:155:36
+  155:38 completion: n=127 Player,Cell,GameBoard
+  155:38 signatureHelp: kein
+  161:12 hover: ```jul [ rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) value: Or(Empty Cell) enabled: Or(Empty Boolean)...
+  161:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:159:28
+  161:12 completion: n=130 Player,Cell,GameBoard
+  161:12 signatureHelp: kein
+  167:2 hover: ```jul [ gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] currentPlayer: Player statu...
+  167:2 definition: kein
+  167:2 completion: n=0 
+  167:2 signatureHelp: kein
 
 === ui/tic-tac-toe/tic-tac-toe-logic.test.jul
 symbols
   allEqual kind=8 1:2
     keine
-  checkWinner kind=8 1:11
+  applyDelta kind=8 1:11
     keine
-  isTied kind=8 1:23
+  checkWinner kind=8 1:22
     keine
+  computeMoveDelta kind=8 1:34
+    keine
+  computeResetDelta kind=8 1:51
+    keine
+  isBoardEmpty kind=8 1:69
+    keine
+  isTied kind=8 1:82
+    keine
+  delta kind=14 41:3
+    gameBoard kind=8 43:5
+      keine
+    currentPlayer kind=8 48:5
+      keine
+    status kind=8 49:5
+      keine
+  delta kind=14 63:3
+    gameBoard kind=8 65:5
+      keine
+    currentPlayer kind=8 70:5
+      keine
+    status kind=8 71:5
+      keine
+  delta kind=14 85:3
+    gameBoard kind=8 87:5
+      keine
+    currentPlayer kind=8 92:5
+      keine
+    status kind=8 93:5
+      keine
+  delta kind=14 104:3
+    gameBoard kind=8 106:5
+      keine
+    currentPlayer kind=8 111:5
+      keine
+    status kind=8 112:5
+      keine
+  rowIndex kind=8 117:33
+    keine
+  columnIndex kind=8 117:46
+    keine
+  value kind=8 117:62
+    keine
+  enabled kind=8 117:74
+    keine
+  newState kind=14 123:3
+    gameBoard kind=8 125:5
+      keine
+    currentPlayer kind=8 130:5
+      keine
+    status kind=8 131:5
+      keine
+    cellChanges kind=8 134:5
+      rowIndex kind=8 134:21
+        keine
+      columnIndex kind=8 134:34
+        keine
+      value kind=8 134:50
+        keine
+      enabled kind=8 134:62
+        keine
+    currentPlayer kind=8 135:5
+      keine
+    status kind=8 136:5
+      keine
+  gameBoard kind=8 140:4
+    keine
+  currentPlayer kind=8 145:4
+    keine
+  status kind=8 146:4
+    keine
+  delta kind=14 153:3
+    gameBoard kind=8 154:4
+      keine
+    currentPlayer kind=8 159:4
+      keine
+    status kind=8 160:4
+      keine
+  cellChanges kind=8 163:4
+    rowIndex kind=8 164:6
+      keine
+    columnIndex kind=8 164:19
+      keine
+    value kind=8 164:35
+      keine
+    enabled kind=8 164:46
+      keine
+    rowIndex kind=8 165:6
+      keine
+    columnIndex kind=8 165:19
+      keine
+    value kind=8 165:35
+      keine
+    enabled kind=8 165:46
+      keine
+  currentPlayer kind=8 167:4
+    keine
+  status kind=8 168:4
+    keine
+  delta kind=14 175:3
+    gameBoard kind=8 176:4
+      keine
+    currentPlayer kind=8 181:4
+      keine
+    status kind=8 182:4
+      keine
+  delta kind=14 190:3
+    gameBoard kind=8 192:5
+      keine
+    currentPlayer kind=8 197:5
+      keine
+    status kind=8 198:5
+      keine
+  rowIndex kind=8 204:5
+    keine
+  columnIndex kind=8 204:18
+    keine
+  value kind=8 204:34
+    keine
+  enabled kind=8 204:46
+    keine
+  rowIndex kind=8 205:5
+    keine
+  columnIndex kind=8 205:18
+    keine
+  enabled kind=8 205:34
+    keine
+  rowIndex kind=8 206:5
+    keine
+  columnIndex kind=8 206:18
+    keine
+  enabled kind=8 206:34
+    keine
+  rowIndex kind=8 207:5
+    keine
+  columnIndex kind=8 207:18
+    keine
+  enabled kind=8 207:34
+    keine
+  rowIndex kind=8 208:5
+    keine
+  columnIndex kind=8 208:18
+    keine
+  enabled kind=8 208:34
+    keine
+  delta kind=14 215:3
+    gameBoard kind=8 216:4
+      keine
+    currentPlayer kind=8 221:4
+      keine
+    status kind=8 222:4
+      keine
+  rowIndex kind=8 225:5
+    keine
+  columnIndex kind=8 225:18
+    keine
+  value kind=8 225:34
+    keine
+  enabled kind=8 225:45
+    keine
+  rowIndex kind=8 226:5
+    keine
+  columnIndex kind=8 226:18
+    keine
+  value kind=8 226:34
+    keine
+  enabled kind=8 226:45
+    keine
+  rowIndex kind=8 227:5
+    keine
+  columnIndex kind=8 227:18
+    keine
+  value kind=8 227:34
+    keine
+  enabled kind=8 227:45
+    keine
+  rowIndex kind=8 228:5
+    keine
+  columnIndex kind=8 228:18
+    keine
+  value kind=8 228:34
+    keine
+  enabled kind=8 228:45
+    keine
+  rowIndex kind=8 229:5
+    keine
+  columnIndex kind=8 229:18
+    keine
+  value kind=8 229:34
+    keine
+  enabled kind=8 229:45
+    keine
+  rowIndex kind=8 230:5
+    keine
+  columnIndex kind=8 230:18
+    keine
+  enabled kind=8 230:34
+    keine
+  rowIndex kind=8 231:5
+    keine
+  columnIndex kind=8 231:18
+    keine
+  enabled kind=8 231:34
+    keine
+  rowIndex kind=8 232:5
+    keine
+  columnIndex kind=8 232:18
+    keine
+  enabled kind=8 232:34
+    keine
+  rowIndex kind=8 233:5
+    keine
+  columnIndex kind=8 233:18
+    keine
+  enabled kind=8 233:34
+    keine
+  delta kind=14 240:3
+    gameBoard kind=8 241:4
+      keine
+    currentPlayer kind=8 246:4
+      keine
+    status kind=8 247:4
+      keine
+  gameState kind=14 258:3
+    gameBoard kind=8 259:4
+      keine
+    currentPlayer kind=8 264:4
+      keine
+    status kind=8 265:4
+      keine
+  newState kind=14 267:3
+    cellChanges kind=8 270:5
+      rowIndex kind=8 270:21
+        keine
+      columnIndex kind=8 270:34
+        keine
+      enabled kind=8 270:50
+        keine
+    currentPlayer kind=8 271:5
+      keine
+    status kind=8 272:5
+      keine
 semanticTokens
-  1: 2+8 function(declaration) 11+11 function(declaration) 23+6 function(declaration)
+  1: 2+8 function(declaration) 11+10 function(declaration) 22+11 function(declaration) 34+16 function(declaration) 51+17 function(declaration) 69+12 function(declaration) 82+6 function(declaration)
   5: 8+8 function
   10: 8+3 function(defaultLibrary) 12+8 function
   16: 3+6 function
   26: 3+3 function(defaultLibrary) 7+11 function
-  1:33 hover: ```jul (path: Text) ~> [ Player: TypeOf(Or(§x§ §o§)) Cell: TypeOf(Or(§§ Player)) GameBoard: [[TypeOf...
-  1:33 definition: jul-core-lib:/core-lib.jul:1315:1
-  1:33 completion: n=110 allEqual,checkWinner,isTied
-  1:33 signatureHelp: (path: Text) ~> Any param=0
-  4:11 hover: ```jul Text ```
-  4:11 definition: kein
-  4:11 completion: n=110 allEqual,checkWinner,isTied
-  4:11 signatureHelp: kein
-  6:1 hover: ```jul ( name: Text callback: () :> Boolean ) ```
-  6:1 definition: kein
-  6:1 completion: n=110 allEqual,checkWinner,isTied
-  6:1 signatureHelp: ( name: Text callback: () :> Boolean ) ~> Empty param=0
-  9:11 hover: ```jul Text ```
-  9:11 definition: kein
-  9:11 completion: n=110 allEqual,checkWinner,isTied
-  9:11 signatureHelp: kein
-  11:1 hover: ```jul ( name: Text callback: () :> Boolean ) ```
-  11:1 definition: kein
-  11:1 completion: n=110 allEqual,checkWinner,isTied
-  11:1 signatureHelp: ( name: Text callback: () :> Boolean ) ~> Empty param=0
-  14:5 hover: ```jul Text ```
-  14:5 definition: kein
-  14:5 completion: n=110 allEqual,checkWinner,isTied
-  14:5 signatureHelp: kein
+  41: 3+5 variable(declaration,readonly) 11+16 function
+  43: 5+9 property(declaration,readonly)
+  48: 5+13 property(declaration,readonly)
+  49: 5+6 property(declaration,readonly)
+  54: 3+3 function(defaultLibrary)
+  55: 4+5 variable(readonly) 10+6 property(readonly) 17+5 function(defaultLibrary)
+  56: 4+5 variable(readonly) 10+13 property(readonly) 24+5 function(defaultLibrary)
+  63: 3+5 variable(declaration,readonly) 11+16 function
+  65: 5+9 property(declaration,readonly)
+  70: 5+13 property(declaration,readonly)
+  71: 5+6 property(declaration,readonly)
+  76: 3+3 function(defaultLibrary)
+  77: 4+5 variable(readonly) 10+6 property(readonly) 17+5 function(defaultLibrary)
+  78: 4+5 variable(readonly) 10+13 property(readonly) 24+5 function(defaultLibrary)
+  85: 3+5 variable(declaration,readonly) 11+16 function
+  87: 5+9 property(declaration,readonly)
+  92: 5+13 property(declaration,readonly)
+  93: 5+6 property(declaration,readonly)
+  98: 3+5 variable(readonly) 9+6 property(readonly) 16+5 function(defaultLibrary)
+  104: 3+5 variable(declaration,readonly) 11+16 function
+  106: 5+9 property(declaration,readonly)
+  111: 5+13 property(declaration,readonly)
+  112: 5+6 property(declaration,readonly)
+  117: 3+5 variable(readonly) 9+11 property(readonly) 21+9 function(defaultLibrary) 33+8 property(declaration,readonly) 46+11 property(declaration,readonly) 62+5 property(declaration,readonly) 74+7 property(declaration,readonly)
+  123: 3+8 variable(declaration,readonly) 14+10 function
+  125: 5+9 property(declaration,readonly)
+  130: 5+13 property(declaration,readonly)
+  131: 5+6 property(declaration,readonly)
+  134: 5+11 property(declaration,readonly) 21+8 property(declaration,readonly) 34+11 property(declaration,readonly) 50+5 property(declaration,readonly) 62+7 property(declaration,readonly)
+  135: 5+13 property(declaration,readonly)
+  136: 5+6 property(declaration,readonly)
+  139: 3+8 variable(readonly) 12+9 function(defaultLibrary)
+  140: 4+9 property(declaration,readonly)
+  145: 4+13 property(declaration,readonly)
+  146: 4+6 property(declaration,readonly)
+  153: 3+5 variable(declaration,readonly) 11+17 function
+  154: 4+9 property(declaration,readonly)
+  159: 4+13 property(declaration,readonly)
+  160: 4+6 property(declaration,readonly)
+  162: 3+5 variable(readonly) 9+9 function(defaultLibrary)
+  163: 4+11 property(declaration,readonly)
+  164: 6+8 property(declaration,readonly) 19+11 property(declaration,readonly) 35+5 property(declaration,readonly) 46+7 property(declaration,readonly)
+  165: 6+8 property(declaration,readonly) 19+11 property(declaration,readonly) 35+5 property(declaration,readonly) 46+7 property(declaration,readonly)
+  167: 4+13 property(declaration,readonly)
+  168: 4+6 property(declaration,readonly)
+  175: 3+5 variable(declaration,readonly) 11+17 function
+  176: 4+9 property(declaration,readonly)
+  181: 4+13 property(declaration,readonly)
+  182: 4+6 property(declaration,readonly)
+  184: 3+5 variable(readonly) 9+11 property(readonly) 21+9 function(defaultLibrary)
+  190: 3+5 variable(declaration,readonly) 11+16 function
+  192: 5+9 property(declaration,readonly)
+  197: 5+13 property(declaration,readonly)
+  198: 5+6 property(declaration,readonly)
+  203: 3+5 variable(readonly) 9+11 property(readonly) 21+9 function(defaultLibrary)
+  204: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+5 property(declaration,readonly) 46+7 property(declaration,readonly)
+  205: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+7 property(declaration,readonly)
+  206: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+7 property(declaration,readonly)
+  207: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+7 property(declaration,readonly)
+  208: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+7 property(declaration,readonly)
+  215: 3+5 variable(declaration,readonly) 11+17 function
+  216: 4+9 property(declaration,readonly)
+  221: 4+13 property(declaration,readonly)
+  222: 4+6 property(declaration,readonly)
+  224: 3+5 variable(readonly) 9+11 property(readonly) 21+9 function(defaultLibrary)
+  225: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+5 property(declaration,readonly) 45+7 property(declaration,readonly)
+  226: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+5 property(declaration,readonly) 45+7 property(declaration,readonly)
+  227: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+5 property(declaration,readonly) 45+7 property(declaration,readonly)
+  228: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+5 property(declaration,readonly) 45+7 property(declaration,readonly)
+  229: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+5 property(declaration,readonly) 45+7 property(declaration,readonly)
+  230: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+7 property(declaration,readonly)
+  231: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+7 property(declaration,readonly)
+  232: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+7 property(declaration,readonly)
+  233: 5+8 property(declaration,readonly) 18+11 property(declaration,readonly) 34+7 property(declaration,readonly)
+  240: 3+5 variable(declaration,readonly) 11+17 function
+  241: 4+9 property(declaration,readonly)
+  246: 4+13 property(declaration,readonly)
+  247: 4+6 property(declaration,readonly)
+  249: 3+3 function(defaultLibrary)
+  250: 4+5 variable(readonly) 10+13 property(readonly) 24+5 function(defaultLibrary)
+  251: 4+5 variable(readonly) 10+6 property(readonly) 17+5 function(defaultLibrary)
+  258: 3+9 variable(declaration,readonly)
+  259: 4+9 property(declaration,readonly)
+  264: 4+13 property(declaration,readonly)
+  265: 4+6 property(declaration,readonly)
+  267: 3+8 variable(declaration,readonly) 14+10 function
+  268: 4+9 variable(readonly)
+  270: 5+11 property(declaration,readonly) 21+8 property(declaration,readonly) 34+11 property(declaration,readonly) 50+7 property(declaration,readonly)
+  271: 5+13 property(declaration,readonly)
+  272: 5+6 property(declaration,readonly)
+  275: 3+8 variable(readonly) 12+9 function(defaultLibrary) 22+9 variable(readonly)
+  281: 3+12 function
+  291: 3+3 function(defaultLibrary) 7+12 function
+  1:63 hover: ```jul (gameState: GameState) -> [ cellChanges: Or(Empty List([ rowIndex: Or(1 2 3) columnIndex: Or(...
+  1:63 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:128:1
+  1:63 completion: n=10 Player,Cell,GameBoard
+  1:63 signatureHelp: kein
   16:6 hover: ```jul (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Boolean ```
-  16:6 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:16:1
-  16:6 completion: n=110 allEqual,checkWinner,isTied
+  16:6 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:39:1
+  16:6 completion: n=114 allEqual,applyDelta,checkWinner
   16:6 signatureHelp: (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Boolean param=0
-  18:9 hover: ```jul Or(§§ Player) ```
-  18:9 definition: kein
-  18:9 completion: n=110 allEqual,checkWinner,isTied
-  18:9 signatureHelp: kein
-  20:3 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
-  20:3 definition: kein
-  20:3 completion: n=110 allEqual,checkWinner,isTied
-  20:3 signatureHelp: kein
-  23:3 hover: ```jul ( name: Text callback: () :> Boolean ) ~> Empty ``` Registriert einen Test, den `jul test` au...
-  23:3 definition: jul-core-lib:/core-lib.jul:1330:1
-  23:3 completion: n=110 allEqual,checkWinner,isTied
-  23:3 signatureHelp: ( name: Text callback: () :> Boolean ) ~> Empty param=0
-  25:4 hover: ```jul () ```
-  25:4 definition: kein
-  25:4 completion: n=0 
-  25:4 signatureHelp: kein
-  27:3 hover: ```jul ( gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] player: Player rowIndex: Or...
-  27:3 definition: kein
-  27:3 completion: n=110 allEqual,checkWinner,isTied
-  27:3 signatureHelp: ( gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] player: Player rowIndex: Or(1 2 3)... param=0
   29:8 hover: ```jul Or(§§ Player) ```
   29:8 definition: kein
-  29:8 completion: n=110 allEqual,checkWinner,isTied
+  29:8 completion: n=114 allEqual,applyDelta,checkWinner
   29:8 signatureHelp: kein
-  31:3 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
-  31:3 definition: kein
-  31:3 completion: n=110 allEqual,checkWinner,isTied
-  31:3 signatureHelp: kein
-  33:3 hover: ```jul ( gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] player: Player rowIndex: Or...
-  33:3 definition: kein
-  33:3 completion: n=110 allEqual,checkWinner,isTied
-  33:3 signatureHelp: ( gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] player: Player rowIndex: Or(1 2 3)... param=0
-  35:3 hover: ```jul ( gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] player: Player rowIndex: Or...
-  35:3 definition: kein
-  35:3 completion: n=110 allEqual,checkWinner,isTied
-  35:3 signatureHelp: ( gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] player: Player rowIndex: Or(1 2 3)... param=0
+  42:3 hover: ```jul ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) ```
+  42:3 definition: kein
+  42:3 completion: n=115 allEqual,applyDelta,checkWinner
+  42:3 signatureHelp: ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) -> [ cellChanges: List([ rowInde... param=0
+  54:4 hover: ```jul (...args: List(Boolean)) -> Boolean ``` Liefert true, wenn alle args true sind
+  54:4 definition: jul-core-lib:/core-lib.jul:310:1
+  54:4 completion: n=115 allEqual,applyDelta,checkWinner
+  54:4 signatureHelp: (...args: List(Boolean)) -> Boolean param=0
+  67:9 hover: ```jul Or(§§ Player) ```
+  67:9 definition: kein
+  67:9 completion: n=115 allEqual,applyDelta,checkWinner
+  67:9 signatureHelp: kein
+  79:2 hover: ```jul (...args: List(Boolean)) ```
+  79:2 definition: kein
+  79:2 completion: n=115 allEqual,applyDelta,checkWinner
+  79:2 signatureHelp: (...args: List(Boolean)) -> Boolean param=0
+  92:12 hover: ```jul Or(§x§ §o§) ```
+  92:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:12:2
+  92:12 completion: n=115 allEqual,applyDelta,checkWinner
+  92:12 signatureHelp: kein
+  105:3 hover: ```jul ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) ```
+  105:3 definition: kein
+  105:3 completion: n=115 allEqual,applyDelta,checkWinner
+  105:3 signatureHelp: ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) -> [ cellChanges: List([ rowInde... param=0
+  117:46 hover: kein
+  117:46 definition: kein
+  117:46 completion: n=115 allEqual,applyDelta,checkWinner
+  117:46 signatureHelp: kein
+  130:12 hover: ```jul Or(§x§ §o§) ```
+  130:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:12:2
+  130:12 completion: n=115 allEqual,applyDelta,checkWinner
+  130:12 signatureHelp: kein
+  142:8 hover: kein
+  142:8 definition: kein
+  142:8 completion: n=115 allEqual,applyDelta,checkWinner
+  142:8 signatureHelp: kein
+  155:8 hover: ```jul Or(§§ Player) ```
+  155:8 definition: kein
+  155:8 completion: n=115 allEqual,applyDelta,checkWinner
+  155:8 signatureHelp: kein
+  167:12 hover: kein
+  167:12 definition: kein
+  167:12 completion: n=115 allEqual,applyDelta,checkWinner
+  167:12 signatureHelp: kein
+  180:3 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
+  180:3 definition: kein
+  180:3 completion: n=115 allEqual,applyDelta,checkWinner
+  180:3 signatureHelp: kein
+  193:9 hover: ```jul Or(§§ Player) ```
+  193:9 definition: kein
+  193:9 completion: n=115 allEqual,applyDelta,checkWinner
+  193:9 signatureHelp: kein
+  205:25 hover: kein
+  205:25 definition: kein
+  205:25 completion: n=115 allEqual,applyDelta,checkWinner
+  205:25 signatureHelp: kein
+  218:9 hover: ```jul Or(§§ Player) ```
+  218:9 definition: kein
+  218:9 completion: n=115 allEqual,applyDelta,checkWinner
+  218:9 signatureHelp: kein
+  230:25 hover: kein
+  230:25 definition: kein
+  230:25 completion: n=115 allEqual,applyDelta,checkWinner
+  230:25 signatureHelp: kein
+  243:9 hover: ```jul Or(§§ Player) ```
+  243:9 definition: kein
+  243:9 completion: n=115 allEqual,applyDelta,checkWinner
+  243:9 signatureHelp: kein
+  256:23 hover: ```jul Text ```
+  256:23 definition: kein
+  256:23 completion: n=114 allEqual,applyDelta,checkWinner
+  256:23 signatureHelp: kein
+  268:7 hover: ```jul [ gameBoard: [[§x§ §§ §§] [§§ §§ §§] [§§ §§ §§]] currentPlayer: §o§ status: §win§ ] ```
+  268:7 definition: ui/tic-tac-toe/tic-tac-toe-logic.test.jul:258:3
+  268:7 completion: n=116 allEqual,applyDelta,checkWinner
+  268:7 signatureHelp: kein
+  281:9 hover: ```jul (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Boolean ```
+  281:9 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:42:1
+  281:9 completion: n=114 allEqual,applyDelta,checkWinner
+  281:9 signatureHelp: (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Boolean param=0
+  294:7 hover: ```jul Or(§§ Player) ```
+  294:7 definition: kein
+  294:7 completion: n=114 allEqual,applyDelta,checkWinner
+  294:7 signatureHelp: kein
 
 === ui/tic-tac-toe/tic-tac-toe.jul
 symbols
@@ -3360,145 +3979,127 @@ symbols
     keine
   subscribeEvent kind=8 5:2
     keine
-  checkWinner kind=8 8:2
+  applyDelta kind=8 8:2
     keine
-  GameBoard kind=8 9:2
+  computeMoveDelta kind=8 9:2
     keine
-  GameState kind=8 10:2
+  computeResetDelta kind=8 10:2
     keine
-  isTied kind=8 11:2
+  GameStateChange kind=8 11:2
     keine
-  initialGameState kind=14 22:1
-    gameBoard kind=8 23:2
+  GameState kind=8 12:2
+    keine
+  isBoardEmpty kind=8 13:2
+    keine
+  initialDelta kind=14 25:1
+    cellChanges kind=8 26:2
       keine
-    currentPlayer kind=8 28:2
+    currentPlayer kind=8 27:2
       keine
-  walk kind=12 31:1
-    gameBoard kind=13 32:2
+    status kind=8 28:2
       keine
-    iteratee kind=13 33:2
+  delta$ kind=14 31:1
+    keine
+  initialGameState kind=14 33:1
+    gameBoard kind=8 34:2
       keine
-    row kind=13 40:4
+    currentPlayer kind=8 39:2
       keine
-    rowIndex kind=13 40:16
+    status kind=8 40:2
       keine
-    cellValue kind=13 41:5
+  gameState$ kind=14 43:1
+    keine
+  delta kind=13 47:3
+    keine
+  delta kind=13 55:3
+    keine
+  cellChange kind=13 57:5
+    keine
+  cellElement kind=14 58:5
+    keine
+  newValue kind=13 60:7
+    keine
+  enabled kind=13 63:7
+    keine
+  statusElement kind=14 69:1
+    keine
+  statusText kind=12 70:1
+    gameState kind=13 70:15
       keine
-    columnIndex kind=13 41:23
+  statusText$ kind=14 75:1
+    gameState kind=13 75:32
       keine
-    cellElement kind=14 42:5
+  text kind=13 77:3
+    keine
+  resetElement kind=14 81:1
+    keine
+  resetEnabled$ kind=14 82:1
+    gameState kind=13 82:34
       keine
-  gameState$ kind=14 48:1
+  enabled kind=13 84:3
     keine
-  statusElement kind=14 50:1
+  row kind=13 91:3
     keine
-  disableGameBoard kind=12 52:1
-    gameBoard kind=13 52:21
-      keine
-    rowIndex kind=13 55:4
-      keine
-    columnIndex kind=13 55:13
-      keine
-    cellElement kind=13 55:25
-      keine
-  rowIndex kind=13 61:3
+  rowIndex kind=13 91:15
     keine
-  columnIndex kind=13 61:12
+  cellValue kind=13 92:4
     keine
-  cellElement kind=13 61:24
-    keine
-  currentGameState kind=14 66:5
-    keine
-  currentPlayer kind=14 73:5
-    keine
-  currentRow kind=14 74:5
-    keine
-  newRow kind=14 75:5
-    keine
-  newGameBoard kind=14 76:5
-    keine
-  newGameState kind=14 77:5
-    gameBoard kind=8 78:6
-      keine
-    currentPlayer kind=8 79:6
-      keine
-  isWinner kind=14 85:5
-    keine
-  tie kind=14 91:7
-    keine
-  resetElement kind=14 98:1
-    keine
-  rowIndex kind=13 106:5
-    keine
-  columnIndex kind=13 106:14
-    keine
-  cellElement kind=13 106:26
+  columnIndex kind=13 92:22
     keine
 semanticTokens
   2: 2+11 function(declaration,impure)
   3: 2+10 function(declaration,impure)
   4: 2+7 function(declaration,impure)
   5: 2+14 function(declaration,impure)
-  8: 2+11 function(declaration)
-  9: 2+9 type(declaration)
-  10: 2+9 type(declaration)
-  11: 2+6 function(declaration)
-  22: 1+16 variable(declaration,readonly) 19+9 type
-  23: 2+9 property(declaration,readonly)
-  28: 2+13 property(declaration,readonly)
-  31: 1+4 function(declaration,impure)
-  32: 2+9 parameter(declaration,readonly) 13+9 type
-  33: 2+8 parameter(declaration,readonly)
-  34: 3+8 parameter(declaration,readonly) 13+2 typeConstructor(defaultLibrary)
-  35: 3+11 parameter(declaration,readonly) 16+2 typeConstructor(defaultLibrary)
-  36: 3+11 parameter(declaration,readonly) 16+3 type(defaultLibrary)
-  37: 7+3 type(defaultLibrary)
-  39: 2+9 parameter(readonly) 12+7 function(defaultLibrary,impure)
-  40: 4+3 parameter(declaration,readonly) 16+8 parameter(declaration,readonly) 37+3 parameter(readonly) 41+7 function(defaultLibrary,impure)
-  41: 5+9 parameter(declaration,readonly) 23+11 parameter(declaration,readonly)
-  42: 5+11 variable(declaration,readonly) 19+11 function(impure) 34+8 parameter(readonly) 46+11 parameter(readonly)
-  43: 5+8 parameter(readonly) 14+8 parameter(readonly) 23+11 parameter(readonly) 35+11 variable(readonly)
-  48: 1+10 variable(declaration,readonly,stream) 14+7 function(defaultLibrary,impure) 22+9 type 32+16 variable(readonly)
-  50: 1+13 variable(declaration,readonly) 17+11 function(impure)
-  52: 1+16 function(declaration,impure) 21+9 parameter(declaration,readonly) 32+9 type
-  53: 2+4 function(impure)
-  54: 3+9 parameter(readonly)
-  55: 4+8 parameter(declaration,readonly) 13+11 parameter(declaration,readonly) 25+11 parameter(declaration,readonly)
-  56: 4+11 parameter(readonly) 16+10 function(impure)
-  59: 1+4 function(impure)
-  60: 2+16 variable(readonly) 19+9 property(readonly)
-  61: 3+8 parameter(declaration,readonly) 12+11 parameter(declaration,readonly) 24+11 parameter(declaration,readonly)
-  62: 3+14 function(impure)
-  63: 4+11 parameter(readonly)
-  66: 5+16 variable(declaration,readonly) 24+10 variable(readonly,stream) 35+8 property(readonly)
-  69: 5+10 function(impure) 16+11 parameter(readonly)
-  70: 5+7 function(impure) 13+11 parameter(readonly) 25+16 variable(readonly) 42+13 property(readonly)
-  73: 5+13 variable(declaration,readonly) 21+16 variable(readonly) 38+13 property(readonly)
-  74: 5+10 variable(declaration,readonly) 18+16 variable(readonly) 35+9 property(readonly) 45+10 function(defaultLibrary) 56+8 parameter(readonly)
-  75: 5+6 variable(declaration,readonly) 14+10 variable(readonly) 25+10 function(defaultLibrary) 36+11 parameter(readonly) 48+13 variable(readonly)
-  76: 5+12 variable(declaration,readonly) 20+16 variable(readonly) 37+9 property(readonly) 47+10 function(defaultLibrary) 58+8 parameter(readonly) 67+6 variable(readonly)
-  77: 5+12 variable(declaration,readonly) 19+9 type
-  78: 6+9 property(declaration,readonly) 18+12 variable(readonly)
-  79: 6+13 property(declaration,readonly) 24+13 variable(readonly)
-  83: 5+10 variable(readonly,stream) 16+4 function(defaultLibrary,impure) 21+12 variable(readonly)
-  85: 5+8 variable(declaration,readonly) 16+11 function 28+12 variable(readonly) 41+13 variable(readonly) 55+8 parameter(readonly) 64+11 parameter(readonly)
-  86: 7+8 variable(readonly)
-  88: 7+16 function(impure) 24+12 variable(readonly)
-  89: 7+13 variable(readonly) 21+7 function(impure) 40+13 variable(readonly)
-  91: 7+3 variable(declaration,readonly) 13+6 function 20+12 variable(readonly)
-  92: 9+3 variable(readonly)
-  93: 18+13 variable(readonly) 32+7 function(impure)
-  94: 19+13 variable(readonly) 33+7 function(impure) 63+12 variable(readonly) 76+13 property(readonly)
-  98: 1+12 variable(declaration,readonly) 16+11 function(impure)
-  99: 1+14 function(impure)
-  100: 2+12 variable(readonly)
-  104: 3+4 function(impure)
-  105: 4+16 variable(readonly) 21+9 property(readonly)
-  106: 5+8 parameter(declaration,readonly) 14+11 parameter(declaration,readonly) 26+11 parameter(declaration,readonly)
-  107: 5+7 function(impure) 13+11 parameter(readonly)
-  108: 5+10 function(impure) 16+11 parameter(readonly)
-  110: 3+13 variable(readonly) 17+7 function(impure)
-  113: 3+10 variable(readonly,stream) 14+4 function(defaultLibrary,impure) 19+16 variable(readonly)
+  8: 2+10 function(declaration)
+  9: 2+16 function(declaration)
+  10: 2+17 function(declaration)
+  11: 2+15 type(declaration)
+  12: 2+9 type(declaration)
+  13: 2+12 function(declaration)
+  25: 1+12 variable(declaration,readonly) 15+15 type
+  26: 2+11 property(declaration,readonly)
+  27: 2+13 property(declaration,readonly)
+  28: 2+6 property(declaration,readonly)
+  31: 1+6 variable(declaration,readonly,stream) 10+7 function(defaultLibrary,impure) 18+15 type 34+12 variable(readonly)
+  33: 1+16 variable(declaration,readonly) 19+9 type
+  34: 2+9 property(declaration,readonly)
+  39: 2+13 property(declaration,readonly)
+  40: 2+6 property(declaration,readonly)
+  43: 1+10 variable(declaration,readonly,stream) 14+7 function(defaultLibrary,impure) 22+9 type 32+16 variable(readonly)
+  46: 1+6 variable(readonly,stream) 8+9 function(defaultLibrary,impure)
+  47: 3+5 variable(declaration,readonly) 11+5 parameter(readonly)
+  48: 3+10 variable(readonly,stream) 14+4 function(defaultLibrary,impure) 19+10 function 30+10 variable(readonly,stream) 41+8 property(readonly) 52+5 variable(readonly)
+  54: 1+6 variable(readonly,stream) 8+9 function(defaultLibrary,impure)
+  55: 3+5 variable(declaration,readonly) 11+5 parameter(readonly)
+  56: 3+5 variable(readonly) 9+11 property(readonly) 21+7 function(defaultLibrary,impure)
+  57: 5+10 variable(declaration,readonly) 18+5 parameter(readonly)
+  58: 5+11 variable(declaration,readonly) 19+11 function(impure) 34+10 variable(readonly) 45+8 property(readonly) 57+10 variable(readonly) 68+11 property(readonly)
+  59: 7+10 variable(readonly) 18+5 property(readonly)
+  60: 7+8 parameter(declaration,readonly) 17+4 type(defaultLibrary) 26+7 function(impure) 34+11 variable(readonly) 46+8 parameter(readonly)
+  62: 7+10 variable(readonly) 18+7 property(readonly)
+  63: 7+7 parameter(declaration,readonly) 16+7 type(defaultLibrary) 28+10 function(impure) 39+11 variable(readonly) 51+7 parameter(readonly)
+  69: 1+13 variable(declaration,readonly) 17+11 function(impure)
+  70: 1+10 function(declaration) 15+9 parameter(declaration,readonly) 26+9 type
+  71: 4+9 parameter(readonly) 14+6 property(readonly)
+  72: 25+9 parameter(readonly) 35+13 property(readonly)
+  74: 40+9 parameter(readonly) 50+13 property(readonly)
+  75: 1+11 variable(declaration,readonly,stream) 15+4 function(defaultLibrary,impure) 20+10 variable(readonly,stream) 32+9 variable(declaration,readonly) 44+5 parameter(readonly) 54+10 function 65+9 variable(readonly)
+  76: 1+11 variable(readonly,stream) 13+9 function(defaultLibrary,impure)
+  77: 3+4 variable(declaration,readonly) 10+5 parameter(readonly) 20+13 variable(readonly) 34+7 function(impure) 42+4 variable(readonly)
+  81: 1+12 variable(declaration,readonly) 16+11 function(impure)
+  82: 1+13 variable(declaration,readonly,stream) 17+4 function(defaultLibrary,impure) 22+10 variable(readonly,stream) 34+9 variable(declaration,readonly) 46+5 parameter(readonly) 56+3 function(defaultLibrary) 60+12 function 73+9 variable(readonly) 83+9 property(readonly)
+  83: 1+13 variable(readonly,stream) 15+9 function(defaultLibrary,impure)
+  84: 3+7 variable(declaration,readonly) 13+5 parameter(readonly) 23+12 variable(readonly) 36+10 function(impure) 47+7 variable(readonly)
+  90: 1+16 variable(readonly) 18+9 property(readonly) 28+7 function(defaultLibrary,impure)
+  91: 3+3 variable(declaration,readonly) 9+5 parameter(readonly) 15+8 variable(declaration,readonly) 26+5 parameter(readonly) 36+3 variable(readonly) 40+7 function(defaultLibrary,impure)
+  92: 4+9 variable(declaration,readonly) 16+5 parameter(readonly) 22+11 variable(declaration,readonly) 36+5 parameter(readonly)
+  93: 4+14 function(impure)
+  94: 5+11 function(impure) 20+8 variable(readonly) 32+11 variable(readonly)
+  96: 11+6 variable(readonly,stream) 18+4 function(defaultLibrary,impure) 23+16 function 40+10 variable(readonly,stream) 51+8 property(readonly) 62+8 variable(readonly) 71+11 variable(readonly)
+  101: 1+14 function(impure)
+  102: 2+12 variable(readonly)
+  104: 8+6 variable(readonly,stream) 15+4 function(defaultLibrary,impure) 20+17 function 38+10 variable(readonly,stream) 49+8 property(readonly)
   1:1 hover: kein
   1:1 definition: kein
   1:1 completion: n=0 
@@ -3507,90 +4108,78 @@ semanticTokens
   5:8 definition: ui/tic-tac-toe/dom.ts:5:17
   5:8 completion: n=0 
   5:8 signatureHelp: kein
-  9:6 hover: ```jul [[TypeOf(Cell) TypeOf(Cell) TypeOf(Cell)] [TypeOf(Cell) TypeOf(Cell) TypeOf(Cell)] [TypeOf(Ce...
-  9:6 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:3:1
-  9:6 completion: n=3 Player,Cell,allEqual
-  9:6 signatureHelp: kein
-  22:16 hover: ```jul [ gameBoard: [[§§ §§ §§] [§§ §§ §§] [§§ §§ §§]] currentPlayer: §x§ ] ```
-  22:16 definition: ui/tic-tac-toe/tic-tac-toe.jul:22:1
-  22:16 completion: n=121 elementById,setEnabled,setText
-  22:16 signatureHelp: kein
-  26:7 hover: ```jul Or(§§ Player) ```
-  26:7 definition: kein
-  26:7 completion: n=121 elementById,setEnabled,setText
-  26:7 signatureHelp: kein
-  31:5 hover: ```jul ( gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] iteratee: ( rowIndex: Or(1 ...
-  31:5 definition: ui/tic-tac-toe/tic-tac-toe.jul:31:1
-  31:5 completion: n=121 elementById,setEnabled,setText
-  31:5 signatureHelp: kein
-  35:13 hover: ```jul Or(1 2 3) ```
-  35:13 definition: ui/tic-tac-toe/tic-tac-toe.jul:35:3
-  35:13 completion: n=126 elementById,setEnabled,setText
-  35:13 signatureHelp: kein
-  39:10 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
-  39:10 definition: ui/tic-tac-toe/tic-tac-toe.jul:32:2
-  39:10 completion: n=123 elementById,setEnabled,setText
-  39:10 signatureHelp: ( values: Or(Empty List(Any)) callback: ( value: Any index: Or(LengthOf(List(Any)) And(LessInteger(O... param=1
-  43:24 hover: ```jul Or(3 And(LessInteger(3) GreaterInteger(0))) ```
-  43:24 definition: ui/tic-tac-toe/tic-tac-toe.jul:41:23
-  43:24 completion: n=128 elementById,setEnabled,setText
-  43:24 signatureHelp: kein
-  50:19 hover: ```jul (id: Text) ~> Any ```
-  50:19 definition: ui/tic-tac-toe/dom.ts:1:17
-  50:19 completion: n=121 elementById,setEnabled,setText
-  50:19 signatureHelp: (id: Text) ~> Any param=0
-  55:20 hover: ```jul Or(1 2 3) ```
-  55:20 definition: ui/tic-tac-toe/tic-tac-toe.jul:55:13
-  55:20 completion: n=125 elementById,setEnabled,setText
-  55:20 signatureHelp: kein
-  60:14 hover: ```jul [ gameBoard: [[§§ §§ §§] [§§ §§ §§] [§§ §§ §§]] currentPlayer: §x§ ] ```
-  60:14 definition: ui/tic-tac-toe/tic-tac-toe.jul:22:1
-  60:14 completion: n=121 elementById,setEnabled,setText
-  60:14 signatureHelp: kein
-  64:6 hover: ```jul Text ```
-  64:6 definition: kein
-  64:6 completion: n=124 elementById,setEnabled,setText
-  64:6 signatureHelp: kein
-  70:28 hover: ```jul [ gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] currentPlayer: Player ] ```
-  70:28 definition: ui/tic-tac-toe/tic-tac-toe.jul:66:5
-  70:28 completion: n=131 elementById,setEnabled,setText
-  70:28 signatureHelp: kein
-  76:37 hover: ```jul [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] ```
-  76:37 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:9:2
-  76:37 completion: n=131 elementById,setEnabled,setText
-  76:37 signatureHelp: kein
-  80:10 hover: kein
-  80:10 definition: kein
-  80:10 completion: n=131 elementById,setEnabled,setText
-  80:10 signatureHelp: kein
-  85:38 hover: ```jul Or([Or([Player Cell Cell] [Cell Player Cell] [Cell Cell Player]) [Cell Cell Cell] [Cell Cell ...
-  85:38 definition: ui/tic-tac-toe/tic-tac-toe.jul:76:5
-  85:38 completion: n=131 elementById,setEnabled,setText
-  85:38 signatureHelp: kein
-  89:35 hover: ```jul Text ```
-  89:35 definition: kein
-  89:35 completion: n=133 elementById,setEnabled,setText
-  89:35 signatureHelp: kein
-  93:28 hover: ```jul Any ```
-  93:28 definition: ui/tic-tac-toe/tic-tac-toe.jul:50:1
-  93:28 completion: n=132 elementById,setEnabled,setText
-  93:28 signatureHelp: ( element: Any text: Text ) ~> Empty param=1
-  98:18 hover: ```jul (id: Text) ~> Any ```
-  98:18 definition: ui/tic-tac-toe/dom.ts:1:17
-  98:18 completion: n=121 elementById,setEnabled,setText
-  98:18 signatureHelp: (id: Text) ~> Any param=0
-  102:4 hover: ```jul () ```
-  102:4 definition: kein
-  102:4 completion: n=0 
-  102:4 signatureHelp: kein
-  107:14 hover: ```jul Any ```
-  107:14 definition: ui/tic-tac-toe/tic-tac-toe.jul:106:26
-  107:14 completion: n=124 elementById,setEnabled,setText
-  107:14 signatureHelp: kein
-  113:18 hover: ```jul ( stream$: Stream(GameState) value: GameState ) ~> Empty ```
-  113:18 definition: jul-core-lib:/core-lib.jul:1095:1
-  113:18 completion: n=16 setEnabled,setText,subscribeEvent
-  113:18 signatureHelp: ( stream$: Stream(Any) value: Any ) ~> Empty param=1
+  9:9 hover: ```jul ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) -> [ cellChanges: List([ ...
+  9:9 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:92:1
+  9:9 completion: n=11 Player,Cell,GameBoard
+  9:9 signatureHelp: kein
+  13:7 hover: ```jul (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Boolean ```
+  13:7 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:42:1
+  13:7 completion: n=11 Player,Cell,GameBoard
+  13:7 signatureHelp: kein
+  27:11 hover: ```jul Or(§x§ §o§) ```
+  27:11 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:32:2
+  27:11 completion: n=126 elementById,setEnabled,setText
+  27:11 signatureHelp: kein
+  33:16 hover: ```jul [ gameBoard: [[§§ §§ §§] [§§ §§ §§] [§§ §§ §§]] currentPlayer: §x§ status: §running§ ] ```
+  33:16 definition: ui/tic-tac-toe/tic-tac-toe.jul:33:1
+  33:16 completion: n=126 elementById,setEnabled,setText
+  33:16 signatureHelp: kein
+  37:7 hover: ```jul Or(§§ Player) ```
+  37:7 definition: kein
+  37:7 completion: n=126 elementById,setEnabled,setText
+  37:7 signatureHelp: kein
+  41:1 hover: ```jul [ gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] currentPlayer: Player statu...
+  41:1 definition: kein
+  41:1 completion: n=0 
+  41:1 signatureHelp: kein
+  48:30 hover: ```jul Stream(GameState) ```
+  48:30 definition: ui/tic-tac-toe/tic-tac-toe.jul:43:1
+  48:30 completion: n=127 elementById,setEnabled,setText
+  48:30 signatureHelp: kein
+  56:15 hover: ```jul Or(Empty List(CellChange)) ```
+  56:15 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:31:2
+  56:15 completion: n=127 elementById,setEnabled,setText
+  56:15 signatureHelp: kein
+  60:28 hover: ```jul ( element: Any text: Text ) ~> Empty ```
+  60:28 definition: ui/tic-tac-toe/dom.ts:13:17
+  60:28 completion: n=130 elementById,setEnabled,setText
+  60:28 signatureHelp: ( element: Any text: Text ) ~> Empty param=0
+  64:7 hover: kein
+  64:7 definition: kein
+  64:7 completion: n=129 elementById,setEnabled,setText
+  64:7 signatureHelp: kein
+  70:20 hover: ```jul [ gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] currentPlayer: Player statu...
+  70:20 definition: ui/tic-tac-toe/tic-tac-toe.jul:70:15
+  70:20 completion: n=127 elementById,setEnabled,setText
+  70:20 signatureHelp: kein
+  74:33 hover: kein
+  74:33 definition: kein
+  74:33 completion: n=127 elementById,setEnabled,setText
+  74:33 signatureHelp: kein
+  78:1 hover: ```jul ( stream$: Stream(Any) listener: (value: Any) :> Any ) ```
+  78:1 definition: kein
+  78:1 completion: n=126 elementById,setEnabled,setText
+  78:1 signatureHelp: ( stream$: Stream(Any) listener: (value: Any) :> Any ) ~> Empty param=1
+  84:28 hover: ```jul Any ``` reset: nur aktiv, wenn es etwas zurückzusetzen gibt
+  84:28 definition: ui/tic-tac-toe/tic-tac-toe.jul:81:1
+  84:28 completion: n=127 elementById,setEnabled,setText
+  84:28 signatureHelp: ( element: Any enabled: Boolean ) ~> Empty param=1
+  92:23 hover: ```jul Or(3 And(LessInteger(3) GreaterInteger(0))) ```
+  92:23 definition: ui/tic-tac-toe/tic-tac-toe.jul:92:22
+  92:23 completion: n=130 elementById,setEnabled,setText
+  92:23 signatureHelp: kein
+  96:42 hover: ```jul Stream(GameState) ```
+  96:42 definition: ui/tic-tac-toe/tic-tac-toe.jul:43:1
+  96:42 completion: n=130 elementById,setEnabled,setText
+  96:42 signatureHelp: kein
+  101:8 hover: ```jul ( element: Any event: Text listener: () :> Any ) ~> Empty ```
+  101:8 definition: ui/tic-tac-toe/dom.ts:5:17
+  101:8 completion: n=126 elementById,setEnabled,setText
+  101:8 signatureHelp: ( element: Any event: Text listener: () :> Any ) ~> Empty param=0
+  105:1 hover: ```jul ( element: Any event: Text listener: () :> Any ) ```
+  105:1 definition: kein
+  105:1 completion: n=126 elementById,setEnabled,setText
+  105:1 signatureHelp: ( element: Any event: Text listener: () :> Any ) ~> Empty param=0
 
 === ui/todo-list/todo-list.jul
 symbols
