@@ -38,6 +38,7 @@ import {
 	isCoreLibPath,
 	isImportFunctionCall,
 } from 'jul-compiler/out/parser/parser.js';
+import { readWarnUnknown } from 'jul-compiler/out/compiler/config.js';
 import { loadFile, ProjectHost } from 'jul-compiler/out/compiler/project-loader.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
@@ -365,6 +366,8 @@ const projectHost: ProjectHost = {
 	},
 	// recheckDependents checkt Dateien ohne neues Parsen erneut.
 	cloneUnchecked: true,
+	// Die jul-config.yaml der Datei entscheidet, der Server hält mehrere Projekte.
+	warnUnknown: readWarnUnknown,
 	referenceIndex: referenceIndex,
 	onParsed: (parsed, previous) => {
 		unregisterDependencies(parsed.filePath, previous?.dependencies);
