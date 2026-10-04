@@ -239,3 +239,15 @@
 2026-10-04 07:59:26	bdc1cb1+	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	signatureHelp	564	0.06	0.13	0.38	emptyLiterals als Notification statt Anfrage
 2026-10-04 07:59:26	bdc1cb1+	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	documentSymbol	3	3.44	3.62	3.62	emptyLiterals als Notification statt Anfrage
 2026-10-04 07:59:26	bdc1cb1+	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	semanticTokens	3	5.29	5.94	5.94	emptyLiterals als Notification statt Anfrage
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	11	38.43	366.99	366.99	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	253.29	258.34	258.34	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	173.24	217.84	217.84	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	218.01	255.90	255.90	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	165.78	214.55	214.55	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	656.75	657.10	657.10	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	hover	564	0.08	0.20	0.64	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	definition	564	0.06	0.12	0.23	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	completion	564	1.68	2.48	3.44	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	signatureHelp	564	0.05	0.14	0.43	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	documentSymbol	3	3.18	3.40	3.40	Compiler: unveraenderliche Funktionstypen
+2026-10-04 08:09:55	573e71b	jul-compiler 076dab8+	ADV-DEV-56627	yugioh	semanticTokens	3	4.27	5.96	5.96	Compiler: unveraenderliche Funktionstypen
