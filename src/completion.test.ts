@@ -355,6 +355,23 @@ x: MyType = [f]
 		const completionItems = getDictionaryLiteralFieldCompletionItems(reference);
 		expect(completionItems?.map(item => item.label)).to.include('f1');
 	});
+
+	// Realer Fall (tic-tac-toe): hinter einem Feld mit `=` bleibt das Literal ein unaufgelöstes `data`.
+	it('schlägt hinter einem schon gesetzten Feld die übrigen Felder des erwarteten Typs vor', () => {
+		const parsed = parse(`MyType = [f1: Integer f2: Integer]
+x: MyType = [
+	f1 = 1
+	f
+]
+`);
+		const definition = parsed.checked!.expressions![1];
+		if (definition?.type !== 'definition' || definition.value?.type !== 'data') {
+			throw new Error(`Erwartet definition mit data value, bekommen ${definition?.type}`);
+		}
+		const field = definition.value.fields.at(-1);
+		const completionItems = getDictionaryLiteralFieldCompletionItems(field?.name);
+		expect(completionItems?.map(item => item.label)).to.deep.equal(['f2']);
+	});
 });
 
 describe('getFieldNamePositionKind', () => {

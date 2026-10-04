@@ -302,6 +302,24 @@ export function getDictionaryLiteralFieldCompletionItems(expression: PositionedE
 		}
 		return allCompletionItems;
 	}
+	// Steht schon ein Feld mit `=` im Literal (`[a = 1 f]`), bleibt der Knoten ein unaufgelöstes `data`,
+	// und der angefangene Feldname ist ein field ohne Wert.
+	const field = expression?.type === 'reference' && expression.parent?.type === 'field'
+		? expression.parent
+		: undefined;
+	const data = field?.parent?.type === 'data' ? field.parent : undefined;
+	if (data) {
+		const declaredType = getDeclaredResolvedType(data);
+		const allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
+		return allCompletionItems?.filter(completionItem => {
+			return !data.fields.some(otherField => {
+				return otherField !== field
+					&& otherField.definition
+					&& otherField.name.type === 'reference'
+					&& otherField.name.name.name === completionItem.label;
+			});
+		});
+	}
 	// Ein angefangener Feldname (z.B. `[f]`) parst noch nicht als dictionary, sondern als list mit
 	// einer bloßen reference darin - der Parser erkennt "Dictionary-Feld" erst an einem `=`/`:`
 	// danach. Ohne diesen Zweig verschwindet die Vervollständigung, sobald der erste Buchstabe steht.
