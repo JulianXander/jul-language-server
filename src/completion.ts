@@ -1,5 +1,5 @@
-import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
-import { dereferenceNameFromObject, getStreamGetValueType, isFunctionType, isListType, isParametersType, isSubtypeOf, isTupleType, isTypeOfType, resolveAlias, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
+import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
+import { dereferenceNameFromObject, getStreamGetValueType, isFunctionType, isListType, isParametersType, isSubtypeOf, isTupleType, isTypeOfType, resolveAlias, resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import {
 	CompileTimeDictionary,
 	CompileTimeType,
@@ -7,6 +7,7 @@ import {
 	ParseFunctionCall,
 	PositionedExpression,
 	SymbolDefinition,
+	SymbolTable,
 } from 'jul-compiler/out/syntax-tree.js';
 import { map } from 'jul-compiler/out/util.js';
 import { getDeclaredResolvedType, getParameterIndex, getResolvedType } from './util.js';
@@ -149,6 +150,84 @@ export function getExpectedArgumentType(
 	return undefined;
 }
 
+//#region lambda snippet
+
+/**
+ * Der Aufruf, in dessen Argumentliste die Cursorposition liegt. `expression` ist die Argumentliste
+ * selbst (leer: `empty`, sonst `list`) oder ein Argumentwert darin.
+ */
+function getCallOfArgumentPosition(expression: PositionedExpression | undefined): ParseFunctionCall | undefined {
+	const argumentList = expression?.type === 'list' || expression?.type === 'empty'
+		? expression
+		: expression?.parent?.type === 'list'
+			? expression.parent
+			: undefined;
+	const functionCall = argumentList?.parent;
+	return functionCall?.type === 'functionCall' && functionCall.arguments === argumentList
+		? functionCall
+		: undefined;
+}
+
+/**
+ * Completion-Item mit einem Lambda `(value index) => `, wenn an der Argumentposition eine Funktion
+ * erwartet wird. Die Parameternamen sind durch den erwarteten Funktionstyp fest vorgegeben; ist ein
+ * Name im Scope schon vergeben, bekommt der Parameter einen Alias (`(value2 = value index) => `),
+ * damit er die äußere Definition nicht verdeckt.
+ */
+export function getLambdaCompletionItem(
+	expression: PositionedExpression | undefined,
+	rowIndex: number,
+	columnIndex: number,
+	scopes: SymbolTable[],
+): CompletionItem | undefined {
+	const functionCall = getCallOfArgumentPosition(expression);
+	if (!functionCall) {
+		return undefined;
+	}
+	const rawExpectedType = getExpectedArgumentType(functionCall, rowIndex, columnIndex);
+	const expectedType = rawExpectedType && resolvePlaceholders(rawExpectedType);
+	if (!isFunctionType(expectedType)
+		|| !isParametersType(expectedType.ParamsType)) {
+		return undefined;
+	}
+	const parameterNames = expectedType.ParamsType.singleNames.map(parameter => parameter.name);
+	const usedNames = new Set(parameterNames);
+	const isDefinedInScope = (name: string) => scopes.some(symbols => name in symbols);
+	const escapeSnippet = (text: string) => text.replaceAll('$', '\\$');
+	// Tabstops nur für die Aliasnamen, in Parameterreihenfolge und vor dem Funktionskörper ($0)
+	let tabstopCount = 0;
+	const labelParts: string[] = [];
+	const snippetParts: string[] = [];
+	parameterNames.forEach(name => {
+		if (!isDefinedInScope(name)) {
+			labelParts.push(name);
+			snippetParts.push(escapeSnippet(name));
+			return;
+		}
+		let counter = 2;
+		while (usedNames.has(name + counter) || isDefinedInScope(name + counter)) {
+			counter++;
+		}
+		const alias = name + counter;
+		usedNames.add(alias);
+		tabstopCount++;
+		labelParts.push(alias + ' = ' + name);
+		snippetParts.push(`\${${tabstopCount}:${escapeSnippet(alias)}} = ${escapeSnippet(name)}`);
+	});
+	return {
+		label: '(' + labelParts.join(' ') + ') =>',
+		kind: CompletionItemKind.Snippet,
+		detail: 'Lambda',
+		insertText: '(' + snippetParts.join(' ') + ') => $0',
+		insertTextFormat: InsertTextFormat.Snippet,
+		// vor allen Symbolen
+		sortText: '!',
+		preselect: true,
+	};
+}
+
+//#endregion lambda snippet
+
 /**
  * Übersetzt den erwarteten Typ an einer Position in die Sortier-Seite: wird dort ein Typ erwartet
  * (`Type`, `TypeOf(...)`, z.B. in `Or([] )`), gehören Typ-Symbole nach vorne, sonst Wert-Symbole.
@@ -290,9 +369,16 @@ export function getDictionaryLiteralFieldCompletionItems(expression: PositionedE
 		|| expression?.type === 'dictionary'
 		|| expression?.type === 'object') {
 		const declaredType = getDeclaredResolvedType(expression);
-		const allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
+		let allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 		if (!allCompletionItems) {
 			return undefined;
+		}
+		// Das Präfixargument (`a.f(...)`) belegt den ersten Parameter schon.
+		if (declaredType?.julType === 'parameters'
+			&& expression.parent?.type === 'functionCall'
+			&& expression.parent.arguments === expression
+			&& expression.parent.prefixArgument) {
+			allCompletionItems = allCompletionItems.slice(1);
 		}
 		// schon definierte Felder ausschließen
 		if (expression.type === 'dictionary') {
@@ -345,6 +431,12 @@ export function getDictionaryLiteralFieldCompletionItems(expression: PositionedE
 export function getFieldNamePositionKind(
 	expression: PositionedExpression | undefined,
 ): 'exclusive' | 'mixed' | 'none' {
+	// Eine leere Argumentliste erlaubt Feldnamen und positionale Argumente.
+	if (expression?.type === 'empty'
+		&& expression.parent?.type === 'functionCall'
+		&& expression.parent.arguments === expression) {
+		return 'mixed';
+	}
 	// Ist das Argument selbst ein Dictionary-Literal, steht der Cursor in dessen Klammern.
 	if (expression?.type === 'empty'
 		|| expression?.type === 'dictionary'

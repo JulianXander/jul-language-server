@@ -4,8 +4,9 @@ import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { ParsedFile, ParseFunctionCall, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
+import { findExpressionInParsedFile } from './symbol-lookup.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
-import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getLambdaCompletionItem, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -495,5 +496,64 @@ describe('getFieldReferenceCompletionItems', () => {
 	it('bietet bei einem Funktionstyp ParamsType und ReturnType als Typwerte an', () => {
 		expect(fieldReferenceItems('F = (q: Integer) :> Text', 'F').map(item => item.label))
 			.to.deep.equal(['ParamsType', 'ReturnType']);
+	});
+});
+
+describe('getLambdaCompletionItem', () => {
+	/** `|` markiert die Cursorposition und wird entfernt */
+	function getLambdaItem(codeWithCursor: string) {
+		const lines = codeWithCursor.split('\n');
+		const rowIndex = lines.findIndex(line => line.includes('|'));
+		const columnIndex = lines[rowIndex]!.indexOf('|');
+		const parsed = parse(codeWithCursor.replace('|', ''));
+		const { expression, scopes } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
+		return getLambdaCompletionItem(expression, rowIndex, columnIndex, [...scopes, builtInSymbols]);
+	}
+
+	it('bietet an einer Funktionsposition das Lambda mit den festen Parameternamen an', () => {
+		expect(getLambdaItem('x = [].map(|)\n')?.insertText).to.equal('(value index) => $0');
+	});
+
+	it('bietet es auch mit einem Argument im Aufruf ohne Infix an', () => {
+		expect(getLambdaItem('x = map([1] |)\n')?.insertText).to.equal('(value index) => $0');
+	});
+
+	it('vergibt einen Alias, wenn der Name im Scope schon vergeben ist', () => {
+		expect(getLambdaItem('value = 1\nx = [].map(|)\n')?.insertText).to.equal('(${1:value2} = value index) => $0');
+	});
+
+	it('zählt den Alias hoch, wenn auch der Aliasname vergeben ist', () => {
+		expect(getLambdaItem('value = 1\nvalue2 = 2\nx = [].map(|)\n')?.insertText).to.equal('(${1:value3} = value index) => $0');
+	});
+
+	it('nummeriert die Alias-Tabstops in Parameterreihenfolge vor dem Funktionskörper', () => {
+		expect(getLambdaItem('value = 1\nindex = 2\nx = [].map(|)\n')?.insertText).to.equal('(${1:value2} = value ${2:index2} = index) => $0');
+	});
+
+	it('bietet kein Lambda an, wenn keine Funktion erwartet wird', () => {
+		expect(getLambdaItem('f = (a: Integer) :> Integer => a\nx = f(|)\n')).to.equal(undefined);
+	});
+});
+
+// Realer Fall: in `[].map()` wurden `values` und `transform` als Feldnamen vorgeschlagen, obwohl
+// `values` schon das Präfixargument ist und die leere Argumentliste auch ein positionales
+// Argument (z.B. ein Lambda) erlaubt.
+describe('leere Argumentliste eines Infix-Aufrufs', () => {
+	function emptyArguments(code: string): PositionedExpression {
+		const parsed = parse(code);
+		const functionCall = parsed.checked!.expressions!.at(-1);
+		if (functionCall?.type !== 'functionCall' || functionCall.arguments?.type !== 'empty') {
+			throw new Error(`Erwartet functionCall mit empty Argumenten, bekommen ${functionCall?.type}`);
+		}
+		return functionCall.arguments;
+	}
+
+	it('schlägt das Präfixargument nicht als Feldname vor', () => {
+		const completionItems = getDictionaryLiteralFieldCompletionItems(emptyArguments('[].map()\n'));
+		expect(completionItems?.map(item => item.label)).to.deep.equal(['transform']);
+	});
+
+	it('lässt neben Feldnamen auch positionale Argumente zu', () => {
+		expect(getFieldNamePositionKind(emptyArguments('[].map()\n'))).to.equal('mixed');
 	});
 });

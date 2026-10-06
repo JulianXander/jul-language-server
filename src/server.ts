@@ -80,6 +80,7 @@ import {
 	getFieldNamePositionKind,
 	getFirstArgumentSymbolFilter,
 	getInfixFunctionCall,
+	getLambdaCompletionItem,
 	isTypeSymbol,
 } from './completion.js';
 import { getHover, getTypeMarkdown } from './hover.js';
@@ -563,6 +564,7 @@ connection.onCompletion(completionParams => {
 		? scopes
 		: [...scopes, builtInSymbols];
 	let symbolFilter: ((symbol: SymbolDefinition, name: string) => boolean) | undefined = undefined;
+	const lambdaCompletionItems = [getLambdaCompletionItem(expression, rowIndex, columnIndex, allScopes)].filter(isDefined);
 	//#region infix function call (bei infix function reference)
 	const infixFunctionCall = getInfixFunctionCall(expression);
 	if (infixFunctionCall) {
@@ -600,6 +602,7 @@ connection.onCompletion(completionParams => {
 			case 'mixed':
 				// positionale Argumente sind der Normalfall, die Feldnamen kommen dahinter
 				return [
+					...lambdaCompletionItems,
 					...symbolsToCompletionItems(allScopes, undefined, positionKind),
 					...dictionaryLiteralFieldCompletionItems.map(completionItem => ({
 						...completionItem,
@@ -676,7 +679,10 @@ connection.onCompletion(completionParams => {
 	}
 	//#endregion function literal parameter name
 
-	return symbolsToCompletionItems(allScopes, undefined, positionKind);
+	return [
+		...lambdaCompletionItems,
+		...symbolsToCompletionItems(allScopes, undefined, positionKind),
+	];
 });
 
 //#region create CompletionItems
