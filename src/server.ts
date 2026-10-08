@@ -18,10 +18,8 @@ import {
 	InitializeParams,
 	InitializeResult,
 	Location,
-	ParameterInformation,
 	ProposedFeatures,
 	Range,
-	SignatureHelp,
 	SymbolKind,
 	TextDocuments,
 	TextDocumentSyncKind,
@@ -83,8 +81,9 @@ import {
 	getLambdaCompletionItem,
 	isTypeSymbol,
 } from './completion.js';
-import { getHover, getTypeMarkdown } from './hover.js';
+import { getHover } from './hover.js';
 import { getSemanticTokens, semanticTokenLegend } from './semantic-tokens.js';
+import { getSignatureHelp } from './signature-help.js';
 import { DiscoveredTest, findTests } from './test-discovery.js';
 import {
 	findExpressionInParsedFile,
@@ -93,7 +92,6 @@ import {
 } from './symbol-lookup.js';
 import {
 	getDeclaredResolvedType,
-	getParameterIndex,
 	getResolvedType,
 	pathToUri,
 	positionedToRange,
@@ -763,68 +761,8 @@ connection.onSignatureHelp(signatureParams => {
 	if (!parsed) {
 		return;
 	}
-	// TODO find functiontLiteral, show param + return type
-	const rowIndex = signatureParams.position.line;
-	const columnIndex = signatureParams.position.character;
-	const { expression, scopes } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
-	if (expression?.parent?.type === 'functionCall') {
-		const functionCall = expression.parent;
-		const functionSymbol = getFunctionSymbolFromFunctionCall(functionCall, scopes);
-		if (functionSymbol) {
-			const functionType = functionSymbol.symbol.typeExpression;
-			const parameterResults: ParameterInformation[] = [];
-			if (functionType?.type === 'functionLiteral') {
-				const paramsType = functionType.params;
-				if (paramsType.type === 'parameters') {
-					paramsType.singleFields.forEach(singleField => {
-						parameterResults.push({
-							label: singleField.name.name,
-							documentation: getTypeMarkdown(singleField.typeInfo, singleField.description),
-						});
-					});
-					const rest = paramsType.rest;
-					if (rest) {
-						parameterResults.push({
-							label: rest.name.name,
-							documentation: getTypeMarkdown(rest.typeInfo, rest.description),
-						});
-					}
-				}
-			}
-			const parameterIndex = getParameterIndex(functionCall, rowIndex, columnIndex, parameterResults.length);
-			const normalizedFunctionType = getResolvedType(functionSymbol.symbol.typeInfo);
-			const signatureResult: SignatureHelp = {
-				signatures: [{
-					label: normalizedFunctionType
-						? typeToString(normalizedFunctionType, 0, 0)
-						: functionSymbol.name,
-					documentation: functionSymbol.symbol.description,
-					parameters: parameterResults,
-				}],
-				activeParameter: parameterIndex,
-				activeSignature: 0,
-			};
-			return signatureResult;
-		}
-	}
-	return undefined;
+	return getSignatureHelp(parsed, signatureParams.position.line, signatureParams.position.character);
 });
-
-function getFunctionSymbolFromFunctionCall(functionCall: ParseFunctionCall, scopes: SymbolTable[]): {
-	name: string;
-	isBuiltIn: boolean;
-	symbol: SymbolDefinition;
-} | undefined {
-	const functionExpression = functionCall.functionExpression;
-	if (functionExpression?.type === 'reference') {
-		const functionName = functionExpression.name.name;
-		const functionSymbol = findSymbolInScopesWithBuiltIns(functionName, scopes);
-		return functionSymbol && {
-			...functionSymbol,
-			name: functionName,
-		};
-	}
-}
 //#endregion function signature help
 
 connection.languages.semanticTokens.on(params =>

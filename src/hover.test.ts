@@ -32,6 +32,12 @@ function typeMarkdown(typeString: string): string {
 }
 
 describe('hover', () => {
+	// Der Name hat schon einen gemeldeten Fehler: Der Hover sagt ehrlich, dass der Typ ungültig ist.
+	it('eine Referenz auf einen Wert mit gemeldetem Fehler zeigt Invalid', () => {
+		const code = `x = undefinedName
+y = ¦x`;
+		expect(hoverAt(code)).to.equal(typeMarkdown('Invalid'));
+	});
 	it('eine Referenz zeigt den Typ ihrer Definition', () => {
 		const code = `a = 1
 b = ¦a`;

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
-import { ParsedFile, ParseFunctionCall, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
+import { builtinInvalid, ParsedFile, ParseFunctionCall, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { findExpressionInParsedFile } from './symbol-lookup.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
@@ -555,5 +555,16 @@ describe('leere Argumentliste eines Infix-Aufrufs', () => {
 
 	it('lässt neben Feldnamen auch positionale Argumente zu', () => {
 		expect(getFieldNamePositionKind(emptyArguments('[].map()\n'))).to.equal('mixed');
+	});
+});
+
+describe('Invalid', () => {
+	// Was nach `x/` oder in einem Dictionary angeboten wird, hängt am Typ. Ein Typ mit gemeldetem Fehler
+	// sagt nichts, also gibt es nichts anzubieten, wie bei Any.
+	it('bietet nach x/ keine Felder an', () => {
+		expect(getFieldReferenceCompletionItems(builtinInvalid)).to.deep.equal([]);
+	});
+	it('bietet in einem Dictionary keine Felder an', () => {
+		expect(getDictionaryFieldCompletionItemsFromType(builtinInvalid)).to.equal(undefined);
 	});
 });
