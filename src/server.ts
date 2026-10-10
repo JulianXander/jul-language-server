@@ -291,19 +291,57 @@ function sendDiagnosticsForFile(uri: string, parsed: ParsedFile, version?: numbe
 }
 
 /**
- * Rechecked alle (transitiven) Dateien, die filePath importieren, und sendet für jede aktualisierte
- * Diagnostics - nötig, weil sich ihre inferierten Importtypen bzw. der Referenz-Index geändert
- * haben können.
+ * Dateien, die eine geänderte Datei importieren und noch mit dem alten Stand der Import-Typen
+ * geprüft sind. Ihr Recheck kostet ein Vielfaches des Parsens der getippten Datei und würde beim
+ * Tippen jede Anfrage blockieren, deshalb läuft er erst nach einer Pause oder wenn eine Anfrage
+ * die Datei braucht. Die Reihenfolge (Importierte vor Importeuren) bleibt erhalten.
  */
-function recheckDependents(filePath: string): void {
+const staleDependents = new Set<string>();
+const staleDependentsDelayMs = 300;
+let staleDependentsTimer: NodeJS.Timeout | undefined;
+
+/**
+ * Merkt die (transitiven) Dateien vor, die filePath importieren. Ihre inferierten Importtypen bzw.
+ * der Referenz-Index können sich geändert haben, sie brauchen einen Recheck samt Diagnostics.
+ */
+function markDependentsStale(filePath: string): void {
 	getTransitiveDependents(filePath).forEach(dependentPath => {
-		const dependentParsed = parsedDocuments[dependentPath];
-		if (!dependentParsed) {
-			return;
-		}
-		checkTypes(dependentParsed, parsedDocuments, projectHost);
-		sendDiagnosticsForFile(pathToUri(dependentPath), dependentParsed);
+		staleDependents.add(dependentPath);
 	});
+	restartStaleDependentsTimer();
+}
+
+/** Jeder Tastendruck verschiebt den Recheck, damit er nie mitten im Tippen läuft. */
+function restartStaleDependentsTimer(): void {
+	if (!staleDependents.size) {
+		return;
+	}
+	clearTimeout(staleDependentsTimer);
+	staleDependentsTimer = setTimeout(() => recheckStaleDependents(), staleDependentsDelayMs);
+}
+
+/**
+ * Rechecked die vorgemerkten Importeure und sendet ihre Diagnostics. Mit untilPath nur bis
+ * einschließlich dieser Datei (sie importiert vorgemerkte Dateien nur, wenn diese früher stehen).
+ */
+function recheckStaleDependents(untilPath?: string): void {
+	if (untilPath !== undefined && !staleDependents.has(untilPath)) {
+		return;
+	}
+	for (const dependentPath of [...staleDependents]) {
+		staleDependents.delete(dependentPath);
+		const dependentParsed = parsedDocuments[dependentPath];
+		if (dependentParsed) {
+			checkTypes(dependentParsed, parsedDocuments, projectHost);
+			sendDiagnosticsForFile(pathToUri(dependentPath), dependentParsed);
+		}
+		if (dependentPath === untilPath) {
+			break;
+		}
+	}
+	if (!staleDependents.size) {
+		clearTimeout(staleDependentsTimer);
+	}
 }
 
 // This event is emitted when the text document first opened or when its content has changed.
@@ -323,7 +361,7 @@ function processDocumentChange(textDocument: TextDocument): void {
 	};
 	connection.sendNotification(emptyLiteralsNotification, emptyLiterals);
 	// Andere Dateien importieren evtl. diese - ihre Typen/Referenzen müssen neu berechnet werden.
-	recheckDependents(path);
+	markDependentsStale(path);
 }
 
 /**
@@ -338,9 +376,11 @@ const changeDebouncer = createChangeDebouncer<TextDocument>(
 
 function flushPendingChanges(): void {
 	changeDebouncer.flushAll();
+	recheckStaleDependents();
 }
 
 documents.onDidChangeContent(change => {
+	restartStaleDependentsTimer();
 	changeDebouncer.schedule(change.document.uri, change.document);
 });
 
@@ -363,7 +403,7 @@ const projectHost: ProjectHost = {
 		}
 		return { type: 'code', code: code };
 	},
-	// recheckDependents checkt Dateien ohne neues Parsen erneut.
+	// recheckStaleDependents checkt Dateien ohne neues Parsen erneut.
 	cloneUnchecked: true,
 	// Die jul-config.yaml der Datei entscheidet, der Server hält mehrere Projekte.
 	warnUnknown: readWarnUnknown,
@@ -1318,8 +1358,9 @@ function uriToPath(uri: string): string {
 }
 
 function getParsedFileByUri(uri: string): ParsedFile | undefined {
-	flushPendingChanges();
+	changeDebouncer.flushAll();
 	const path = uriToPath(uri);
+	recheckStaleDependents(path);
 	const parsed = parsedDocuments[path];
 	return parsed;
 }
