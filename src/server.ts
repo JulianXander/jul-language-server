@@ -97,8 +97,9 @@ import {
 	positionedToRange,
 } from './util.js';
 
-// For performance do not process large files
-const maxFileSize = 100000;
+// Schutz vor Riesendateien (z.B. generierter Code). Eine übersprungene Datei liefert beim Importeur
+// Any und damit Folgewarnungen (typeNotProven), die Grenze muss also über echten Quelldateien liegen.
+const maxFileSize = 1000000;
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.

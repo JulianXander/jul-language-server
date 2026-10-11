@@ -10,7 +10,7 @@ import { pathToFileURL } from 'url';
 
 export const serverPath = resolve(import.meta.dirname, '../out/server.js');
 // Der Server überspringt größere Dateien, sie würden nie Diagnostics senden
-export const maxFileSize = 100000;
+export const maxFileSize = 1000000;
 
 const requestTimeout = 30000;
 
