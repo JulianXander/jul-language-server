@@ -82,6 +82,7 @@ import {
 	isTypeSymbol,
 } from './completion.js';
 import { getHover } from './hover.js';
+import { getFoldingRanges } from './folding.js';
 import { getSemanticTokens, semanticTokenLegend } from './semantic-tokens.js';
 import { getSignatureHelp } from './signature-help.js';
 import { DiscoveredTest, findTests } from './test-discovery.js';
@@ -195,6 +196,7 @@ connection.onInitialize((params: InitializeParams) => {
 			},
 			definitionProvider: true,
 			documentHighlightProvider: true,
+			foldingRangeProvider: true,
 			documentSymbolProvider: true,
 			hoverProvider: true,
 			referencesProvider: true,
@@ -810,6 +812,12 @@ connection.languages.semanticTokens.on(params =>
 	// Dateien über maxFileSize stehen gar nicht erst in parsedDocuments.
 	getSemanticTokens(getParsedFileByUri(params.textDocument.uri)));
 
+
+connection.onFoldingRanges(params => {
+	flushPendingChanges();
+	const rows = documents.get(params.textDocument.uri)?.getText().split('\n') ?? [];
+	return getFoldingRanges(getParsedFileByUri(params.textDocument.uri), rows);
+});
 
 //#region tests
 /**
