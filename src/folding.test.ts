@@ -53,7 +53,10 @@ describe('folding', () => {
 		expect(foldsOf(code)).to.deep.equal([[0, 3], [1, 3]]);
 	});
 	it('ein Destructuring faltet nur die Feldliste, der Quellpfad bleibt sichtbar', () => {
-		const code = ;
+		const code = `(
+	a
+	b
+) = import(§./other.jul§)`;
 		expect(foldsOf(code)).to.deep.equal([[0, 2]]);
 	});
 	it('eine verschachtelte Funktion faltet zusätzlich', () => {

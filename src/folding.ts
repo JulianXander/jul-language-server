@@ -54,10 +54,9 @@ function collectExpressionRanges(
 }
 
 /**
- * (
-	a
-) = import(...): Das Destructuring faltet nicht als Ganzes, sonst verschwindet der
- * Wert mit. Es faltet nur die Feldliste.
+ * Steht der Wert eines mehrzeiligen Destructurings in der Zeile der schließenden Klammer
+ * (`) = import(§./datei.jul§)`), faltet das Destructuring nicht als Ganzes, sonst verschwindet
+ * der Wert mit. Es faltet nur die Feldliste.
  */
 function isDestructuringWithValueOnClosingRow(expression: PositionedExpression): boolean {
 	return expression.type === 'destructuring'
