@@ -7,7 +7,6 @@ import {
 
 const regionStart = /^\s*#region\b/;
 const regionEnd = /^\s*#endregion\b/;
-const onlyClosingBrackets = /^\s*[)\]]+\s*$/;
 
 /**
  * Die Folding Ranges einer Datei: jeder mehrzeilige Ausdruck faltet als Ganzes, eine Funktion also
@@ -32,19 +31,16 @@ function collectExpressionRanges(
 	rows: string[],
 	endRowByStartRow: Map<number, number>,
 ): void {
-	if (expression.type !== 'parameters') {
+	if (expression.type !== 'parameters' && !isDestructuringWithValueOnClosingRow(expression)) {
 		const startRow = expression.startRowIndex;
 		// Am Dateiende liegt die Endzeile hinter der letzten Zeile, ein leerer Rest gehört nicht zur Falte.
 		let endRow = Math.min(expression.endRowIndex, rows.length - 1);
-		while (endRow > startRow && (rows[endRow] ?? '').trim() === '') {
+		// Die Zeile mit der schließenden Klammer trägt bei einem Destructuring den Wert (den
+		// Quellpfad eines imports) und bleibt sichtbar.
+		if (expression.type === 'destructuringFields' && expression.parent?.type === 'destructuring') {
 			endRow--;
 		}
-		// Die eigene schließende Klammer in eigener Zeile bleibt sichtbar. Gehört sie zu einem Kind,
-		// das in einer späteren Zeile beginnt (letzter Aufruf im Rumpf), faltet das Kind selbst
-		// und der Ausdruck umfasst sie ganz.
-		if (endRow > startRow
-			&& onlyClosingBrackets.test(rows[endRow] ?? '')
-			&& !endsWithLaterStartingChild(expression, startRow, endRow)) {
+		while (endRow > startRow && (rows[endRow] ?? '').trim() === '') {
 			endRow--;
 		}
 		if (endRow > startRow && endRow > (endRowByStartRow.get(startRow) ?? -1)) {
@@ -57,11 +53,16 @@ function collectExpressionRanges(
 	});
 }
 
-function endsWithLaterStartingChild(expression: PositionedExpression, startRow: number, endRow: number): boolean {
-	return forEachChild(expression, child =>
-		child.startRowIndex > startRow && Math.min(child.endRowIndex, endRow) === endRow
-			? true
-			: undefined) ?? false;
+/**
+ * (
+	a
+) = import(...): Das Destructuring faltet nicht als Ganzes, sonst verschwindet der
+ * Wert mit. Es faltet nur die Feldliste.
+ */
+function isDestructuringWithValueOnClosingRow(expression: PositionedExpression): boolean {
+	return expression.type === 'destructuring'
+		&& expression.value !== undefined
+		&& expression.value.startRowIndex === expression.fields.endRowIndex;
 }
 
 function getRegionRanges(rows: string[]): FoldingRange[] {

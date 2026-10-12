@@ -38,19 +38,23 @@ describe('folding', () => {
 	b`;
 		expect(foldsOf(code)).to.deep.equal([[0, 2]]);
 	});
-	it('eine schließende Klammer in eigener Zeile bleibt sichtbar', () => {
+	it('eine schließende Klammer in eigener Zeile faltet mit', () => {
 		const code = `list = [
 	1
 	2
 ]`;
-		expect(foldsOf(code)).to.deep.equal([[0, 2]]);
+		expect(foldsOf(code)).to.deep.equal([[0, 3]]);
 	});
 	it('eine Funktion, deren Rumpf mit einer Klammerzeile endet, faltet samt dieser Zeile', () => {
 		const code = `f = (a: Integer) =>
 	log(
 		a
 	)`;
-		expect(foldsOf(code)).to.deep.equal([[0, 3], [1, 2]]);
+		expect(foldsOf(code)).to.deep.equal([[0, 3], [1, 3]]);
+	});
+	it('ein Destructuring faltet nur die Feldliste, der Quellpfad bleibt sichtbar', () => {
+		const code = ;
+		expect(foldsOf(code)).to.deep.equal([[0, 2]]);
 	});
 	it('eine verschachtelte Funktion faltet zusätzlich', () => {
 		const code = `f = (a: Integer) =>
