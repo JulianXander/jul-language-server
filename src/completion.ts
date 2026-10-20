@@ -484,6 +484,16 @@ export function getFieldReferenceCompletionItems(dereferencedType: CompileTimeTy
 			return dictionaryTypeToCompletionItems(dereferencedType.Fields);
 		case 'or':
 			return dereferencedType.ChoiceTypes.flatMap(getFieldReferenceCompletionItems);
+		case 'error': {
+			const messageType = dereferenceNameFromObject('message', dereferencedType);
+			return [
+				{
+					label: 'message',
+					kind: CompletionItemKind.Constant,
+					detail: messageType && typeToString(messageType, 0, 0),
+				},
+			];
+		}
 		case 'stream':
 			return [
 				{

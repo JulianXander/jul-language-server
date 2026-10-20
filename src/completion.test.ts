@@ -479,6 +479,11 @@ describe('getFieldReferenceCompletionItems', () => {
 			.to.deep.equal(['getValue']);
 	});
 
+	it('bietet bei einem Error-Wert message an', () => {
+		expect(fieldReferenceItems('e = error(§kaputt§)', 'e'))
+			.to.deep.equal([{ label: 'message', detail: 'Text' }]);
+	});
+
 	it('bietet bei einem Funktionswert nichts an', () => {
 		expect(fieldReferenceItems('f = (q: Integer) => §a§', 'f')).to.deep.equal([]);
 	});
