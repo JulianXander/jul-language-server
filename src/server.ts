@@ -37,7 +37,7 @@ import {
 	isImportFunctionCall,
 } from 'jul-compiler/out/parser/parser.js';
 import { readWarnUnknown } from 'jul-compiler/out/compiler/config.js';
-import { loadFile, ProjectHost } from 'jul-compiler/out/compiler/project-loader.js';
+import { loadFile, maxTypedFileSize, ProjectHost } from 'jul-compiler/out/compiler/project-loader.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
@@ -98,9 +98,9 @@ import {
 	positionedToRange,
 } from './util.js';
 
-// Schutz vor Riesendateien (z.B. generierter Code). Eine übersprungene Datei liefert beim Importeur
-// Any und damit Folgewarnungen (typeNotProven), die Grenze muss also über echten Quelldateien liegen.
-const maxFileSize = 1000000;
+// Über dieser Größe lädt der Server eine Datei nicht (Schutz vor Riesendateien), die Grenze ist die
+// des Compilers, damit CLI und Server dieselben Typen sehen.
+const maxFileSize = maxTypedFileSize;
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
