@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
-import { builtinInvalid, ParsedFile, ParseFunctionCall, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
+import { builtinInteger, builtinInvalid, ParsedFile, ParseFunctionCall, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { findExpressionInParsedFile } from './symbol-lookup.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
@@ -162,7 +162,7 @@ describe('getPositionKindForExpectedType', () => {
 
 	it('macht aus einem erwarteten Wert-Typ eine Wert-Position', () => {
 		// ein Typ, dessen Wert selbst nicht ein Typ ist - z.B. Integer als erwarteter Wert
-		expect(getPositionKindForExpectedType({ julType: 'integer', isUnresolvedPlaceholder: false })).to.equal('value');
+		expect(getPositionKindForExpectedType(builtinInteger)).to.equal('value');
 	});
 
 	it('liefert undefined, wenn kein Typ bekannt ist', () => {
