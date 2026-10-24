@@ -311,7 +311,7 @@ export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileT
 		: declaredType;
 	switch (resolvedType.julType) {
 		case 'dictionaryLiteral':
-			return dictionaryTypeToCompletionItems(resolvedType.Fields).map(withFieldAssignmentInsertText);
+			return dictionaryTypeToCompletionItems(resolvedType.FieldTypes).map(withFieldAssignmentInsertText);
 		case 'or': {
 			const allCompletionItems: CompletionItem[] = [];
 			resolvedType.ChoiceTypes.forEach(choiceType => {
@@ -481,7 +481,7 @@ export function dictionaryTypeToCompletionItems(
 export function getFieldReferenceCompletionItems(dereferencedType: CompileTimeType): CompletionItem[] {
 	switch (dereferencedType.julType) {
 		case 'dictionaryLiteral':
-			return dictionaryTypeToCompletionItems(dereferencedType.Fields);
+			return dictionaryTypeToCompletionItems(dereferencedType.FieldTypes);
 		case 'or':
 			return dereferencedType.ChoiceTypes.flatMap(getFieldReferenceCompletionItems);
 		case 'error': {
@@ -526,7 +526,7 @@ function getTypePropertyNames(type: CompileTimeType): string[] {
 		case 'tuple':
 			return ['ElementType'];
 		case 'dictionaryLiteral':
-			return Object.keys(type.Fields);
+			return Object.keys(type.FieldTypes);
 		case 'function':
 			return ['ParamsType', 'ReturnType'];
 		case 'parameters':

@@ -685,7 +685,7 @@ connection.onCompletion(completionParams => {
 				default: {
 					const dereferencedType = getResolvedType(destructuredValue?.typeInfo);
 					if (isDictionaryLiteralType(dereferencedType)) {
-						const allCompletionItems = dictionaryTypeToCompletionItems(dereferencedType.Fields);
+						const allCompletionItems = dictionaryTypeToCompletionItems(dereferencedType.FieldTypes);
 						// schon definierte Felder ausschließen
 						const filtered = allCompletionItems.filter(completionItem => {
 							return !destructuring.fields.symbols[completionItem.label];

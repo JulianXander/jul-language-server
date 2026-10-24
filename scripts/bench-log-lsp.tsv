@@ -287,3 +287,15 @@
 2026-10-11 05:27:00	9420369+	jul-compiler 3fc25c3	ADV-DEV-56627	yugioh	signatureHelp	591	0.06	0.11	0.45	maxFileSize 1000000 statt 100000, game-logic.jul (116 kB) jetzt geladen
 2026-10-11 05:27:00	9420369+	jul-compiler 3fc25c3	ADV-DEV-56627	yugioh	documentSymbol	3	3.51	4.07	4.07	maxFileSize 1000000 statt 100000, game-logic.jul (116 kB) jetzt geladen
 2026-10-11 05:27:00	9420369+	jul-compiler 3fc25c3	ADV-DEV-56627	yugioh	semanticTokens	3	4.87	6.37	6.37	maxFileSize 1000000 statt 100000, game-logic.jul (116 kB) jetzt geladen
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	35	18.12	233.03	1653.79	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	309.68	335.57	335.57	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	276.15	293.81	293.81	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	776.33	969.96	969.96	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	298.26	320.49	320.49	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	721.30	777.45	777.45	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	hover	591	0.08	0.16	2.93	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	definition	591	0.06	0.12	0.59	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	completion	591	5.70	7.02	14.19	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	signatureHelp	591	0.07	0.11	0.45	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	documentSymbol	3	6.13	6.85	6.85	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	semanticTokens	3	10.66	11.66	11.66	nach Flag optional am Feld (erste Messung, keine Baseline davor)

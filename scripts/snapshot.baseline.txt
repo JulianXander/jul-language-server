@@ -3476,8 +3476,8 @@ semanticTokens
   21: 1+10 type(declaration)
   22: 2+8 property(declaration,readonly) 12+2 typeConstructor(defaultLibrary)
   23: 2+11 property(declaration,readonly) 15+2 typeConstructor(defaultLibrary)
-  24: 2+5 property(declaration,readonly) 9+2 typeConstructor(defaultLibrary) 15+4 type
-  25: 2+7 property(declaration,readonly) 11+2 typeConstructor(defaultLibrary) 17+7 type(defaultLibrary)
+  24: 2+5 property(declaration,readonly) 10+4 type
+  25: 2+7 property(declaration,readonly) 12+7 type(defaultLibrary)
   30: 1+15 type(declaration)
   31: 2+11 property(declaration,readonly) 15+2 typeConstructor(defaultLibrary) 21+4 typeConstructor(defaultLibrary) 26+10 type
   32: 2+13 property(declaration,readonly) 17+6 type
@@ -3587,7 +3587,7 @@ semanticTokens
   14:1 definition: kein
   14:1 completion: n=137 Player,Cell,GameBoard
   14:1 signatureHelp: kein
-  21:8 hover: ```jul TypeOf([ rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) value: Or(Empty Cell) enabled: Or(Empty B...
+  21:8 hover: ```jul TypeOf([ rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) value?: Cell enabled?: Boolean ]) ```
   21:8 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:21:1
   21:8 completion: n=137 Player,Cell,GameBoard
   21:8 signatureHelp: kein
@@ -3667,7 +3667,7 @@ semanticTokens
   155:38 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:155:36
   155:38 completion: n=140 Player,Cell,GameBoard
   155:38 signatureHelp: kein
-  161:12 hover: ```jul [ rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) value: Or(Empty Cell) enabled: Or(Empty Boolean)...
+  161:12 hover: ```jul [ rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) value?: Cell enabled?: Boolean ] ```
   161:12 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:159:28
   161:12 completion: n=143 Player,Cell,GameBoard
   161:12 signatureHelp: kein

@@ -87,8 +87,8 @@ describe('references', () => {
 		const code = `MyType = [
 	name: Text
 ]
-Person = [name: Text age: Or([] Integer)]
-Pet = [name: Text species: Or([] Text)]
+Person = [name: Text age?: Integer]
+Pet = [name: Text species?: Text]
 a: MyType = [name = §a§]
 e = a/name
 (name) = a
@@ -167,8 +167,8 @@ f = y/name
 		});
 
 		it('von einer mehrdeutigen Stelle aus werden alle Typfelder umbenannt, die weiteren nur mit Bestätigung', () => {
-			const { documents, referenceIndex } = check(`Person = [name: Text age: Or([] Integer)]
-Pet = [name: Text species: Or([] Text)]
+			const { documents, referenceIndex } = check(`Person = [name: Text age?: Integer]
+Pet = [name: Text species?: Text]
 y: Or(Person Pet) = [name = §Rex§]
 `);
 			const targets = resolveRelatedTargets(getTypeField(documents, 'y', 'name'), referenceIndex);
