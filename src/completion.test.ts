@@ -519,6 +519,10 @@ describe('getValueBeforeCursor', () => {
 		expect(valueBeforeCursor('x = [a = 1]|\n')?.type).to.equal('dictionary');
 	});
 
+	it('erkennt den Cursor hinter einem Zahlenliteral', () => {
+		expect(valueBeforeCursor('x = 5|\n')?.type).to.equal('integer');
+	});
+
 	it('erkennt den Cursor innerhalb der Klammern nicht', () => {
 		expect(valueBeforeCursor('x = [].map(|)\n')).to.equal(undefined);
 	});

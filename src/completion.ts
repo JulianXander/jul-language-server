@@ -339,7 +339,7 @@ export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileT
 
 /**
  * Der Wert, hinter dessen schließender Klammer oder Textbegrenzung der Cursor steht (`f(1)|`,
- * `[]|`, `[a = 1]|`). Dort kann ein Infix-Aufruf mit dem Wert als Präfixargument anschließen
+ * `[]|`, `[a = 1]|`, `5|`). Dort kann ein Infix-Aufruf mit dem Wert als Präfixargument anschließen
  * (`f(1).g()`). Bei einem Aufruf ist das der Aufruf selbst, nicht seine Argumentliste.
  */
 export function getValueBeforeCursor(
@@ -362,6 +362,9 @@ export function getValueBeforeCursor(
 		case 'dictionary':
 		case 'object':
 		case 'text':
+		case 'integer':
+		case 'float':
+		case 'fraction':
 			return expression;
 		default:
 			return undefined;
