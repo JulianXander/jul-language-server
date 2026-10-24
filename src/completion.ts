@@ -338,6 +338,25 @@ export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileT
 }
 
 /**
+ * Einfügetext einer Funktion im Infix-Aufruf (`a.f(...)`): Name samt Klammern. Der Cursor steht in
+ * den Klammern, wenn die Funktion außer dem Präfixargument weitere Parameter hat, sonst dahinter.
+ * `undefined`, wenn der Aufruf schon Klammern hat oder das Symbol keine Funktion ist.
+ */
+export function getInfixCallInsertText(
+	name: string,
+	symbolType: CompileTimeType | undefined,
+	infixFunctionCall: ParseFunctionCall,
+): string | undefined {
+	if (infixFunctionCall.arguments || !isFunctionType(symbolType)) {
+		return undefined;
+	}
+	const paramsType = symbolType.ParamsType;
+	const hasFurtherParameters = isParametersType(paramsType)
+		&& paramsType.singleNames.length > 1;
+	return name.replaceAll('$', '\\$') + (hasFurtherParameters ? '($0)' : '()$0');
+}
+
+/**
  * Ein Feld eines Dictionary-Literals (Wert, nicht Typ) braucht immer einen zugewiesenen Wert -
  * anders als im Dictionary-Typ ist `f1: Integer` ohne `= ...` hier kein gültiger Ausdruck.
  */

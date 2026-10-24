@@ -16,6 +16,7 @@ import {
 	DocumentHighlight,
 	DocumentSymbol,
 	InitializeParams,
+	InsertTextFormat,
 	InitializeResult,
 	Location,
 	ProposedFeatures,
@@ -77,6 +78,7 @@ import {
 	getExpectedPositionKind,
 	getFieldNamePositionKind,
 	getFirstArgumentSymbolFilter,
+	getInfixCallInsertText,
 	getInfixFunctionCall,
 	getLambdaCompletionItem,
 	isTypeSymbol,
@@ -623,7 +625,7 @@ connection.onCompletion(completionParams => {
 
 		// hier wird immer eine Funktion ausgewählt (nie ein Typ) - unabhängig davon, ob
 		// `expression` die Referenz selbst oder der ganze Aufruf ist (siehe getInfixFunctionCall)
-		return symbolsToCompletionItems(allScopes, symbolFilter, 'value');
+		return symbolsToCompletionItems(allScopes, symbolFilter, 'value', infixFunctionCall);
 	}
 	//#endregion infix function call (bei infix function reference)
 
@@ -756,6 +758,7 @@ function symbolsToCompletionItems(
 	scopes: SymbolTable[],
 	symbolFilter?: (symbol: SymbolDefinition, name: string) => boolean,
 	positionKind?: 'type' | 'value',
+	infixFunctionCall?: ParseFunctionCall,
 ): CompletionItem[] {
 	return scopes.flatMap(symbols => {
 		return map(
@@ -777,6 +780,12 @@ function symbolsToCompletionItems(
 					documentation: symbol.description,
 					sortText: sortText,
 				};
+				const infixInsertText = infixFunctionCall
+					&& getInfixCallInsertText(name, symbolType, infixFunctionCall);
+				if (infixInsertText) {
+					completionItem.insertText = infixInsertText;
+					completionItem.insertTextFormat = InsertTextFormat.Snippet;
+				}
 				return completionItem;
 			}).filter(isDefined);
 	});

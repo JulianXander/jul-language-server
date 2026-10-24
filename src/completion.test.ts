@@ -6,7 +6,7 @@ import { builtinInteger, builtinInvalid, ParsedFile, ParseFunctionCall, Position
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { findExpressionInParsedFile } from './symbol-lookup.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
-import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixFunctionCall, getLambdaCompletionItem, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixCallInsertText, getInfixFunctionCall, getLambdaCompletionItem, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -461,6 +461,29 @@ decks.
 		}
 		expect(functionCall.functionExpression).to.equal(undefined);
 		expect(getInfixFunctionCall(functionCall)).to.equal(functionCall);
+	});
+});
+
+describe('getInfixCallInsertText', () => {
+	function insertText(code: string, name: string): string | undefined {
+		const parsed = parse(code);
+		const functionCall = parsed.checked!.expressions!.at(-1);
+		if (functionCall?.type !== 'functionCall') {
+			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);
+		}
+		return getInfixCallInsertText(name, getResolvedType(builtInSymbols[name]!.typeInfo), functionCall);
+	}
+
+	it('setzt den Cursor in die Klammern, wenn weitere Parameter folgen', () => {
+		expect(insertText('[].\n', 'map')).to.equal('map($0)');
+	});
+
+	it('setzt den Cursor hinter die Klammern, wenn nur das Präfixargument übrig ist', () => {
+		expect(insertText('[].\n', 'length')).to.equal('length()$0');
+	});
+
+	it('fügt keine Klammern ein, wenn der Aufruf schon welche hat', () => {
+		expect(insertText('[].map()\n', 'map')).to.equal(undefined);
 	});
 });
 
