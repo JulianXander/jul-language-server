@@ -388,7 +388,7 @@ export function getInfixCallInsertText(
 	}
 	const paramsType = symbolType.ParamsType;
 	const hasFurtherParameters = isParametersType(paramsType)
-		&& paramsType.singleNames.length > 1;
+		&& (paramsType.singleNames.length > 1 || !!paramsType.rest);
 	return (existingCall === 'afterValue' ? '.' : '')
 		+ name.replaceAll('$', '\\$')
 		+ (hasFurtherParameters ? '($0)' : '()$0');

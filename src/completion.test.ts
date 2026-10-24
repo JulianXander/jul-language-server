@@ -482,6 +482,10 @@ describe('getInfixCallInsertText', () => {
 		expect(insertText('[].\n', 'length')).to.equal('length()$0');
 	});
 
+	it('setzt den Cursor auch bei einem Rest-Parameter in die Klammern', () => {
+		expect(insertText('[].\n', 'Concat')).to.equal('Concat($0)');
+	});
+
 	it('fügt hinter einem Wert auch den Punkt ein', () => {
 		const parsed = parse('[]\n');
 		const type = getResolvedType(builtInSymbols['map']!.typeInfo);
