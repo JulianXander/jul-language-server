@@ -16,7 +16,6 @@ import {
 	DocumentHighlight,
 	DocumentSymbol,
 	InitializeParams,
-	InsertTextFormat,
 	InitializeResult,
 	Location,
 	ProposedFeatures,
@@ -42,20 +41,15 @@ import { loadFile, maxTypedFileSize, ProjectHost } from 'jul-compiler/out/compil
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
-	CompileTimeType,
 	ImportedDependency,
 	PositionedExpression,
-	Parameter,
-	ParseDestructuringFields,
 	ParsedFile,
 	ParseFunctionCall,
 	ParseValueExpression,
 	SymbolDefinition,
 	SymbolTable,
-	TextLiteralType,
 } from 'jul-compiler/out/syntax-tree.js';
-import { builtInSymbols, checkTypes, findSymbolInScopesWithBuiltIns, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
-import { isDictionaryLiteralType, isFunctionType, isParameterReference, isParametersType, isTextLiteralType, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
+import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isTestFilePath, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
@@ -69,21 +63,7 @@ import {
 	getRenameEdits,
 	resolveRelatedTargets,
 } from './references.js';
-import {
-	dictionaryTypeToCompletionItems,
-	getFieldReferenceCompletionItems,
-	getArgumentPositionKind,
-	getCompletionSortText,
-	getDictionaryLiteralFieldCompletionItems,
-	getExpectedPositionKind,
-	getFieldNamePositionKind,
-	getFirstArgumentSymbolFilter,
-	getInfixCallInsertText,
-	getInfixFunctionCall,
-	getLambdaCompletionItem,
-	getValueBeforeCursor,
-	isTypeSymbol,
-} from './completion.js';
+import { getCompletionItems } from './completion.js';
 import { getHover } from './hover.js';
 import { getFoldingRanges } from './folding.js';
 import { getSemanticTokens, semanticTokenLegend } from './semantic-tokens.js';
@@ -95,8 +75,6 @@ import {
 	getSymbolDefinition,
 } from './symbol-lookup.js';
 import {
-	getDeclaredResolvedType,
-	getResolvedType,
 	pathToUri,
 	positionedToRange,
 } from './util.js';
@@ -507,8 +485,6 @@ connection.onCompletion(completionParams => {
 
 	// Get symbols from containing scopes
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
-	const positionKind = getExpectedPositionKind(expression)
-		?? getArgumentPositionKind(expression, rowIndex, columnIndex);
 
 	//#region embbeded language
 	const embeddedLanguage = expression?.type === 'text' && expression.language;
@@ -586,226 +562,11 @@ connection.onCompletion(completionParams => {
 			}).filter(isDefined);
 		}
 		//#endregion import path
-
-		//#region Text literal with declared type
-		const declaredType = getDeclaredResolvedType(expression);
-		switch (declaredType?.julType) {
-			case 'textLiteral':
-				return [textLiteralTypeToCompletionItem(declaredType)];
-			case 'or':
-				return declaredType.ChoiceTypes
-					.filter(isTextLiteralType)
-					.map(textLiteralTypeToCompletionItem);
-			default:
-				break;
-		}
-		//#endregion Text literal with declared type
 	}
 
-	// In der core-lib sind die builtInSymbols bereits der unterste Scope,
-	// sonst stünde jeder builtIn Name doppelt in der completion.
-	const allScopes = isCoreLibPath(documentPath)
-		? scopes
-		: [...scopes, builtInSymbols];
-	let symbolFilter: ((symbol: SymbolDefinition, name: string) => boolean) | undefined = undefined;
-	const lambdaCompletionItems = [getLambdaCompletionItem(expression, rowIndex, columnIndex, allScopes)].filter(isDefined);
-	//#region infix function call (bei infix function reference)
-	const infixFunctionCall = getInfixFunctionCall(expression);
-	if (infixFunctionCall) {
-		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.typeInfo!.type;
-		let prefixArgumentType: CompileTimeType | undefined;
-		if (isParameterReference(prefixArgumentTypeRaw)) {
-			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
-			prefixArgumentType = dereferenced?.symbol.typeInfo?.type;
-		}
-		else {
-			prefixArgumentType = prefixArgumentTypeRaw;
-		}
-
-		symbolFilter = getFirstArgumentSymbolFilter(prefixArgumentType);
-
-		// hier wird immer eine Funktion ausgewählt (nie ein Typ) - unabhängig davon, ob
-		// `expression` die Referenz selbst oder der ganze Aufruf ist (siehe getInfixFunctionCall)
-		return symbolsToCompletionItems(allScopes, symbolFilter, 'value', infixFunctionCall);
-	}
-	//#endregion infix function call (bei infix function reference)
-
-	//#region infix function call hinter einem Wert
-	const valueBeforeCursor = getValueBeforeCursor(expression, rowIndex, columnIndex);
-	if (valueBeforeCursor) {
-		const resultType = getResolvedType('typeInfo' in valueBeforeCursor ? valueBeforeCursor.typeInfo : undefined);
-		return symbolsToCompletionItems(
-			allScopes,
-			(symbol, name) => isFunctionType(getResolvedType(symbol.typeInfo))
-				&& getFirstArgumentSymbolFilter(resultType)(symbol),
-			'value',
-			'afterValue');
-	}
-	//#endregion infix function call hinter einem Wert
-
-	//#region / field reference
-	if (expression?.type === 'nestedReference') {
-		const dereferencedType = getResolvedType(expression.source?.typeInfo);
-		return dereferencedType && getFieldReferenceCompletionItems(dereferencedType);
-	}
-	//#endregion / field reference
-
-	//#region dictionary literal field
-	const dictionaryLiteralFieldCompletionItems = getDictionaryLiteralFieldCompletionItems(expression);
-	if (dictionaryLiteralFieldCompletionItems) {
-		switch (getFieldNamePositionKind(expression)) {
-			case 'exclusive':
-				return dictionaryLiteralFieldCompletionItems;
-			case 'mixed':
-				// positionale Argumente sind der Normalfall, die Feldnamen kommen dahinter
-				return [
-					...lambdaCompletionItems,
-					...symbolsToCompletionItems(allScopes, undefined, positionKind),
-					...dictionaryLiteralFieldCompletionItems.map(completionItem => ({
-						...completionItem,
-						sortText: '2' + (completionItem.sortText ?? completionItem.label),
-					})),
-				];
-			case 'none':
-				break;
-		}
-	}
-	//#endregion dictionary literal field
-
-	//#region destructuring definition field
-	let destructuringFields: ParseDestructuringFields | undefined;
-	if (expression?.type === 'destructuringFields') {
-		destructuringFields = expression;
-	}
-	if (expression?.parent?.type === 'destructuringFields') {
-		destructuringFields = expression.parent;
-	}
-	if (expression?.parent?.parent?.type === 'destructuringFields'
-		&& expression.parent.type === 'destructuringField'
-		&& expression === expression.parent.name
-	) {
-		destructuringFields = expression.parent.parent;
-	}
-	if (destructuringFields) {
-		const destructuring = destructuringFields.parent;
-		if (destructuring?.type === 'destructuring') {
-			const destructuredValue = destructuring.value;
-			// schon definierte Felder ausschließen
-			symbolFilter = (symbol, name) => {
-				return !destructuring.fields.symbols[name];
-			};
-			switch (destructuredValue?.type) {
-				case 'dictionary':
-				case 'dictionaryType':
-					return symbolsToCompletionItems([destructuredValue.symbols], symbolFilter, positionKind);
-				default: {
-					const dereferencedType = getResolvedType(destructuredValue?.typeInfo);
-					if (isDictionaryLiteralType(dereferencedType)) {
-						const allCompletionItems = dictionaryTypeToCompletionItems(dereferencedType.FieldTypes);
-						// schon definierte Felder ausschließen
-						const filtered = allCompletionItems.filter(completionItem => {
-							return !destructuring.fields.symbols[completionItem.label];
-						});
-						return filtered;
-					}
-					return [];
-				}
-			}
-		}
-	}
-	//#endregion destructuring definition field
-
-	//#region function literal parameter name
-	if (expression?.type === 'parameters') {
-		const innerParamsType = getDeclaredResolvedType(expression);
-		if (isParametersType(innerParamsType)) {
-			const completionItems: CompletionItem[] = [];
-			innerParamsType.singleNames.forEach((singleName, index) => {
-				const isAlreadyDeclared = expression.singleFields.some(declaredParameter =>
-					declaredParameter.source?.name === singleName.name
-					|| (!declaredParameter.source && declaredParameter.name.name === singleName.name));
-				if (!isAlreadyDeclared) {
-					completionItems.push(parameterToCompletionItem(singleName, index, false));
-				}
-			});
-			if (innerParamsType.rest && !expression.rest) {
-				completionItems.push(parameterToCompletionItem(innerParamsType.rest, innerParamsType.singleNames.length, true));
-			}
-			return completionItems;
-		}
-	}
-	//#endregion function literal parameter name
-
-	return [
-		...lambdaCompletionItems,
-		...symbolsToCompletionItems(allScopes, undefined, positionKind),
-	];
+	return getCompletionItems(expression, scopes, rowIndex, columnIndex, isCoreLibPath(documentPath));
 });
 
-//#region create CompletionItems
-
-function parameterToCompletionItem(parameter: Parameter, index: number, isRest: boolean): CompletionItem {
-	const completionItem: CompletionItem = {
-		label: (isRest ? '...' : '') + parameter.name,
-		kind: CompletionItemKind.Constant,
-		detail: parameter.type
-			? typeToString(parameter.type, 0, 0)
-			: undefined,
-		// documentation: parameter.description,
-		sortText: '' + index,
-	};
-	return completionItem;
-}
-
-function textLiteralTypeToCompletionItem(value: TextLiteralType): CompletionItem {
-	const completionItem: CompletionItem = {
-		label: value.value,
-		kind: CompletionItemKind.Constant,
-		// kind: CompletionItemKind.Text,
-		// detail: typeToString(value, 0),
-		// documentation: symbol.description,
-	};
-	return completionItem;
-}
-
-function symbolsToCompletionItems(
-	scopes: SymbolTable[],
-	symbolFilter?: (symbol: SymbolDefinition, name: string) => boolean,
-	positionKind?: 'type' | 'value',
-	infixFunctionCall?: ParseFunctionCall | 'afterValue',
-): CompletionItem[] {
-	return scopes.flatMap(symbols => {
-		return map(
-			symbols,
-			(symbol, name) => {
-				const showSymbol = symbolFilter?.(symbol, name) ?? true;
-				if (!showSymbol) {
-					return undefined;
-				}
-				const symbolType = getResolvedType(symbol.typeInfo);
-				const isFunction = isFunctionType(symbolType);
-				const sortText = getCompletionSortText(name, isTypeSymbol(symbolType), positionKind);
-				const completionItem: CompletionItem = {
-					label: name,
-					kind: isFunction
-						? CompletionItemKind.Function
-						: CompletionItemKind.Constant,
-					detail: symbolType && typeToString(symbolType, 0, 0),
-					documentation: symbol.description,
-					sortText: sortText,
-				};
-				const infixInsertText = infixFunctionCall
-					&& getInfixCallInsertText(name, symbolType, infixFunctionCall);
-				if (infixInsertText) {
-					completionItem.insertText = infixInsertText;
-					completionItem.insertTextFormat = InsertTextFormat.Snippet;
-				}
-				return completionItem;
-			}).filter(isDefined);
-	});
-}
-
-//#endregion create CompletionItems
 
 // This handler resolves additional information for the item selected in
 // the completion list.

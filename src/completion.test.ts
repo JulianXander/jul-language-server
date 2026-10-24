@@ -6,7 +6,7 @@ import { builtinInteger, builtinInvalid, ParsedFile, ParseFunctionCall, Position
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { findExpressionInParsedFile } from './symbol-lookup.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
-import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getValueBeforeCursor, getInfixCallInsertText, getInfixFunctionCall, getLambdaCompletionItem, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getCompletionItems, getValueBeforeCursor, getInfixCallInsertText, getInfixFunctionCall, getLambdaCompletionItem, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -494,6 +494,38 @@ describe('getInfixCallInsertText', () => {
 
 	it('fügt keine Klammern ein, wenn der Aufruf schon welche hat', () => {
 		expect(insertText('[].map()\n', 'map')).to.equal(undefined);
+	});
+});
+
+describe('getCompletionItems', () => {
+	/** `|` markiert die Cursorposition und wird entfernt */
+	function completionItems(codeWithCursor: string) {
+		const lines = codeWithCursor.split('\n');
+		const rowIndex = lines.findIndex(line => line.includes('|'));
+		const columnIndex = lines[rowIndex]!.indexOf('|');
+		const parsed = parse(codeWithCursor.replace('|', ''));
+		const { expression, scopes } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
+		return getCompletionItems(expression, scopes, rowIndex, columnIndex, false) ?? [];
+	}
+
+	it('fügt hinter einem Wert Funktionen samt Punkt und Klammern ein', () => {
+		const mapItem = completionItems('x = []|\n').find(item => item.label === 'map');
+		expect(mapItem?.insertText).to.equal('.map($0)');
+	});
+
+	it('bietet hinter einem Wert nur Funktionen an', () => {
+		const items = completionItems('a = 1\nx = []|\n');
+		expect(items.some(item => item.label === 'a')).to.equal(false);
+	});
+
+	it('fügt nach dem Punkt Name und Klammern ein', () => {
+		const mapItem = completionItems('x = [].|\n').find(item => item.label === 'map');
+		expect(mapItem?.insertText).to.equal('map($0)');
+	});
+
+	it('bietet an einer normalen Stelle Namen ohne Snippet an', () => {
+		const aItem = completionItems('a = 1\nx = |\n').find(item => item.label === 'a');
+		expect(aItem?.insertText).to.equal(undefined);
 	});
 });
 

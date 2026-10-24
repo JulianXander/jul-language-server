@@ -1,15 +1,18 @@
 import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
-import { dereferenceNameFromObject, getStreamGetValueType, isFunctionType, isListType, isParametersType, isSubtypeOf, isTupleType, isTypeOfType, resolveAlias, resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
+import { dereferenceNameFromObject, getStreamGetValueType, isDictionaryLiteralType, isFunctionType, isListType, isParameterReference, isParametersType, isSubtypeOf, isTextLiteralType, isTupleType, isTypeOfType, resolveAlias, resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import {
 	CompileTimeDictionary,
 	CompileTimeType,
 	Parameter,
+	ParseDestructuringFields,
 	ParseFunctionCall,
 	PositionedExpression,
 	SymbolDefinition,
 	SymbolTable,
+	TextLiteralType,
 } from 'jul-compiler/out/syntax-tree.js';
-import { map } from 'jul-compiler/out/util.js';
+import { builtInSymbols, findSymbolInScopesWithBuiltIns } from 'jul-compiler/out/checker/checker.js';
+import { isDefined, map } from 'jul-compiler/out/util.js';
 import { getDeclaredResolvedType, getParameterIndex, getResolvedType } from './util.js';
 
 /**
@@ -594,3 +597,219 @@ function getTypePropertyNames(type: CompileTimeType): string[] {
 			return [];
 	}
 }
+
+//#region getCompletionItems
+
+function textLiteralTypeToCompletionItem(value: TextLiteralType): CompletionItem {
+	const completionItem: CompletionItem = {
+		label: value.value,
+		kind: CompletionItemKind.Constant,
+	};
+	return completionItem;
+}
+
+/**
+ * @param infixFunctionCall der schon getippte Infix-Aufruf, oder `'afterValue'` hinter einem Wert
+ * ohne Punkt: Funktionen werden dann samt Klammern (und Punkt) als Snippet eingefügt.
+ */
+function symbolsToCompletionItems(
+	scopes: SymbolTable[],
+	symbolFilter?: (symbol: SymbolDefinition, name: string) => boolean,
+	positionKind?: 'type' | 'value',
+	infixFunctionCall?: ParseFunctionCall | 'afterValue',
+): CompletionItem[] {
+	return scopes.flatMap(symbols => {
+		return map(
+			symbols,
+			(symbol, name) => {
+				const showSymbol = symbolFilter?.(symbol, name) ?? true;
+				if (!showSymbol) {
+					return undefined;
+				}
+				const symbolType = getResolvedType(symbol.typeInfo);
+				const isFunction = isFunctionType(symbolType);
+				const sortText = getCompletionSortText(name, isTypeSymbol(symbolType), positionKind);
+				const completionItem: CompletionItem = {
+					label: name,
+					kind: isFunction
+						? CompletionItemKind.Function
+						: CompletionItemKind.Constant,
+					detail: symbolType && typeToString(symbolType, 0, 0),
+					documentation: symbol.description,
+					sortText: sortText,
+				};
+				const infixInsertText = infixFunctionCall
+					&& getInfixCallInsertText(name, symbolType, infixFunctionCall);
+				if (infixInsertText) {
+					completionItem.insertText = infixInsertText;
+					completionItem.insertTextFormat = InsertTextFormat.Snippet;
+				}
+				return completionItem;
+			}).filter(isDefined);
+	});
+}
+
+/**
+ * Die Completion-Items an einer Position, ohne Dateisystem und LSP-Verbindung. Nicht enthalten sind
+ * die eingebettete Sprache (html) und Importpfade, die brauchen Dokument bzw. Dateisystem.
+ * @param isCoreLib in der core-lib sind die builtInSymbols bereits der unterste Scope,
+ * sonst stünde jeder builtIn Name doppelt in der completion.
+ */
+export function getCompletionItems(
+	expression: PositionedExpression | undefined,
+	scopes: SymbolTable[],
+	rowIndex: number,
+	columnIndex: number,
+	isCoreLib: boolean,
+): CompletionItem[] | undefined {
+	const positionKind = getExpectedPositionKind(expression)
+		?? getArgumentPositionKind(expression, rowIndex, columnIndex);
+
+	//#region Text literal with declared type
+	if (expression?.type === 'text') {
+		const declaredType = getDeclaredResolvedType(expression);
+		switch (declaredType?.julType) {
+			case 'textLiteral':
+				return [textLiteralTypeToCompletionItem(declaredType)];
+			case 'or':
+				return declaredType.ChoiceTypes
+					.filter(isTextLiteralType)
+					.map(textLiteralTypeToCompletionItem);
+			default:
+				break;
+		}
+	}
+	//#endregion Text literal with declared type
+
+	const allScopes = isCoreLib
+		? scopes
+		: [...scopes, builtInSymbols];
+	const lambdaCompletionItems = [getLambdaCompletionItem(expression, rowIndex, columnIndex, allScopes)].filter(isDefined);
+
+	//#region infix function call (bei infix function reference)
+	const infixFunctionCall = getInfixFunctionCall(expression);
+	if (infixFunctionCall) {
+		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.typeInfo!.type;
+		let prefixArgumentType: CompileTimeType | undefined;
+		if (isParameterReference(prefixArgumentTypeRaw)) {
+			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
+			prefixArgumentType = dereferenced?.symbol.typeInfo?.type;
+		}
+		else {
+			prefixArgumentType = prefixArgumentTypeRaw;
+		}
+		// hier wird immer eine Funktion ausgewählt (nie ein Typ) - unabhängig davon, ob
+		// `expression` die Referenz selbst oder der ganze Aufruf ist (siehe getInfixFunctionCall)
+		return symbolsToCompletionItems(allScopes, getFirstArgumentSymbolFilter(prefixArgumentType), 'value', infixFunctionCall);
+	}
+	//#endregion infix function call (bei infix function reference)
+
+	//#region infix function call hinter einem Wert
+	const valueBeforeCursor = getValueBeforeCursor(expression, rowIndex, columnIndex);
+	if (valueBeforeCursor) {
+		const resultType = getResolvedType('typeInfo' in valueBeforeCursor ? valueBeforeCursor.typeInfo : undefined);
+		const isInfixCandidate = getFirstArgumentSymbolFilter(resultType);
+		return symbolsToCompletionItems(
+			allScopes,
+			symbol => isFunctionType(getResolvedType(symbol.typeInfo)) && isInfixCandidate(symbol),
+			'value',
+			'afterValue');
+	}
+	//#endregion infix function call hinter einem Wert
+
+	//#region / field reference
+	if (expression?.type === 'nestedReference') {
+		const dereferencedType = getResolvedType(expression.source?.typeInfo);
+		return dereferencedType && getFieldReferenceCompletionItems(dereferencedType);
+	}
+	//#endregion / field reference
+
+	//#region dictionary literal field
+	const dictionaryLiteralFieldCompletionItems = getDictionaryLiteralFieldCompletionItems(expression);
+	if (dictionaryLiteralFieldCompletionItems) {
+		switch (getFieldNamePositionKind(expression)) {
+			case 'exclusive':
+				return dictionaryLiteralFieldCompletionItems;
+			case 'mixed':
+				// positionale Argumente sind der Normalfall, die Feldnamen kommen dahinter
+				return [
+					...lambdaCompletionItems,
+					...symbolsToCompletionItems(allScopes, undefined, positionKind),
+					...dictionaryLiteralFieldCompletionItems.map(completionItem => ({
+						...completionItem,
+						sortText: '2' + (completionItem.sortText ?? completionItem.label),
+					})),
+				];
+			case 'none':
+				break;
+		}
+	}
+	//#endregion dictionary literal field
+
+	//#region destructuring definition field
+	let destructuringFields: ParseDestructuringFields | undefined;
+	if (expression?.type === 'destructuringFields') {
+		destructuringFields = expression;
+	}
+	if (expression?.parent?.type === 'destructuringFields') {
+		destructuringFields = expression.parent;
+	}
+	if (expression?.parent?.parent?.type === 'destructuringFields'
+		&& expression.parent.type === 'destructuringField'
+		&& expression === expression.parent.name
+	) {
+		destructuringFields = expression.parent.parent;
+	}
+	if (destructuringFields) {
+		const destructuring = destructuringFields.parent;
+		if (destructuring?.type === 'destructuring') {
+			const destructuredValue = destructuring.value;
+			// schon definierte Felder ausschließen
+			const isNotDefinedYet = (symbol: SymbolDefinition, name: string) => {
+				return !destructuring.fields.symbols[name];
+			};
+			switch (destructuredValue?.type) {
+				case 'dictionary':
+				case 'dictionaryType':
+					return symbolsToCompletionItems([destructuredValue.symbols], isNotDefinedYet, positionKind);
+				default: {
+					const dereferencedType = getResolvedType(destructuredValue?.typeInfo);
+					if (isDictionaryLiteralType(dereferencedType)) {
+						return dictionaryTypeToCompletionItems(dereferencedType.FieldTypes)
+							.filter(completionItem => !destructuring.fields.symbols[completionItem.label]);
+					}
+					return [];
+				}
+			}
+		}
+	}
+	//#endregion destructuring definition field
+
+	//#region function literal parameter name
+	if (expression?.type === 'parameters') {
+		const innerParamsType = getDeclaredResolvedType(expression);
+		if (isParametersType(innerParamsType)) {
+			const completionItems: CompletionItem[] = [];
+			innerParamsType.singleNames.forEach((singleName, index) => {
+				const isAlreadyDeclared = expression.singleFields.some(declaredParameter =>
+					declaredParameter.source?.name === singleName.name
+					|| (!declaredParameter.source && declaredParameter.name.name === singleName.name));
+				if (!isAlreadyDeclared) {
+					completionItems.push(parameterToCompletionItem(singleName, index, false));
+				}
+			});
+			if (innerParamsType.rest && !expression.rest) {
+				completionItems.push(parameterToCompletionItem(innerParamsType.rest, innerParamsType.singleNames.length, true));
+			}
+			return completionItems;
+		}
+	}
+	//#endregion function literal parameter name
+
+	return [
+		...lambdaCompletionItems,
+		...symbolsToCompletionItems(allScopes, undefined, positionKind),
+	];
+}
+
+//#endregion getCompletionItems

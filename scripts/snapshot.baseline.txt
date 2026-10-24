@@ -94,7 +94,7 @@ semanticTokens
   38:1 signatureHelp: kein
   43:2 hover: ```jul [ field1: Integer someOtherField: Text function: () :> Text ] ```
   43:2 definition: kein
-  43:2 completion: n=3 field1,someOtherField,function
+  43:2 completion: n=50 List,And,Or
   43:2 signatureHelp: kein
   49:5 hover: ```jul ( par1: MyType par2: Integer ) -> Empty ``` description for myFn (symbol and function)
   49:5 definition: autocomplete.jul:22:1
@@ -365,7 +365,7 @@ semanticTokens
   31:20 signatureHelp: kein
   35:4 hover: kein
   35:4 definition: kein
-  35:4 completion: n=124 myVal,myEmpty,myList
+  35:4 completion: n=38 myFunction,List,And
   35:4 signatureHelp: kein
   37:19 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
   37:19 definition: jul-core-lib:/core-lib.jul:86:1
@@ -373,7 +373,7 @@ semanticTokens
   37:19 signatureHelp: kein
   41:8 hover: kein
   41:8 definition: kein
-  41:8 completion: n=124 myVal,myEmpty,myList
+  41:8 completion: n=38 myFunction,List,And
   41:8 signatureHelp: kein
   43:14 hover: kein
   43:14 definition: kein
@@ -1387,7 +1387,7 @@ semanticTokens
   5:5 signatureHelp: kein
   6:6 hover: kein
   6:6 definition: kein
-  6:6 completion: n=124 divisibleBy,fizzBuzz,index
+  6:6 completion: n=41 List,And,Or
   6:6 signatureHelp: kein
   7:19 hover: ```jul And(PositiveInteger Not(1)) ```
   7:19 definition: fizz-buzz/fizz-buzz-recursive.jul:4:13
@@ -1661,7 +1661,7 @@ semanticTokens
   53:1 signatureHelp: (...restParameter: Any) ~> Empty param=0
   60:20 hover: kein
   60:20 definition: kein
-  60:20 completion: n=135 myFunction,myList,MyType
+  60:20 completion: n=39 myFunction,myFunction4,List
   60:20 signatureHelp: kein
   64:28 hover: ```jul TypeOf(Boolean) ``` true or false
   64:28 definition: jul-core-lib:/core-lib.jul:79:1
@@ -2477,7 +2477,7 @@ semanticTokens
   32:11 signatureHelp: kein
   35:10 hover: kein
   35:10 definition: kein
-  35:10 completion: n=129 BlubType,typeFnShort,typeFnLong
+  35:10 completion: n=37 List,And,Or
   35:10 signatureHelp: kein
   37:7 hover: kein
   37:7 definition: kein
@@ -2937,7 +2937,7 @@ semanticTokens
   74:18 signatureHelp: kein
   79:14 hover: kein
   79:14 definition: kein
-  79:14 completion: n=135 appendHtml,elementById,findElement
+  79:14 completion: n=49 findElement,onClick,onDialogClose
   79:14 signatureHelp: kein
   82:7 hover: kein
   82:7 definition: kein
