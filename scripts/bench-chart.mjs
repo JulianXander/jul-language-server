@@ -13,6 +13,8 @@ const cellWidth = 340;
 const cellHeight = 190;
 const columnCount = 2;
 const padding = { top: 40, right: 16, bottom: 46, left: 52 };
+/** Je Diagramm werden nur die letzten Messungen gezeichnet, ältere verwässern den aktuellen Verlauf */
+const maxPointCount = 10;
 
 function parseArgs(argv) {
 	const getValue = name => {
@@ -56,7 +58,8 @@ function escapeText(text) {
 }
 
 /** ein Diagramm, x nach Position im Protokoll, nicht nach Datum: Messungen sind ungleich verteilt */
-function renderCell(label, entries, offsetX, offsetY) {
+function renderCell(label, allEntries, offsetX, offsetY) {
+	const entries = allEntries.slice(-maxPointCount);
 	const plotWidth = cellWidth - padding.left - padding.right;
 	const plotHeight = cellHeight - padding.top - padding.bottom;
 	const maxValue = Math.max(...entries.map(entry => entry.median)) * 1.15 || 1;
@@ -129,7 +132,7 @@ else {
 		const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" font-family="sans-serif">`
 			+ `<rect width="${width}" height="${height}" fill="#1e1e1e"/>`
 			+ `<text x="${padding.left}" y="22" font-size="13" font-weight="bold" fill="#e8e8e8">${escapeText(`${chosenTarget} auf ${machine}`)}</text>`
-			+ `<text x="${width - 12}" y="22" text-anchor="end" font-size="10" fill="#999">${Math.round(measurementCount)} Messungen, Median in ms</text>`
+			+ `<text x="${width - 12}" y="22" text-anchor="end" font-size="10" fill="#999">${Math.min(Math.round(measurementCount), maxPointCount)} von ${Math.round(measurementCount)} Messungen, Median in ms</text>`
 			+ cells
 			+ '</svg>';
 		const chartPath = outPath
