@@ -338,22 +338,57 @@ export function getDictionaryFieldCompletionItemsFromType(declaredType: CompileT
 }
 
 /**
+ * Der Wert, hinter dessen schließender Klammer oder Textbegrenzung der Cursor steht (`f(1)|`,
+ * `[]|`, `[a = 1]|`). Dort kann ein Infix-Aufruf mit dem Wert als Präfixargument anschließen
+ * (`f(1).g()`). Bei einem Aufruf ist das der Aufruf selbst, nicht seine Argumentliste.
+ */
+export function getValueBeforeCursor(
+	expression: PositionedExpression | undefined,
+	rowIndex: number,
+	columnIndex: number,
+): PositionedExpression | undefined {
+	if (!expression
+		|| expression.endRowIndex !== rowIndex
+		|| expression.endColumnIndex !== columnIndex) {
+		return undefined;
+	}
+	const parent = expression.parent;
+	if (parent?.type === 'functionCall' && parent.arguments === expression) {
+		return parent;
+	}
+	switch (expression.type) {
+		case 'empty':
+		case 'list':
+		case 'dictionary':
+		case 'object':
+		case 'text':
+			return expression;
+		default:
+			return undefined;
+	}
+}
+
+/**
  * Einfügetext einer Funktion im Infix-Aufruf (`a.f(...)`): Name samt Klammern. Der Cursor steht in
  * den Klammern, wenn die Funktion außer dem Präfixargument weitere Parameter hat, sonst dahinter.
+ * `existingCall` ist der schon getippte Infix-Aufruf (Punkt steht), `'afterValue'` der Cursor
+ * hinter einem Wert ohne Punkt, dann gehört der Punkt mit in den Einfügetext.
  * `undefined`, wenn der Aufruf schon Klammern hat oder das Symbol keine Funktion ist.
  */
 export function getInfixCallInsertText(
 	name: string,
 	symbolType: CompileTimeType | undefined,
-	infixFunctionCall: ParseFunctionCall,
+	existingCall: ParseFunctionCall | 'afterValue',
 ): string | undefined {
-	if (infixFunctionCall.arguments || !isFunctionType(symbolType)) {
+	if (existingCall !== 'afterValue' && existingCall.arguments || !isFunctionType(symbolType)) {
 		return undefined;
 	}
 	const paramsType = symbolType.ParamsType;
 	const hasFurtherParameters = isParametersType(paramsType)
 		&& paramsType.singleNames.length > 1;
-	return name.replaceAll('$', '\\$') + (hasFurtherParameters ? '($0)' : '()$0');
+	return (existingCall === 'afterValue' ? '.' : '')
+		+ name.replaceAll('$', '\\$')
+		+ (hasFurtherParameters ? '($0)' : '()$0');
 }
 
 /**

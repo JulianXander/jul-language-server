@@ -81,6 +81,7 @@ import {
 	getInfixCallInsertText,
 	getInfixFunctionCall,
 	getLambdaCompletionItem,
+	getValueBeforeCursor,
 	isTypeSymbol,
 } from './completion.js';
 import { getHover } from './hover.js';
@@ -629,6 +630,19 @@ connection.onCompletion(completionParams => {
 	}
 	//#endregion infix function call (bei infix function reference)
 
+	//#region infix function call hinter einem Wert
+	const valueBeforeCursor = getValueBeforeCursor(expression, rowIndex, columnIndex);
+	if (valueBeforeCursor) {
+		const resultType = getResolvedType('typeInfo' in valueBeforeCursor ? valueBeforeCursor.typeInfo : undefined);
+		return symbolsToCompletionItems(
+			allScopes,
+			(symbol, name) => isFunctionType(getResolvedType(symbol.typeInfo))
+				&& getFirstArgumentSymbolFilter(resultType)(symbol),
+			'value',
+			'afterValue');
+	}
+	//#endregion infix function call hinter einem Wert
+
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
 		const dereferencedType = getResolvedType(expression.source?.typeInfo);
@@ -758,7 +772,7 @@ function symbolsToCompletionItems(
 	scopes: SymbolTable[],
 	symbolFilter?: (symbol: SymbolDefinition, name: string) => boolean,
 	positionKind?: 'type' | 'value',
-	infixFunctionCall?: ParseFunctionCall,
+	infixFunctionCall?: ParseFunctionCall | 'afterValue',
 ): CompletionItem[] {
 	return scopes.flatMap(symbols => {
 		return map(

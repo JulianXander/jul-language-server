@@ -6,7 +6,7 @@ import { builtinInteger, builtinInvalid, ParsedFile, ParseFunctionCall, Position
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { findExpressionInParsedFile } from './symbol-lookup.js';
 import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
-import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getInfixCallInsertText, getInfixFunctionCall, getLambdaCompletionItem, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
+import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getValueBeforeCursor, getInfixCallInsertText, getInfixFunctionCall, getLambdaCompletionItem, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
@@ -482,8 +482,45 @@ describe('getInfixCallInsertText', () => {
 		expect(insertText('[].\n', 'length')).to.equal('length()$0');
 	});
 
+	it('fügt hinter einem Wert auch den Punkt ein', () => {
+		const parsed = parse('[]\n');
+		const type = getResolvedType(builtInSymbols['map']!.typeInfo);
+		expect(getInfixCallInsertText('map', type, 'afterValue')).to.equal('.map($0)');
+	});
+
 	it('fügt keine Klammern ein, wenn der Aufruf schon welche hat', () => {
 		expect(insertText('[].map()\n', 'map')).to.equal(undefined);
+	});
+});
+
+describe('getValueBeforeCursor', () => {
+	/** `|` markiert die Cursorposition und wird entfernt */
+	function valueBeforeCursor(codeWithCursor: string) {
+		const rowIndex = codeWithCursor.split('\n').findIndex(line => line.includes('|'));
+		const columnIndex = codeWithCursor.split('\n')[rowIndex]!.indexOf('|');
+		const parsed = parse(codeWithCursor.replace('|', ''));
+		const { expression } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
+		return getValueBeforeCursor(expression, rowIndex, columnIndex);
+	}
+
+	it('erkennt den Cursor hinter der Klammer eines Aufrufs ohne Argumente', () => {
+		expect(valueBeforeCursor('x = [].map()|\n')?.type).to.equal('functionCall');
+	});
+
+	it('erkennt den Cursor hinter der Klammer eines Aufrufs mit Argumenten', () => {
+		expect(valueBeforeCursor('f = (a: Integer) :> Integer => a\nx = f(1)|\n')?.type).to.equal('functionCall');
+	});
+
+	it('erkennt den Cursor hinter einem leeren Wert', () => {
+		expect(valueBeforeCursor('[]|\n')?.type).to.equal('empty');
+	});
+
+	it('erkennt den Cursor hinter einem Dictionary', () => {
+		expect(valueBeforeCursor('x = [a = 1]|\n')?.type).to.equal('dictionary');
+	});
+
+	it('erkennt den Cursor innerhalb der Klammern nicht', () => {
+		expect(valueBeforeCursor('x = [].map(|)\n')).to.equal(undefined);
 	});
 });
 
