@@ -1489,7 +1489,7 @@ semanticTokens
   14:8 definition: kein
   14:8 completion: n=123 divisibleBy,index,message
   14:8 signatureHelp: kein
-  15:8 hover: ```jul Or(§FizzBuzz§ §Buzz§ §Fizz§ And(And(LessInteger(100) GreaterInteger(0)) Not(Or(divisibleBy(15...
+  15:8 hover: ```jul Or(§FizzBuzz§ §Buzz§ §Fizz§ And(LessInteger(100) GreaterInteger(0) Not(Or(divisibleBy(15) div...
   15:8 definition: fizz-buzz/fizz-buzz.jul:10:3
   15:8 completion: n=123 divisibleBy,index,message
   15:8 signatureHelp: kein
