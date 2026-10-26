@@ -66,6 +66,7 @@ import {
 import { getCompletionItems } from './completion.js';
 import { getHover } from './hover.js';
 import { getFoldingRanges } from './folding.js';
+import { getDocumentFormattingEdits, getOnTypeFormattingEdits } from './formatting.js';
 import { getSemanticTokens, semanticTokenLegend } from './semantic-tokens.js';
 import { getSignatureHelp } from './signature-help.js';
 import { DiscoveredTest, findTests } from './test-discovery.js';
@@ -177,6 +178,10 @@ connection.onInitialize((params: InitializeParams) => {
 			},
 			definitionProvider: true,
 			documentHighlightProvider: true,
+			documentFormattingProvider: true,
+			documentOnTypeFormattingProvider: {
+				firstTriggerCharacter: '\n',
+			},
 			foldingRangeProvider: true,
 			documentSymbolProvider: true,
 			hoverProvider: true,
@@ -602,6 +607,31 @@ connection.onFoldingRanges(params => {
 	const rows = documents.get(params.textDocument.uri)?.getText().split('\n') ?? [];
 	return getFoldingRanges(getParsedFileByUri(params.textDocument.uri), rows);
 });
+
+//#region formatting
+connection.onDocumentFormatting(params => {
+	const code = documents.get(params.textDocument.uri)?.getText();
+	if (code === undefined || !isJulUri(params.textDocument.uri)) {
+		return [];
+	}
+	return getDocumentFormattingEdits(code, uriToPath(params.textDocument.uri));
+});
+
+connection.onDocumentOnTypeFormatting(params => {
+	const code = documents.get(params.textDocument.uri)?.getText();
+	if (code === undefined || !isJulUri(params.textDocument.uri)) {
+		return [];
+	}
+	return getOnTypeFormattingEdits(code, uriToPath(params.textDocument.uri), params.position);
+});
+
+/**
+ * Der Formatter kennt nur die Syntax von .jul, eingebundene .json/.yaml/.ts bleiben unberührt.
+ */
+function isJulUri(uri: string): boolean {
+	return extname(uriToPath(uri)) === '.jul';
+}
+//#endregion formatting
 
 //#region tests
 /**
