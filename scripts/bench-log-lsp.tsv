@@ -299,3 +299,27 @@
 2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	signatureHelp	591	0.07	0.11	0.45	nach Flag optional am Feld (erste Messung, keine Baseline davor)
 2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	documentSymbol	3	6.13	6.85	6.85	nach Flag optional am Feld (erste Messung, keine Baseline davor)
 2026-10-24 16:08:17	a24b7ca+	jul-compiler 3accd19+	ADV-DEV-56627	yugioh	semanticTokens	3	10.66	11.66	11.66	nach Flag optional am Feld (erste Messung, keine Baseline davor)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	15.13	200.19	1695.71	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	295.37	306.59	306.59	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	255.21	264.77	264.77	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	829.77	1105.84	1105.84	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	283.21	294.15	294.15	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	692.15	716.80	716.80	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	hover	597	0.08	0.17	0.68	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	definition	597	0.06	0.10	0.34	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	completion	597	4.85	6.03	11.39	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	signatureHelp	597	0.06	0.09	0.32	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	documentSymbol	3	5.87	6.61	6.61	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:11:41	8dba22a	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	semanticTokens	3	8.72	9.31	9.31	vor Is-Vertrag (Prädikate aus Aufrufen)
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	14.97	214.71	1751.21	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	306.74	335.20	335.20	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	258.05	270.50	270.50	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	836.26	1003.38	1003.38	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	279.08	279.29	279.29	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	700.95	717.06	717.06	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	hover	597	0.09	0.20	7.40	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	definition	597	0.07	0.15	0.36	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	completion	597	5.06	6.27	8.57	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	signatureHelp	597	0.06	0.12	0.60	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	documentSymbol	3	5.38	7.00	7.00	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	semanticTokens	3	9.31	10.03	10.03	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
