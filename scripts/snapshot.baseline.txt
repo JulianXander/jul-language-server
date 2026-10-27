@@ -478,7 +478,7 @@ semanticTokens
   9:7 definition: jul-core-lib:/core-lib.jul:2:1
   9:7 completion: n=128 timer1$,progress$,value
   9:7 signatureHelp: kein
-  10:20 hover: ```jul Integer ```
+  10:20 hover: ```jul And(Integer Not(GreaterInteger(100))) ```
   10:20 definition: console-progress/console-progress.jul:4:3
   10:20 completion: n=128 timer1$,progress$,value
   10:20 signatureHelp: ( first: Integer second: Integer ) -> Boolean param=1

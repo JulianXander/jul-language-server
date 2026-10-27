@@ -323,3 +323,15 @@
 2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	signatureHelp	597	0.06	0.12	0.60	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
 2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	documentSymbol	3	5.38	7.00	7.00	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
 2026-10-27 08:34:16	8dba22a+	jul-compiler 5577a33+	ADV-DEV-56627	yugioh	semanticTokens	3	9.31	10.03	10.03	nach Is-Vertrag, greater -> greaterInteger/greaterFloat
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	15.53	210.60	1771.92	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	297.60	311.43	311.43	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	265.74	284.15	284.15	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	849.96	1097.03	1097.03	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	321.76	328.20	328.20	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	716.75	722.23	722.23	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	hover	597	0.09	0.20	1.02	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	definition	597	0.07	0.15	0.37	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	completion	597	5.67	7.22	10.82	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	signatureHelp	597	0.06	0.12	0.99	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	documentSymbol	3	5.73	6.06	6.06	nach Occurrence Typing im Branching
+2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	semanticTokens	3	8.61	9.71	9.71	nach Occurrence Typing im Branching
