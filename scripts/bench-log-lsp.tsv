@@ -335,3 +335,27 @@
 2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	signatureHelp	597	0.06	0.12	0.99	nach Occurrence Typing im Branching
 2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	documentSymbol	3	5.73	6.06	6.06	nach Occurrence Typing im Branching
 2026-10-27 11:41:28	3017dd5+	jul-compiler 003ac3f	ADV-DEV-56627	yugioh	semanticTokens	3	8.61	9.71	9.71	nach Occurrence Typing im Branching
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	15.73	205.63	1713.48	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	305.98	332.33	332.33	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	290.21	298.85	298.85	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	865.29	1020.79	1020.79	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	301.20	303.02	303.02	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	725.40	737.92	737.92	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	hover	582	0.08	0.18	0.68	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	definition	582	0.06	0.13	0.37	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	completion	582	4.92	6.05	10.39	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	signatureHelp	582	0.07	0.11	0.35	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	documentSymbol	3	6.11	6.56	6.56	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:10:54	3d8933a	jul-compiler 1a29f2f	ADV-DEV-56627	yugioh	semanticTokens	3	10.31	12.16	12.16	vor Umbau: Klon weg, Recheck parst neu
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	13.18	180.64	1444.25	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	264.36	286.72	286.72	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	236.14	269.36	269.36	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	809.33	1017.26	1017.26	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	253.96	259.63	259.63	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	688.94	695.71	695.71	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	hover	582	0.08	0.20	1.33	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	definition	582	0.06	0.11	0.30	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	completion	582	5.08	6.46	17.25	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	signatureHelp	582	0.06	0.10	0.71	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	documentSymbol	3	5.12	6.01	6.01	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	semanticTokens	3	7.24	9.09	9.09	Klon weg: Recheck parst neu statt checkTypes auf Klon

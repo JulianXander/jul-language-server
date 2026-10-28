@@ -319,11 +319,7 @@ function recheckStaleDependents(untilPath?: string): void {
 	}
 	for (const dependentPath of [...staleDependents]) {
 		staleDependents.delete(dependentPath);
-		const dependentParsed = parsedDocuments[dependentPath];
-		if (dependentParsed) {
-			checkTypes(dependentParsed, parsedDocuments, projectHost);
-			sendDiagnosticsForFile(pathToUri(dependentPath), dependentParsed);
-		}
+		recheckDocument(dependentPath);
 		if (dependentPath === untilPath) {
 			break;
 		}
@@ -331,6 +327,27 @@ function recheckStaleDependents(untilPath?: string): void {
 	if (!staleDependents.size) {
 		clearTimeout(staleDependentsTimer);
 	}
+}
+
+/**
+ * Prüft eine geladene Datei erneut und sendet ihre Diagnostics. Der Checker schreibt seine
+ * Ergebnisse in den Syntaxbaum und überspringt schon getypte Ausdrücke, deshalb wird neu geparst:
+ * der Editor-Inhalt, wenn die Datei offen ist, sonst die Platte. Das ist billiger, als jeden
+ * Checklauf auf einem Klon des Baums zu machen, nur damit ein Recheck möglich bleibt.
+ */
+function recheckDocument(path: string): void {
+	if (!parsedDocuments[path]) {
+		return;
+	}
+	const uri = pathToUri(path);
+	const code = documents.get(uri)?.getText() ?? tryReadTextFile(path);
+	// Gelöscht oder zu groß geworden: Das meldet der Watcher, bis dahin bleibt der alte Stand.
+	if (code === undefined
+		|| code.length > maxFileSize) {
+		return;
+	}
+	const parsed = loadFile(path, parsedDocuments, projectHost, code);
+	sendDiagnosticsForFile(uri, parsed);
 }
 
 // This event is emitted when the text document first opened or when its content has changed.
@@ -392,8 +409,8 @@ const projectHost: ProjectHost = {
 		}
 		return { type: 'code', code: code };
 	},
-	// recheckStaleDependents checkt Dateien ohne neues Parsen erneut.
-	cloneUnchecked: true,
+	// Ein Recheck parst neu (recheckDocument), der Baum muss nicht unverändert bleiben.
+	cloneUnchecked: false,
 	// Die jul-config.yaml der Datei entscheidet, der Server hält mehrere Projekte.
 	warnUnknown: readWarnUnknown,
 	referenceIndex: referenceIndex,
@@ -457,14 +474,7 @@ connection.onDidChangeWatchedFiles(changeParams => {
 			notifyTestsChanged(path, []);
 		}
 	});
-	transitivelyAffected.forEach(dependentPath => {
-		const dependentParsed = parsedDocuments[dependentPath];
-		if (!dependentParsed) {
-			return;
-		}
-		checkTypes(dependentParsed, parsedDocuments, projectHost);
-		sendDiagnosticsForFile(pathToUri(dependentPath), dependentParsed);
-	});
+	transitivelyAffected.forEach(recheckDocument);
 });
 
 //#region autocomplete
