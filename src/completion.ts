@@ -12,7 +12,7 @@ import {
 	SymbolTable,
 	TextLiteralType,
 } from 'jul-compiler/out/syntax-tree.js';
-import { builtInSymbols, findSymbolInScopesWithBuiltIns } from 'jul-compiler/out/checker/checker.js';
+import { builtInSymbols, findSymbolInScopesWithBuiltIns, getScopeSymbolTypeInfo } from 'jul-compiler/out/checker/checker.js';
 import { isDefined, map } from 'jul-compiler/out/util.js';
 import { getDeclaredResolvedType, getParameterIndex, getResolvedType } from './util.js';
 
@@ -46,13 +46,14 @@ export function getInfixFunctionCall(expression: PositionedExpression | undefine
  * nur, was bewiesen nicht passt, unbekannt bleibt drin.
  */
 export function getFirstArgumentSymbolFilter(
+	checkResult: CheckResult,
 	prefixArgumentType: CompileTimeType | undefined,
 ): (symbol: SymbolDefinition) => boolean {
 	return symbol => {
 		if (!prefixArgumentType) {
 			return false;
 		}
-		const symbolType = getResolvedType(symbol.typeInfo);
+		const symbolType = getResolvedType(getScopeSymbolTypeInfo(checkResult, symbol));
 		if (isFunctionType(symbolType)) {
 			const paramsType = symbolType.ParamsType;
 			if (isParametersType(paramsType)) {
@@ -617,6 +618,7 @@ function textLiteralTypeToCompletionItem(value: TextLiteralType): CompletionItem
  * ohne Punkt: Funktionen werden dann samt Klammern (und Punkt) als Snippet eingefügt.
  */
 function symbolsToCompletionItems(
+	checkResult: CheckResult,
 	scopes: SymbolTable[],
 	symbolFilter?: (symbol: SymbolDefinition, name: string) => boolean,
 	positionKind?: 'type' | 'value',
@@ -630,7 +632,7 @@ function symbolsToCompletionItems(
 				if (!showSymbol) {
 					return undefined;
 				}
-				const symbolType = getResolvedType(symbol.typeInfo);
+				const symbolType = getResolvedType(getScopeSymbolTypeInfo(checkResult, symbol));
 				const isFunction = isFunctionType(symbolType);
 				const sortText = getCompletionSortText(name, isTypeSymbol(symbolType), positionKind);
 				const completionItem: CompletionItem = {
@@ -698,25 +700,26 @@ export function getCompletionItems(
 		let prefixArgumentType: CompileTimeType | undefined;
 		if (isParameterReference(prefixArgumentTypeRaw)) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
-			prefixArgumentType = dereferenced?.symbol.typeInfo?.type;
+			prefixArgumentType = getScopeSymbolTypeInfo(checkResult, dereferenced?.symbol)?.type;
 		}
 		else {
 			prefixArgumentType = prefixArgumentTypeRaw;
 		}
 		// hier wird immer eine Funktion ausgewählt (nie ein Typ) - unabhängig davon, ob
 		// `expression` die Referenz selbst oder der ganze Aufruf ist (siehe getInfixFunctionCall)
-		return symbolsToCompletionItems(allScopes, getFirstArgumentSymbolFilter(prefixArgumentType), 'value', infixFunctionCall);
+		return symbolsToCompletionItems(checkResult, allScopes, getFirstArgumentSymbolFilter(checkResult, prefixArgumentType), 'value', infixFunctionCall);
 	}
 	//#endregion infix function call (bei infix function reference)
 
 	//#region infix function call hinter einem Wert
 	const valueBeforeCursor = getValueBeforeCursor(expression, rowIndex, columnIndex);
 	if (valueBeforeCursor) {
-		const resultType = getResolvedType('typeInfo' in valueBeforeCursor ? getTypeInfo(checkResult, valueBeforeCursor) : undefined);
-		const isInfixCandidate = getFirstArgumentSymbolFilter(resultType);
+		const resultType = getResolvedType(getTypeInfo(checkResult, valueBeforeCursor));
+		const isInfixCandidate = getFirstArgumentSymbolFilter(checkResult, resultType);
 		return symbolsToCompletionItems(
+			checkResult,
 			allScopes,
-			symbol => isFunctionType(getResolvedType(symbol.typeInfo)) && isInfixCandidate(symbol),
+			symbol => isFunctionType(getResolvedType(getScopeSymbolTypeInfo(checkResult, symbol))) && isInfixCandidate(symbol),
 			'value',
 			'afterValue');
 	}
@@ -739,7 +742,7 @@ export function getCompletionItems(
 				// positionale Argumente sind der Normalfall, die Feldnamen kommen dahinter
 				return [
 					...lambdaCompletionItems,
-					...symbolsToCompletionItems(allScopes, undefined, positionKind),
+					...symbolsToCompletionItems(checkResult, allScopes, undefined, positionKind),
 					...dictionaryLiteralFieldCompletionItems.map(completionItem => ({
 						...completionItem,
 						sortText: '2' + (completionItem.sortText ?? completionItem.label),
@@ -776,7 +779,7 @@ export function getCompletionItems(
 			switch (destructuredValue?.type) {
 				case 'dictionary':
 				case 'dictionaryType':
-					return symbolsToCompletionItems([destructuredValue.symbols], isNotDefinedYet, positionKind);
+					return symbolsToCompletionItems(checkResult, [destructuredValue.symbols], isNotDefinedYet, positionKind);
 				default: {
 					const dereferencedType = getResolvedType(getTypeInfo(checkResult, destructuredValue));
 					if (isDictionaryLiteralType(dereferencedType)) {
@@ -813,7 +816,7 @@ export function getCompletionItems(
 
 	return [
 		...lambdaCompletionItems,
-		...symbolsToCompletionItems(allScopes, undefined, positionKind),
+		...symbolsToCompletionItems(checkResult, allScopes, undefined, positionKind),
 	];
 }
 

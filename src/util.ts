@@ -146,8 +146,9 @@ export function getDeclaredType(checkResult: CheckResult, expression: Positioned
 		default:
 			break;
 	}
-	if ('expectedType' in expression && getExpectedType(checkResult, expression)) {
-		return { type: getExpectedType(checkResult, expression)! };
+	const expectedType = getExpectedType(checkResult, expression);
+	if (expectedType) {
+		return { type: expectedType };
 	}
 	// Stellen, an denen der Checker keinen erwarteten Typ merkt.
 	switch (expression.parent?.type) {

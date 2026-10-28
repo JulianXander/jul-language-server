@@ -371,3 +371,39 @@
 2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	signatureHelp	582	0.07	0.11	0.87	Schritt 2: Zugriffsschicht CheckResult
 2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	documentSymbol	3	6.65	6.97	6.97	Schritt 2: Zugriffsschicht CheckResult
 2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	semanticTokens	3	8.51	9.72	9.72	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	13.59	169.42	1435.47	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	262.29	287.17	287.17	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	233.53	261.44	261.44	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	789.83	989.47	989.47	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	272.93	275.67	275.67	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	674.78	676.31	676.31	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	hover	582	0.08	0.19	0.73	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	definition	582	0.06	0.10	0.22	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	completion	582	4.99	6.26	22.10	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	signatureHelp	582	0.05	0.10	0.76	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	documentSymbol	3	4.88	6.23	6.23	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:24:04	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	semanticTokens	3	7.06	7.82	7.82	Schritt 3: Ausdrücke in Tabellen des CheckResult (Knoten-Id), Fehler im Ergebnis
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	13.68	190.61	1482.75	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	283.94	305.02	305.02	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	223.48	287.46	287.46	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	815.97	1093.23	1093.23	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	257.05	263.21	263.21	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	683.98	687.76	687.76	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	hover	582	0.08	0.24	44.16	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	definition	582	0.06	0.10	0.23	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	completion	582	5.56	6.60	23.30	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	signatureHelp	582	0.07	0.11	0.35	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	documentSymbol	3	5.76	6.11	6.11	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 17:41:59	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	semanticTokens	3	8.16	10.13	10.13	Schritt 4: Symbole (Typ, functionRef, isUsed) im CheckResult
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	13.26	181.55	1397.44	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	271.18	305.82	305.82	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	241.74	277.44	277.44	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	758.68	903.54	903.54	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	265.68	272.05	272.05	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	676.09	718.79	718.79	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	hover	582	0.08	0.19	5.32	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	definition	582	0.06	0.10	0.24	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	completion	582	5.46	6.61	17.07	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	signatureHelp	582	0.06	0.11	0.36	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	documentSymbol	3	5.73	7.29	7.29	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	semanticTokens	3	8.84	12.09	12.09	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)

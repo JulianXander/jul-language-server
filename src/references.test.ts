@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { join, resolve } from 'path';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
+import { getSymbolTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { ReferenceIndex, SymbolLocation } from 'jul-compiler/out/checker/reference-index.js';
 import { createInMemoryHost, loadFile } from 'jul-compiler/out/compiler/project-loader.js';
 import { PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
@@ -28,7 +29,7 @@ function check(code: string): { documents: ParsedDocuments; referenceIndex: Refe
 }
 
 function getTypeField(documents: ParsedDocuments, typeName: string, fieldName: string): SymbolLocation {
-	const type = documents[filePath]!.checked!.symbols[typeName]!.typeInfo!.type as any;
+	const type = getSymbolTypeInfo(documents[filePath]!.checkResult!, documents[filePath]!.checked!.symbols[typeName])!.type as any;
 	const declaration = (type.julType === 'typeOf' ? type.value : type).declaration;
 	return { symbol: declaration.expression.symbols[fieldName], filePath: filePath };
 }

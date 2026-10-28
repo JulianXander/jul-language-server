@@ -1,4 +1,4 @@
-import { CheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
+import { CheckResult, getSymbolTypeInfo, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { dirname } from 'path';
 import { getPathFromImport, isImportFunctionCall } from 'jul-compiler/out/parser/parser.js';
 import { isExportedSymbol } from 'jul-compiler/out/parser/parser-utils.js';
@@ -11,8 +11,9 @@ import {
 	PositionedExpression,
 	SymbolDefinition,
 	SymbolTable,
+	TypeInfo,
 } from 'jul-compiler/out/syntax-tree.js';
-import { findSymbolInScopesWithBuiltIns, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
+import { findSymbolInScopesWithBuiltIns, getScopeSymbolTypeInfo, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { getFieldSymbolsFromDictionaryType } from 'jul-compiler/out/checker/reference-index.js';
 import { getDeclaredResolvedType, getDeclaredType, getResolvedType } from './util.js';
 
@@ -121,6 +122,22 @@ export interface SymbolInfo {
 	 * Leerstring, wenn builtin.
 	 */
 	filePath?: string;
+}
+
+/**
+ * Der Typ des gefundenen Symbols, aus dem Ergebnis seiner Datei: der importierten, der core-lib oder
+ * der eigenen (fileResult).
+ */
+export function getSymbolInfoTypeInfo(
+	symbolInfo: SymbolInfo,
+	fileResult: CheckResult,
+	parsedDocuments: ParsedDocuments,
+): TypeInfo | undefined {
+	if (!symbolInfo.filePath) {
+		return getScopeSymbolTypeInfo(fileResult, symbolInfo.symbol);
+	}
+	const result = parsedDocuments[symbolInfo.filePath]?.checkResult;
+	return result && getSymbolTypeInfo(result, symbolInfo.symbol);
 }
 
 /**
@@ -297,7 +314,7 @@ export function getImportedSymbol(
 			const importedDocument = parsedDocuments[fullPath];
 			if (importedDocument) {
 				const symbolName = destructuringField.source ?? destructuringField.name;
-				const impordedExpressions = importedDocument.checked ?? importedDocument.unchecked;
+				const impordedExpressions = importedDocument.checked ?? importedDocument.syntax;
 				const importedSymbol = impordedExpressions.symbols[symbolName.name];
 				return {
 					symbol: importedSymbol && isExportedSymbol(importedSymbol)

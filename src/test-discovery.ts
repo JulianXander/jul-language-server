@@ -21,7 +21,7 @@ export function findTests(parsed: ParsedFile): DiscoveredTest[] {
 	if (!isTestFilePath(parsed.filePath)) {
 		return [];
 	}
-	const expressions = (parsed.checked ?? parsed.unchecked).expressions ?? [];
+	const expressions = (parsed.checked ?? parsed.syntax).expressions ?? [];
 	const tests: DiscoveredTest[] = [];
 	expressions.forEach(expression => {
 		if (expression.type !== 'functionCall'

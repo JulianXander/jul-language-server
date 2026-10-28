@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
-import { CheckResult } from 'jul-compiler/out/checker/check-result.js';
+import { CheckResult, getSymbolTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { builtinInteger, builtinInvalid, ParsedFile, ParseFunctionCall, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
 import { getDeclaredResolvedType, getResolvedType } from './util.js';
 import { findExpressionInParsedFile } from './symbol-lookup.js';
-import { builtInSymbols } from 'jul-compiler/out/checker/checker.js';
+import { builtInSymbols, coreLibCheckResult } from 'jul-compiler/out/checker/checker.js';
 import { getArgumentPositionKind, getCompletionSortText, getDictionaryFieldCompletionItemsFromType, getFieldReferenceCompletionItems, getDictionaryLiteralFieldCompletionItems, getFieldNamePositionKind, getExpectedArgumentType, getExpectedPositionKind, getFirstArgumentSymbolFilter, getCompletionItems, getValueBeforeCursor, getInfixCallInsertText, getInfixFunctionCall, getLambdaCompletionItem, getPositionKindForExpectedType, isTypeSymbol } from './completion.js';
 
 function parse(code: string): ParsedFile {
@@ -113,15 +113,15 @@ f = (b: Integer) :> Integer => b
 g = (b: Text) :> Text => b
 `);
 		const symbols = parsed.checked!.symbols;
-		const prefixArgumentType = getResolvedType(symbols['a']?.typeInfo);
-		const filter = getFirstArgumentSymbolFilter(prefixArgumentType);
+		const prefixArgumentType = getResolvedType(getSymbolTypeInfo(parsed.checkResult!, symbols['a']));
+		const filter = getFirstArgumentSymbolFilter(parsed.checkResult!, prefixArgumentType);
 		expect(filter(symbols['f']!)).to.equal(true);
 		expect(filter(symbols['g']!)).to.equal(false);
 	});
 
 	it('lässt nichts durch, wenn der Argumenttyp unbekannt ist', () => {
 		const parsed = parse('f = (b: Integer) :> Integer => b\n');
-		const filter = getFirstArgumentSymbolFilter(undefined);
+		const filter = getFirstArgumentSymbolFilter(parsed.checkResult!, undefined);
 		expect(filter(parsed.checked!.symbols['f']!)).to.equal(false);
 	});
 });
@@ -157,7 +157,7 @@ x = f(1 )
 
 describe('getPositionKindForExpectedType', () => {
 	it('macht aus einem erwarteten Typ eine Typ-Position', () => {
-		const typeType = getResolvedType(builtInSymbols['Type']?.typeInfo);
+		const typeType = getResolvedType(getSymbolTypeInfo(coreLibCheckResult, builtInSymbols['Type']));
 		expect(getPositionKindForExpectedType(typeType)).to.equal('type');
 	});
 
@@ -203,18 +203,18 @@ x = f(1 )
 
 describe('isTypeSymbol', () => {
 	it('erkennt ein Symbol, dessen Wert selbst ein Typ ist', () => {
-		expect(isTypeSymbol(getResolvedType(builtInSymbols['Integer']?.typeInfo))).to.equal(true);
+		expect(isTypeSymbol(getResolvedType(getSymbolTypeInfo(coreLibCheckResult, builtInSymbols['Integer'])))).to.equal(true);
 	});
 
 	// Realer Fall: bei "decks." standen And/Or/List zwischen den Wert-Funktionen (all, assume),
 	// weil ihr eigener Typ ein Funktionstyp ist und nicht TypeOf(...). Sie liefern aber einen Typ
 	// (core-lib.jul: "(...ChoiceTypes: List(Type)) :> Type") und gehören damit auf die Typ-Seite.
 	it('erkennt einen Typkonstruktor, also eine Funktion die einen Typ liefert', () => {
-		expect(isTypeSymbol(getResolvedType(builtInSymbols['And']?.typeInfo))).to.equal(true);
+		expect(isTypeSymbol(getResolvedType(getSymbolTypeInfo(coreLibCheckResult, builtInSymbols['And'])))).to.equal(true);
 	});
 
 	it('erkennt eine normale Wertfunktion nicht als Typ-Symbol', () => {
-		expect(isTypeSymbol(getResolvedType(builtInSymbols['log']?.typeInfo))).to.equal(false);
+		expect(isTypeSymbol(getResolvedType(getSymbolTypeInfo(coreLibCheckResult, builtInSymbols['log'])))).to.equal(false);
 	});
 });
 
@@ -472,7 +472,7 @@ describe('getInfixCallInsertText', () => {
 		if (functionCall?.type !== 'functionCall') {
 			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);
 		}
-		return getInfixCallInsertText(name, getResolvedType(builtInSymbols[name]!.typeInfo), functionCall);
+		return getInfixCallInsertText(name, getResolvedType(getSymbolTypeInfo(coreLibCheckResult, builtInSymbols[name])), functionCall);
 	}
 
 	it('setzt den Cursor in die Klammern, wenn weitere Parameter folgen', () => {
@@ -489,7 +489,7 @@ describe('getInfixCallInsertText', () => {
 
 	it('fügt hinter einem Wert auch den Punkt ein', () => {
 		const parsed = parse('[]\n');
-		const type = getResolvedType(builtInSymbols['map']!.typeInfo);
+		const type = getResolvedType(getSymbolTypeInfo(coreLibCheckResult, builtInSymbols['map']));
 		expect(getInfixCallInsertText('map', type, 'afterValue')).to.equal('.map($0)');
 	});
 
@@ -569,7 +569,7 @@ describe('getFieldReferenceCompletionItems', () => {
 	// Was nach x/ angeboten wird, für das Symbol name aus code.
 	function fieldReferenceItems(code: string, name: string): { label: string; detail?: string; }[] {
 		const parsed = parse(code);
-		const type = getResolvedType(parsed.checked!.symbols[name]!.typeInfo);
+		const type = getResolvedType(getSymbolTypeInfo(parsed.checkResult!, parsed.checked!.symbols[name]));
 		return (type ? getFieldReferenceCompletionItems(type) : [])
 			.map(item => ({ label: item.label, detail: item.detail }));
 	}

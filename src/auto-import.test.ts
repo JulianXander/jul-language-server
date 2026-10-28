@@ -52,7 +52,7 @@ describe('createImportEdit', () => {
 		const actual = applyTextEdit(code, textEdit!);
 		expect(actual).to.equal(expected);
 		// das Ergebnis muss wieder lesbar sein - ein reiner Textvergleich übersieht Zeilen-/Einrückungsfehler
-		const syntaxErrors = parseCode(actual, mainPath).unchecked.errors
+		const syntaxErrors = parseCode(actual, mainPath).syntax.errors
 			.filter(error => errorInfos[error.code].type === 'syntax');
 		expect(syntaxErrors).to.deep.equal([]);
 	});

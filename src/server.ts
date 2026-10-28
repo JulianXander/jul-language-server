@@ -37,7 +37,7 @@ import {
 	isImportFunctionCall,
 } from 'jul-compiler/out/parser/parser.js';
 import { readWarnUnknown } from 'jul-compiler/out/compiler/config.js';
-import { loadFile, maxTypedFileSize, ProjectHost } from 'jul-compiler/out/compiler/project-loader.js';
+import { loadFile, maxTypedFileSize, ProjectHost, recheckFile } from 'jul-compiler/out/compiler/project-loader.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
 import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
@@ -331,24 +331,16 @@ function recheckStaleDependents(untilPath?: string): void {
 }
 
 /**
- * Prüft eine geladene Datei erneut und sendet ihre Diagnostics. Der Checker schreibt seine
- * Ergebnisse in den Syntaxbaum und überspringt schon getypte Ausdrücke, deshalb wird neu geparst:
- * der Editor-Inhalt, wenn die Datei offen ist, sonst die Platte. Das ist billiger, als jeden
- * Checklauf auf einem Klon des Baums zu machen, nur damit ein Recheck möglich bleibt.
+ * Prüft eine geladene Datei erneut und sendet ihre Diagnostics. Ohne neues Parsen: Die Datei selbst
+ * hat sich nicht geändert (das meldet ihr eigenes Änderungsereignis), nur eine, die sie importiert.
  */
 function recheckDocument(path: string): void {
-	if (!parsedDocuments[path]) {
+	const parsed = parsedDocuments[path];
+	if (!parsed) {
 		return;
 	}
-	const uri = pathToUri(path);
-	const code = documents.get(uri)?.getText() ?? tryReadTextFile(path);
-	// Gelöscht oder zu groß geworden: Das meldet der Watcher, bis dahin bleibt der alte Stand.
-	if (code === undefined
-		|| code.length > maxFileSize) {
-		return;
-	}
-	const parsed = loadFile(path, parsedDocuments, projectHost, code);
-	sendDiagnosticsForFile(uri, parsed);
+	recheckFile(parsed, parsedDocuments, projectHost);
+	sendDiagnosticsForFile(pathToUri(path), parsed);
 }
 
 // This event is emitted when the text document first opened or when its content has changed.

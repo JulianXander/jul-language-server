@@ -1,6 +1,6 @@
 import { getFileCheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { ParameterInformation, SignatureHelp } from 'vscode-languageserver';
-import { findSymbolInScopesWithBuiltIns } from 'jul-compiler/out/checker/checker.js';
+import { findSymbolInScopesWithBuiltIns, getScopeSymbolTypeInfo } from 'jul-compiler/out/checker/checker.js';
 import { typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import { ParseFunctionCall, ParsedFile, SymbolDefinition, SymbolTable } from 'jul-compiler/out/syntax-tree.js';
 import { getTypeMarkdown } from './hover.js';
@@ -28,7 +28,7 @@ export function getSignatureHelp(
 	if (!functionSymbol) {
 		return undefined;
 	}
-	const normalizedFunctionType = getResolvedType(functionSymbol.symbol.typeInfo);
+	const normalizedFunctionType = getResolvedType(getScopeSymbolTypeInfo(checkResult, functionSymbol.symbol));
 	if (normalizedFunctionType?.julType === 'invalid') {
 		return undefined;
 	}

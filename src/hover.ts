@@ -3,7 +3,7 @@ import { MarkupContent } from 'vscode-languageserver';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import { ParsedFile, TypeInfo } from 'jul-compiler/out/syntax-tree.js';
-import { findExpressionInParsedFile, getSymbolDefinition } from './symbol-lookup.js';
+import { findExpressionInParsedFile, getSymbolDefinition, getSymbolInfoTypeInfo } from './symbol-lookup.js';
 import { getDeclaredType } from './util.js';
 
 export function getHover(
@@ -36,9 +36,9 @@ export function getHover(
 		// einer womöglich leeren Quelle kommt Empty hinzu.
 		const typeInfo = calledFunctionType
 			? { type: calledFunctionType }
-			: ('typeInfo' in expression && getTypeInfo(checkResult, expression))
+			: getTypeInfo(checkResult, expression)
 			|| (parent?.type === 'nestedReference' && getDeclaredType(checkResult, expression))
-			|| symbol.typeInfo;
+			|| getSymbolInfoTypeInfo(foundSymbol, checkResult, parsedDocuments);
 		return getTypeMarkdown(typeInfo, symbol.description);
 	}
 

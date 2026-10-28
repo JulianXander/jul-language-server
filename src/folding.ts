@@ -16,7 +16,7 @@ const regionEnd = /^\s*#endregion\b/;
  * was falten soll. rows ist der Quelltext zeilenweise.
  */
 export function getFoldingRanges(parsedFile: ParsedFile | undefined, rows: string[]): FoldingRange[] {
-	const expressions = (parsedFile?.checked ?? parsedFile?.unchecked)?.expressions;
+	const expressions = (parsedFile?.checked ?? parsedFile?.syntax)?.expressions;
 	// Je Startzeile gilt der längste Bereich, VSCode behält ohnehin nur einen pro Zeile.
 	const endRowByStartRow = new Map<number, number>();
 	expressions?.forEach(expression => collectExpressionRanges(expression, rows, endRowByStartRow));

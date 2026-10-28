@@ -11,7 +11,7 @@ import {
 	SymbolTable,
 	TypeInfo,
 } from 'jul-compiler/out/syntax-tree.js';
-import { findSymbolInScopesWithBuiltIns } from 'jul-compiler/out/checker/checker.js';
+import { findSymbolInScopesWithBuiltIns, getScopeSymbolTypeInfo } from 'jul-compiler/out/checker/checker.js';
 import { isFunctionType, isTypeOfType } from 'jul-compiler/out/checker/type-algebra.js';
 import { pushScope } from './symbol-lookup.js';
 
@@ -158,8 +158,8 @@ function addSemanticToken(
 			pushSemanticToken(
 				tokens,
 				expression.name,
-				getSemanticTokenType(checkResult, symbol?.typeInfo, symbol),
-				['declaration', ...getSemanticTokenModifiers(symbol?.typeInfo, false)]);
+				getSemanticTokenType(checkResult, getScopeSymbolTypeInfo(checkResult, symbol), symbol),
+				['declaration', ...getSemanticTokenModifiers(getScopeSymbolTypeInfo(checkResult, symbol), false)]);
 			if (expression.source) {
 				pushSemanticToken(tokens, expression.source, 'property', []);
 			}
