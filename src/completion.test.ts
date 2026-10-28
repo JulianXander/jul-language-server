@@ -12,7 +12,7 @@ function parse(code: string): ParsedFile {
 	const path = 'completion.test.jul';
 	const parsed = parseCode(code, path);
 	const documents: ParsedDocuments = { [path]: parsed };
-	checkTypes(parsed, documents, { cloneUnchecked: true, referenceIndex: new ReferenceIndex() });
+	checkTypes(parsed, documents, { referenceIndex: new ReferenceIndex() });
 	return parsed;
 }
 

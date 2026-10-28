@@ -18,7 +18,7 @@ function signatureHelpAt(codeWithCursor: string) {
 	const columnIndex = rows[rowIndex]!.indexOf(cursor);
 	const code = codeWithCursor.replace(cursor, '');
 	const documents: ParsedDocuments = {};
-	const host = createInMemoryHost({ [filePath]: code }, { cloneUnchecked: true });
+	const host = createInMemoryHost({ [filePath]: code });
 	const parsed = loadFile(filePath, documents, host);
 	if (typeof parsed === 'string') {
 		throw new Error(parsed);

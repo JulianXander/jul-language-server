@@ -19,7 +19,7 @@ const filePath = join(folder, 'main.jul');
 function check(code: string): { documents: ParsedDocuments; referenceIndex: ReferenceIndex; } {
 	const documents: ParsedDocuments = {};
 	const referenceIndex = new ReferenceIndex();
-	const host = createInMemoryHost({ [filePath]: code }, { cloneUnchecked: true, referenceIndex: referenceIndex });
+	const host = createInMemoryHost({ [filePath]: code }, { referenceIndex: referenceIndex });
 	const parsed = loadFile(filePath, documents, host);
 	if (typeof parsed === 'string') {
 		throw new Error(parsed);

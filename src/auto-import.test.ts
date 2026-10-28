@@ -15,7 +15,7 @@ const mainPath = join(folder, 'main.jul');
 function parse(code: string, path: string): ParsedFile {
 	const parsed = parseCode(code, path);
 	const documents: ParsedDocuments = { [path]: parsed };
-	checkTypes(parsed, documents, { cloneUnchecked: true, referenceIndex: new ReferenceIndex() });
+	checkTypes(parsed, documents, { referenceIndex: new ReferenceIndex() });
 	return parsed;
 }
 
@@ -204,7 +204,7 @@ describe('findImportCandidates', () => {
 		}
 		const referenceIndex = new ReferenceIndex();
 		for (const path in documents) {
-			checkTypes(documents[path]!, documents, { cloneUnchecked: true, referenceIndex: referenceIndex });
+			checkTypes(documents[path]!, documents, { referenceIndex: referenceIndex });
 		}
 		return documents;
 	}

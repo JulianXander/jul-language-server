@@ -409,8 +409,6 @@ const projectHost: ProjectHost = {
 		}
 		return { type: 'code', code: code };
 	},
-	// Ein Recheck parst neu (recheckDocument), der Baum muss nicht unverändert bleiben.
-	cloneUnchecked: false,
 	// Die jul-config.yaml der Datei entscheidet, der Server hält mehrere Projekte.
 	warnUnknown: readWarnUnknown,
 	referenceIndex: referenceIndex,

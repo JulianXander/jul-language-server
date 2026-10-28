@@ -10,7 +10,7 @@ const filePath = join(folder, 'main.jul');
 /** Die Bereiche als [startLine, endLine], aufsteigend nach Start. */
 function foldsOf(code: string): [number, number][] {
 	const documents: ParsedDocuments = {};
-	const host = createInMemoryHost({ [filePath]: code }, { cloneUnchecked: true });
+	const host = createInMemoryHost({ [filePath]: code });
 	const parsed = loadFile(filePath, documents, host);
 	if (typeof parsed === 'string') {
 		throw new Error(parsed);

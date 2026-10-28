@@ -10,7 +10,7 @@ function getFunctionCall(code: string): ParseFunctionCall {
 	const path = 'parameter-index.test.jul';
 	const parsed = parseCode(code, path);
 	const documents: ParsedDocuments = { [path]: parsed };
-	checkTypes(parsed, documents, { cloneUnchecked: true, referenceIndex: new ReferenceIndex() });
+	checkTypes(parsed, documents, { referenceIndex: new ReferenceIndex() });
 	const functionCall = parsed.checked!.expressions![1];
 	if (functionCall?.type !== 'functionCall') {
 		throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);
@@ -45,7 +45,7 @@ a.f()
 `;
 		const parsed = parseCode(code, path);
 		const documents: ParsedDocuments = { [path]: parsed };
-		checkTypes(parsed, documents, { cloneUnchecked: true, referenceIndex: new ReferenceIndex() });
+		checkTypes(parsed, documents, { referenceIndex: new ReferenceIndex() });
 		const functionCall = parsed.checked!.expressions![2];
 		if (functionCall?.type !== 'functionCall') {
 			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);

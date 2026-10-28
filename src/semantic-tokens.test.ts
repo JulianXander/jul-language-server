@@ -14,7 +14,7 @@ const filePath = join(folder, 'main.jul');
  */
 function tokensOf(code: string, otherFiles: Record<string, string> = {}): string[] {
 	const documents: ParsedDocuments = {};
-	const host = createInMemoryHost({ [filePath]: code, ...otherFiles }, { cloneUnchecked: true });
+	const host = createInMemoryHost({ [filePath]: code, ...otherFiles });
 	const parsed = loadFile(filePath, documents, host);
 	if (typeof parsed === 'string') {
 		throw new Error(parsed);

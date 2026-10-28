@@ -9,7 +9,7 @@ const folder = resolve('/test-discovery-test');
 function findTestsIn(code: string, fileName: string = 'a.test.jul'): DiscoveredTest[] {
 	const filePath = join(folder, fileName);
 	const documents: ParsedDocuments = {};
-	const host = createInMemoryHost({ [filePath]: code }, { cloneUnchecked: true });
+	const host = createInMemoryHost({ [filePath]: code });
 	const parsed = loadFile(filePath, documents, host);
 	if (typeof parsed === 'string') {
 		throw new Error(parsed);

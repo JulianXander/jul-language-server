@@ -11,7 +11,7 @@ const filePath = join(folder, 'main.jul');
 /** die Fundstellen als "zeile:spalte-spalte", 0-basiert */
 function emptyLiteralsOf(code: string): string[] {
 	const documents: ParsedDocuments = {};
-	const host = createInMemoryHost({ [filePath]: code }, { cloneUnchecked: true });
+	const host = createInMemoryHost({ [filePath]: code });
 	const parsed = loadFile(filePath, documents, host);
 	if (typeof parsed === 'string') {
 		throw new Error(parsed);
