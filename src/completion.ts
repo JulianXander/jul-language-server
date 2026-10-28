@@ -1,3 +1,4 @@
+import { CheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 import { dereferenceNameFromObject, getStreamGetValueType, isDictionaryLiteralType, isFunctionType, isListType, isParameterReference, isParametersType, isSubtypeOf, isTextLiteralType, isTupleType, isTypeOfType, resolveAlias, resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import {
@@ -122,6 +123,7 @@ export function getExpectedPositionKind(
  * Elementtyp, nicht der Listentyp - ein einzelnes Argument wird gegen das Element geprüft.
  */
 export function getExpectedArgumentType(
+	checkResult: CheckResult,
 	functionCall: ParseFunctionCall,
 	rowIndex: number,
 	columnIndex: number,
@@ -130,7 +132,7 @@ export function getExpectedArgumentType(
 	if (!functionExpression) {
 		return undefined;
 	}
-	const functionType = getResolvedType(functionExpression.typeInfo);
+	const functionType = getResolvedType(getTypeInfo(checkResult, functionExpression));
 	if (!functionType || !isFunctionType(functionType)) {
 		return undefined;
 	}
@@ -178,6 +180,7 @@ function getCallOfArgumentPosition(expression: PositionedExpression | undefined)
  * damit er die äußere Definition nicht verdeckt.
  */
 export function getLambdaCompletionItem(
+	checkResult: CheckResult,
 	expression: PositionedExpression | undefined,
 	rowIndex: number,
 	columnIndex: number,
@@ -187,7 +190,7 @@ export function getLambdaCompletionItem(
 	if (!functionCall) {
 		return undefined;
 	}
-	const rawExpectedType = getExpectedArgumentType(functionCall, rowIndex, columnIndex);
+	const rawExpectedType = getExpectedArgumentType(checkResult, functionCall, rowIndex, columnIndex);
 	const expectedType = rawExpectedType && resolvePlaceholders(rawExpectedType);
 	if (!isFunctionType(expectedType)
 		|| !isParametersType(expectedType.ParamsType)) {
@@ -253,6 +256,7 @@ export function getPositionKindForExpectedType(
  * ist die Liste).
  */
 export function getArgumentPositionKind(
+	checkResult: CheckResult,
 	expression: PositionedExpression | undefined,
 	rowIndex: number,
 	columnIndex: number,
@@ -270,7 +274,7 @@ export function getArgumentPositionKind(
 	if (functionCall?.type !== 'functionCall' || functionCall.arguments !== list) {
 		return undefined;
 	}
-	const expectedType = getExpectedArgumentType(functionCall, rowIndex, columnIndex);
+	const expectedType = getExpectedArgumentType(checkResult, functionCall, rowIndex, columnIndex);
 	return getPositionKindForExpectedType(expectedType);
 }
 
@@ -424,11 +428,11 @@ function parameterToCompletionItem(parameter: Parameter, index: number, isRest: 
  * Completion-Items für die Felder eines Dictionary-Literals (`[]`, `[a = 1]`, ...), dessen
  * erwarteter Typ (declaredType) Felder vorschreibt.
  */
-export function getDictionaryLiteralFieldCompletionItems(expression: PositionedExpression | undefined): CompletionItem[] | undefined {
+export function getDictionaryLiteralFieldCompletionItems(checkResult: CheckResult, expression: PositionedExpression | undefined): CompletionItem[] | undefined {
 	if (expression?.type === 'empty'
 		|| expression?.type === 'dictionary'
 		|| expression?.type === 'object') {
-		const declaredType = getDeclaredResolvedType(expression);
+		const declaredType = getDeclaredResolvedType(checkResult, expression);
 		let allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 		if (!allCompletionItems) {
 			return undefined;
@@ -455,7 +459,7 @@ export function getDictionaryLiteralFieldCompletionItems(expression: PositionedE
 		: undefined;
 	const data = field?.parent?.type === 'data' ? field.parent : undefined;
 	if (data) {
-		const declaredType = getDeclaredResolvedType(data);
+		const declaredType = getDeclaredResolvedType(checkResult, data);
 		const allCompletionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 		return allCompletionItems?.filter(completionItem => {
 			return !data.fields.some(otherField => {
@@ -475,7 +479,7 @@ export function getDictionaryLiteralFieldCompletionItems(expression: PositionedE
 	if (!list) {
 		return undefined;
 	}
-	const declaredType = getDeclaredResolvedType(list);
+	const declaredType = getDeclaredResolvedType(checkResult, list);
 	return declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 }
 
@@ -656,6 +660,7 @@ function symbolsToCompletionItems(
  * sonst stünde jeder builtIn Name doppelt in der completion.
  */
 export function getCompletionItems(
+	checkResult: CheckResult,
 	expression: PositionedExpression | undefined,
 	scopes: SymbolTable[],
 	rowIndex: number,
@@ -663,11 +668,11 @@ export function getCompletionItems(
 	isCoreLib: boolean,
 ): CompletionItem[] | undefined {
 	const positionKind = getExpectedPositionKind(expression)
-		?? getArgumentPositionKind(expression, rowIndex, columnIndex);
+		?? getArgumentPositionKind(checkResult, expression, rowIndex, columnIndex);
 
 	//#region Text literal with declared type
 	if (expression?.type === 'text') {
-		const declaredType = getDeclaredResolvedType(expression);
+		const declaredType = getDeclaredResolvedType(checkResult, expression);
 		switch (declaredType?.julType) {
 			case 'textLiteral':
 				return [textLiteralTypeToCompletionItem(declaredType)];
@@ -684,12 +689,12 @@ export function getCompletionItems(
 	const allScopes = isCoreLib
 		? scopes
 		: [...scopes, builtInSymbols];
-	const lambdaCompletionItems = [getLambdaCompletionItem(expression, rowIndex, columnIndex, allScopes)].filter(isDefined);
+	const lambdaCompletionItems = [getLambdaCompletionItem(checkResult, expression, rowIndex, columnIndex, allScopes)].filter(isDefined);
 
 	//#region infix function call (bei infix function reference)
 	const infixFunctionCall = getInfixFunctionCall(expression);
 	if (infixFunctionCall) {
-		const prefixArgumentTypeRaw = infixFunctionCall.prefixArgument!.typeInfo!.type;
+		const prefixArgumentTypeRaw = getTypeInfo(checkResult, infixFunctionCall.prefixArgument!)!.type;
 		let prefixArgumentType: CompileTimeType | undefined;
 		if (isParameterReference(prefixArgumentTypeRaw)) {
 			const dereferenced = findSymbolInScopesWithBuiltIns(prefixArgumentTypeRaw.name, scopes);
@@ -707,7 +712,7 @@ export function getCompletionItems(
 	//#region infix function call hinter einem Wert
 	const valueBeforeCursor = getValueBeforeCursor(expression, rowIndex, columnIndex);
 	if (valueBeforeCursor) {
-		const resultType = getResolvedType('typeInfo' in valueBeforeCursor ? valueBeforeCursor.typeInfo : undefined);
+		const resultType = getResolvedType('typeInfo' in valueBeforeCursor ? getTypeInfo(checkResult, valueBeforeCursor) : undefined);
 		const isInfixCandidate = getFirstArgumentSymbolFilter(resultType);
 		return symbolsToCompletionItems(
 			allScopes,
@@ -719,13 +724,13 @@ export function getCompletionItems(
 
 	//#region / field reference
 	if (expression?.type === 'nestedReference') {
-		const dereferencedType = getResolvedType(expression.source?.typeInfo);
+		const dereferencedType = getResolvedType(getTypeInfo(checkResult, expression.source));
 		return dereferencedType && getFieldReferenceCompletionItems(dereferencedType);
 	}
 	//#endregion / field reference
 
 	//#region dictionary literal field
-	const dictionaryLiteralFieldCompletionItems = getDictionaryLiteralFieldCompletionItems(expression);
+	const dictionaryLiteralFieldCompletionItems = getDictionaryLiteralFieldCompletionItems(checkResult, expression);
 	if (dictionaryLiteralFieldCompletionItems) {
 		switch (getFieldNamePositionKind(expression)) {
 			case 'exclusive':
@@ -773,7 +778,7 @@ export function getCompletionItems(
 				case 'dictionaryType':
 					return symbolsToCompletionItems([destructuredValue.symbols], isNotDefinedYet, positionKind);
 				default: {
-					const dereferencedType = getResolvedType(destructuredValue?.typeInfo);
+					const dereferencedType = getResolvedType(getTypeInfo(checkResult, destructuredValue));
 					if (isDictionaryLiteralType(dereferencedType)) {
 						return dictionaryTypeToCompletionItems(dereferencedType.FieldTypes)
 							.filter(completionItem => !destructuring.fields.symbols[completionItem.label]);
@@ -787,7 +792,7 @@ export function getCompletionItems(
 
 	//#region function literal parameter name
 	if (expression?.type === 'parameters') {
-		const innerParamsType = getDeclaredResolvedType(expression);
+		const innerParamsType = getDeclaredResolvedType(checkResult, expression);
 		if (isParametersType(innerParamsType)) {
 			const completionItems: CompletionItem[] = [];
 			innerParamsType.singleNames.forEach((singleName, index) => {

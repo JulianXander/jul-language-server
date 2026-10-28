@@ -1,3 +1,4 @@
+import { CheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { dirname } from 'path';
 import { getPathFromImport, isImportFunctionCall } from 'jul-compiler/out/parser/parser.js';
 import { isExportedSymbol } from 'jul-compiler/out/parser/parser-utils.js';
@@ -130,6 +131,7 @@ export interface SymbolInfo {
  * aufzulösen - ein Alias darf dort nicht wie beim Go-to-Definition blind mitgezogen werden.
  */
 export function getRawSymbolDefinition(
+	checkResult: CheckResult,
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	folderPath: string,
@@ -185,14 +187,14 @@ export function getRawSymbolDefinition(
 					};
 				}
 				case 'nestedReference': {
-					const declaredSourceType = getDeclaredType(parent.source);
-					const sourceType = getResolvedType(declaredSourceType ?? parent.source.typeInfo);
+					const declaredSourceType = getDeclaredType(checkResult, parent.source);
+					const sourceType = getResolvedType(declaredSourceType ?? getTypeInfo(checkResult, parent.source));
 					const foundSymbol = sourceType && getSymbolFromDictionaryType(sourceType, name);
 					return foundSymbol;
 				}
 				case 'singleDictionaryField':
 				case 'singleDictionaryTypeField': {
-					const declaredParentType = getDeclaredResolvedType(parent.parent!);
+					const declaredParentType = getDeclaredResolvedType(checkResult, parent.parent!);
 					const foundSymbol = declaredParentType && getSymbolFromDictionaryType(declaredParentType, name);
 					return foundSymbol;
 				}
@@ -244,12 +246,13 @@ export function getRawSymbolDefinition(
  * (auch Aliase) bis zur tatsächlichen Deklaration durch, siehe `resolveThroughImports`.
  */
 export function getSymbolDefinition(
+	checkResult: CheckResult,
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	folderPath: string,
 	parsedDocuments: ParsedDocuments,
 ): SymbolInfo | undefined {
-	const raw = getRawSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
+	const raw = getRawSymbolDefinition(checkResult, expression, scopes, folderPath, parsedDocuments);
 	if (!raw) {
 		return undefined;
 	}

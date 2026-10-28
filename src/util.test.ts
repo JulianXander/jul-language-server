@@ -50,6 +50,6 @@ a.f()
 		if (functionCall?.type !== 'functionCall') {
 			throw new Error(`Erwartet functionCall, bekommen ${functionCall?.type}`);
 		}
-		expect(getPrefixArgumentDeclaredType(functionCall)?.julType).to.equal('integer');
+		expect(getPrefixArgumentDeclaredType(parsed.checkResult!, functionCall)?.julType).to.equal('integer');
 	});
 });

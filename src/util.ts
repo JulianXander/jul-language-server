@@ -1,3 +1,4 @@
+import { CheckResult, getExpectedType, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { dereferenceIndexFromObject, dereferenceNameFromObject, isFunctionType, isParametersType, resolvePlaceholders } from 'jul-compiler/out/checker/type-algebra.js';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
@@ -39,12 +40,12 @@ export function getResolvedType(typeInfo: TypeInfo | undefined): CompileTimeType
  * Erwarteter Typ des `prefixArgument` bei einem Infix-Aufruf (`a.f(...)`) - der erste Parameter
  * von `f`. Wird von getDeclaredType (Hover, Completion, ...) genutzt, nicht nur von Completion.
  */
-export function getPrefixArgumentDeclaredType(functionCall: ParseFunctionCall): CompileTimeType | undefined {
+export function getPrefixArgumentDeclaredType(checkResult: CheckResult, functionCall: ParseFunctionCall): CompileTimeType | undefined {
 	const functionExpression = functionCall.functionExpression;
 	if (!functionExpression) {
 		return undefined;
 	}
-	const functionType = getResolvedType(functionExpression.typeInfo);
+	const functionType = getResolvedType(getTypeInfo(checkResult, functionExpression));
 	if (!functionType || !isFunctionType(functionType)) {
 		return undefined;
 	}
@@ -85,8 +86,8 @@ export function getParameterIndex(
 	return parameterIndex;
 }
 
-export function getDeclaredResolvedType(expression: PositionedExpression): CompileTimeType | undefined {
-	return getResolvedType(getDeclaredType(expression));
+export function getDeclaredResolvedType(checkResult: CheckResult, expression: PositionedExpression): CompileTimeType | undefined {
+	return getResolvedType(getDeclaredType(checkResult, expression));
 }
 
 /**
@@ -94,13 +95,13 @@ export function getDeclaredResolvedType(expression: PositionedExpression): Compi
  * Ausdruck (expectedType), samt der Zuordnung von Argumenten, Elementen und Feldern. Für
  * Referenzen und Aufrufe ist es dagegen der eigene Typ.
  */
-export function getDeclaredType(expression: PositionedExpression): TypeInfo | undefined {
+export function getDeclaredType(checkResult: CheckResult, expression: PositionedExpression): TypeInfo | undefined {
 	switch (expression.type) {
 		case 'functionCall':
-			return expression.typeInfo;
+			return getTypeInfo(checkResult, expression);
 		case 'name': {
 			if (expression.parent?.type === 'nestedReference') {
-				return getDeclaredType(expression.parent);
+				return getDeclaredType(checkResult, expression.parent);
 			}
 			break;
 		}
@@ -109,7 +110,7 @@ export function getDeclaredType(expression: PositionedExpression): TypeInfo | un
 			if (!nestedKey) {
 				return undefined;
 			}
-			const sourceType = getDeclaredResolvedType(expression.source);
+			const sourceType = getDeclaredResolvedType(checkResult, expression.source);
 			if (!sourceType) {
 				return undefined;
 			}
@@ -140,32 +141,32 @@ export function getDeclaredType(expression: PositionedExpression): TypeInfo | un
 			}
 		}
 		case 'reference': {
-			return expression.typeInfo;
+			return getTypeInfo(checkResult, expression);
 		}
 		default:
 			break;
 	}
-	if ('expectedType' in expression && expression.expectedType) {
-		return { type: expression.expectedType };
+	if ('expectedType' in expression && getExpectedType(checkResult, expression)) {
+		return { type: getExpectedType(checkResult, expression)! };
 	}
 	// Stellen, an denen der Checker keinen erwarteten Typ merkt.
 	switch (expression.parent?.type) {
 		case 'definition':
 			// Ohne Typguard verlangt die Definition nichts, angezeigt wird der eigene Typ des Werts.
 			return expression.parent.value === expression && !expression.parent.typeGuard
-				? expression.typeInfo
+				? getTypeInfo(checkResult, expression)
 				: undefined;
 		case 'functionCall': {
 			// Das Präfix-Argument wird inferiert, bevor die aufgerufene Funktion bekannt ist.
 			if (expression.parent.prefixArgument === expression) {
-				const prefixArgumentType = getPrefixArgumentDeclaredType(expression.parent);
+				const prefixArgumentType = getPrefixArgumentDeclaredType(checkResult, expression.parent);
 				return prefixArgumentType && { type: prefixArgumentType };
 			}
 			// Die Argumentliste als Ganzes, z.B. für die Vervollständigung benannter Argumente.
 			if (expression.parent.arguments !== expression) {
 				return undefined;
 			}
-			const functionType = getResolvedType(expression.parent.functionExpression?.typeInfo);
+			const functionType = getResolvedType(getTypeInfo(checkResult, expression.parent.functionExpression));
 			if (!functionType || !isFunctionType(functionType)) {
 				return undefined;
 			}

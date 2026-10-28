@@ -1,3 +1,4 @@
+import { getFileCheckResult, getCalledFunctionType, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { MarkupContent } from 'vscode-languageserver';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
@@ -15,18 +16,19 @@ export function getHover(
 	folderPath: string,
 	parsedDocuments: ParsedDocuments,
 ): MarkupContent | undefined {
+	const checkResult = getFileCheckResult(parsedFile);
 	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
 	if (!expression) {
 		return;
 	}
 
-	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
+	const foundSymbol = getSymbolDefinition(checkResult, expression, scopes, folderPath, parsedDocuments);
 	if (foundSymbol) {
 		const symbol = foundSymbol.symbol;
 		// Die aufgerufene Funktion zeigt die Signatur, gegen die dieser Aufruf geprüft wurde.
 		const parent = expression.parent;
 		const calledFunctionType = parent?.type === 'functionCall' && parent.functionExpression === expression
-			? parent.calledFunctionType
+			? getCalledFunctionType(checkResult, parent)
 			: undefined;
 		// Der Typ gehört der Stelle, nicht dem Namen: in einem branch ist er hier verengt.
 		// Die Beschreibung steht dagegen nur an der Definition.
@@ -34,13 +36,13 @@ export function getHover(
 		// einer womöglich leeren Quelle kommt Empty hinzu.
 		const typeInfo = calledFunctionType
 			? { type: calledFunctionType }
-			: ('typeInfo' in expression && expression.typeInfo)
-			|| (parent?.type === 'nestedReference' && getDeclaredType(expression))
+			: ('typeInfo' in expression && getTypeInfo(checkResult, expression))
+			|| (parent?.type === 'nestedReference' && getDeclaredType(checkResult, expression))
 			|| symbol.typeInfo;
 		return getTypeMarkdown(typeInfo, symbol.description);
 	}
 
-	const declaredType = getDeclaredType(expression);
+	const declaredType = getDeclaredType(checkResult, expression);
 	if (declaredType) {
 		return getTypeMarkdown(declaredType, undefined);
 	}

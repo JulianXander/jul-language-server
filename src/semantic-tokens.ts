@@ -1,3 +1,4 @@
+import { CheckResult, getFileCheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { SemanticTokens, SemanticTokensBuilder } from 'vscode-languageserver';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
@@ -40,12 +41,15 @@ interface SemanticTokenInfo {
 export function getSemanticTokens(parsedFile: ParsedFile | undefined): SemanticTokens {
 	const checked = parsedFile?.checked;
 	const expressions = checked?.expressions;
-	if (!checked || !expressions) {
+	if (!parsedFile
+		|| !checked
+		|| !expressions) {
 		return { data: [] };
 	}
+	const checkResult = getFileCheckResult(parsedFile);
 	const tokens: SemanticTokenInfo[] = [];
 	const scopes: SymbolTable[] = [checked.symbols];
-	expressions.forEach(expression => collectSemanticTokens(expression, scopes, tokens));
+	expressions.forEach(expression => collectSemanticTokens(checkResult, expression, scopes, tokens));
 	// Der builder verlangt aufsteigende Positionen. forEachChild liefert Quelltextreihenfolge,
 	// aber ein infix call stellt das Aufrufziel hinter sein erstes Argument.
 	tokens.sort((a, b) => a.line - b.line || a.character - b.character);
@@ -66,14 +70,15 @@ export function getSemanticTokens(parsedFile: ParsedFile | undefined): SemanticT
 const keywordFunctionNames = ['import', 'test'];
 
 function collectSemanticTokens(
+	checkResult: CheckResult,
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	tokens: SemanticTokenInfo[],
 ): void {
-	addSemanticToken(expression, scopes, tokens);
+	addSemanticToken(checkResult, expression, scopes, tokens);
 	const pushedScope = pushScope(expression, scopes);
 	forEachChild(expression, child => {
-		collectSemanticTokens(child, scopes, tokens);
+		collectSemanticTokens(checkResult, child, scopes, tokens);
 		return undefined;
 	});
 	if (pushedScope) {
@@ -82,6 +87,7 @@ function collectSemanticTokens(
 }
 
 function addSemanticToken(
+	checkResult: CheckResult,
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	tokens: SemanticTokenInfo[],
@@ -91,7 +97,7 @@ function addSemanticToken(
 			// true/false bekommen keinen Semantic Token: sie sollen wie Literale gefärbt werden
 			// (Grammatik-Scope constant.language.boolean.jul), nicht wie eine eingebaute Variable
 			// oder ein Typ-Pattern (z.B. [true] => ...  löst als TypeOf(booleanLiteral) auf).
-			const referencedType = expression.typeInfo?.type;
+			const referencedType = getTypeInfo(checkResult, expression)?.type;
 			if (referencedType?.julType === 'booleanLiteral'
 				|| (isTypeOfType(referencedType) && referencedType.value.julType === 'booleanLiteral')) {
 				return;
@@ -107,8 +113,8 @@ function addSemanticToken(
 			pushSemanticToken(
 				tokens,
 				expression.name,
-				getSemanticTokenType(expression.typeInfo, found?.symbol),
-				getSemanticTokenModifiers(expression.typeInfo, found?.isBuiltIn));
+				getSemanticTokenType(checkResult, getTypeInfo(checkResult, expression), found?.symbol),
+				getSemanticTokenModifiers(getTypeInfo(checkResult, expression), found?.isBuiltIn));
 			return;
 		}
 		case 'definition': {
@@ -117,7 +123,7 @@ function addSemanticToken(
 			if (keywordFunctionNames.includes(expression.name.name)) {
 				return;
 			}
-			const definedType = expression.typeInfo?.type;
+			const definedType = getTypeInfo(checkResult, expression)?.type;
 			if (definedType?.julType === 'booleanLiteral'
 				|| (isTypeOfType(definedType) && definedType.value.julType === 'booleanLiteral')) {
 				return;
@@ -125,8 +131,8 @@ function addSemanticToken(
 			pushSemanticToken(
 				tokens,
 				expression.name,
-				getSemanticTokenType(expression.typeInfo, findSymbolInScopes(expression.name.name, scopes)),
-				['declaration', ...getSemanticTokenModifiers(expression.typeInfo, false)]);
+				getSemanticTokenType(checkResult, getTypeInfo(checkResult, expression), findSymbolInScopes(expression.name.name, scopes)),
+				['declaration', ...getSemanticTokenModifiers(getTypeInfo(checkResult, expression), false)]);
 			return;
 		}
 		case 'parameter':
@@ -136,14 +142,14 @@ function addSemanticToken(
 				pushSemanticToken(
 					tokens,
 					expression.name,
-					getSemanticTokenType(expression.typeInfo, undefined),
-					['declaration', ...getSemanticTokenModifiers(expression.typeInfo, false)]);
+					getSemanticTokenType(checkResult, getTypeInfo(checkResult, expression), undefined),
+					['declaration', ...getSemanticTokenModifiers(getTypeInfo(checkResult, expression), false)]);
 				return;
 			}
 			pushSemanticToken(
 				tokens,
 				expression.name,
-				isTypeValue(expression.typeInfo?.type) ? 'type' : 'parameter',
+				isTypeValue(getTypeInfo(checkResult, expression)?.type) ? 'type' : 'parameter',
 				['declaration']);
 			return;
 		case 'destructuringField': {
@@ -152,7 +158,7 @@ function addSemanticToken(
 			pushSemanticToken(
 				tokens,
 				expression.name,
-				getSemanticTokenType(symbol?.typeInfo, symbol),
+				getSemanticTokenType(checkResult, symbol?.typeInfo, symbol),
 				['declaration', ...getSemanticTokenModifiers(symbol?.typeInfo, false)]);
 			if (expression.source) {
 				pushSemanticToken(tokens, expression.source, 'property', []);
@@ -186,13 +192,14 @@ function findSymbolInScopes(name: string, scopes: SymbolTable[]): SymbolDefiniti
 }
 
 function getSemanticTokenType(
+	checkResult: CheckResult,
 	typeInfo: TypeInfo | undefined,
 	symbol: SymbolDefinition | undefined,
 ): SemanticTokenType {
 	// Mit Alias (enabled = value) ist der Name nur eine lokale Konstante, kein Parameter.
 	if (symbol?.definition?.type === 'parameter' && !symbol.definition.source) {
 		// Ein Parameter vom Typ Type (T: Type) steht für einen Typ und wird wie einer gefärbt.
-		return isTypeValue(symbol.definition.typeInfo?.type)
+		return isTypeValue(getTypeInfo(checkResult, symbol.definition)?.type)
 			? 'type'
 			: 'parameter';
 	}

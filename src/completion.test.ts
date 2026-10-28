@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
+import { CheckResult } from 'jul-compiler/out/checker/check-result.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { builtinInteger, builtinInvalid, ParsedFile, ParseFunctionCall, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
@@ -127,30 +128,30 @@ g = (b: Text) :> Text => b
 
 describe('getExpectedArgumentType', () => {
 	/** liefert den functionCall aus der Definition in der angegebenen Zeile */
-	function getCallFromDefinition(code: string, rowIndex: number): ParseFunctionCall {
+	function getCallFromDefinition(code: string, rowIndex: number): { checkResult: CheckResult; functionCall: ParseFunctionCall; } {
 		const parsed = parse(code);
 		const definition = parsed.checked!.expressions![rowIndex];
 		if (definition?.type !== 'definition' || definition.value?.type !== 'functionCall') {
 			throw new Error(`Erwartet definition mit functionCall value, bekommen ${definition?.type}`);
 		}
-		return definition.value;
+		return { checkResult: parsed.checkResult!, functionCall: definition.value };
 	}
 
 	// Realer Fall: in `Or([] )` wird an der Cursorposition ein Typ erwartet (Rest-Parameter
 	// "...ChoiceTypes: List(Type)" in core-lib.jul), trotzdem standen Werte weiter oben.
 	it('liefert bei einem Rest-Parameter den Elementtyp, nicht den Listentyp', () => {
-		const functionCall = getCallFromDefinition('x = Or([] )\n', 0);
+		const { checkResult, functionCall } = getCallFromDefinition('x = Or([] )\n', 0);
 		// Cursor hinter dem Leerzeichen, also im zweiten Argument
-		expect(getExpectedArgumentType(functionCall, 0, 10)?.julType).to.equal('type');
+		expect(getExpectedArgumentType(checkResult, functionCall, 0, 10)?.julType).to.equal('type');
 	});
 
 	it('liefert den Typ des Parameters an der Cursorposition', () => {
 		const code = `f = (a: Integer b: Text) :> Integer => a
 x = f(1 )
 `;
-		const functionCall = getCallFromDefinition(code, 1);
+		const { checkResult, functionCall } = getCallFromDefinition(code, 1);
 		// Cursor im zweiten Argument, dort wird Text erwartet
-		expect(getExpectedArgumentType(functionCall, 1, 8)?.julType).to.equal('text');
+		expect(getExpectedArgumentType(checkResult, functionCall, 1, 8)?.julType).to.equal('text');
 	});
 });
 
@@ -178,7 +179,7 @@ describe('getArgumentPositionKind', () => {
 			throw new Error('Erwartet definition mit functionCall value');
 		}
 		const list = definition.value.arguments;
-		expect(getArgumentPositionKind(list, 0, 10)).to.equal('type');
+		expect(getArgumentPositionKind(parsed.checkResult!, list, 0, 10)).to.equal('type');
 	});
 
 	it('erkennt einen Wert-Parameter als Wert-Position, auch wenn schon ein Argument getippt ist', () => {
@@ -190,13 +191,13 @@ x = f(1 )
 			throw new Error('Erwartet definition mit functionCall value');
 		}
 		const list = definition.value.arguments;
-		expect(getArgumentPositionKind(list, 1, 8)).to.equal('value');
+		expect(getArgumentPositionKind(parsed.checkResult!, list, 1, 8)).to.equal('value');
 	});
 
 	it('liefert undefined außerhalb einer Argumentliste', () => {
 		const parsed = parse('a: Integer = 5\n');
 		const expression = parsed.checked!.expressions![0];
-		expect(getArgumentPositionKind(expression, 0, 0)).to.equal(undefined);
+		expect(getArgumentPositionKind(parsed.checkResult!, expression, 0, 0)).to.equal(undefined);
 	});
 });
 
@@ -228,7 +229,7 @@ x: MyType = []
 		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
 			throw new Error('Erwartet definition mit empty value');
 		}
-		const declaredType = getDeclaredResolvedType(definition.value);
+		const declaredType = getDeclaredResolvedType(parsed.checkResult!, definition.value);
 		const completionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 		expect(completionItems?.map(item => item.label)).to.include('f1');
 	});
@@ -243,7 +244,7 @@ x: MyType = []
 		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
 			throw new Error('Erwartet definition mit empty value');
 		}
-		const declaredType = getDeclaredResolvedType(definition.value);
+		const declaredType = getDeclaredResolvedType(parsed.checkResult!, definition.value);
 		const completionItems = declaredType && getDictionaryFieldCompletionItemsFromType(declaredType);
 		const f1CompletionItem = completionItems?.find(item => item.label === 'f1');
 		expect(f1CompletionItem?.insertText).to.equal('f1 = ');
@@ -258,7 +259,7 @@ describe('getDeclaredResolvedType', () => {
 		if (definition?.type !== 'definition' || !definition.value) {
 			throw new Error(`Erwartet definition mit value, bekommen ${definition?.type}`);
 		}
-		return definition.value;
+		return { checkResult: parsed.checkResult!, value: definition.value };
 	}
 
 	// Ein Spread bringt unbekannt viele Argumente mit, danach ist die Position des Parameters
@@ -268,24 +269,24 @@ describe('getDeclaredResolvedType', () => {
 xs: List(Integer) = [1]
 x = f(1 ...xs §a§)
 `;
-		const functionCall = getDefinitionValue(code, 2);
+		const { checkResult, value: functionCall } = getDefinitionValue(code, 2);
 		if (functionCall.type !== 'functionCall' || functionCall.arguments?.type !== 'list') {
 			throw new Error('Erwartet functionCall mit list-Argumenten');
 		}
 		const text = functionCall.arguments.values[2]!;
-		expect(getDeclaredResolvedType(text)).to.equal(undefined);
+		expect(getDeclaredResolvedType(checkResult, text)).to.equal(undefined);
 	});
 
 	it('liefert nach einem Spread in einem Listenliteral keinen Elementtyp', () => {
 		const code = `xs: List(Integer) = [1]
 l: [Integer Text Float] = [1 ...xs §a§]
 `;
-		const list = getDefinitionValue(code, 1);
+		const { checkResult, value: list } = getDefinitionValue(code, 1);
 		if (list.type !== 'list') {
 			throw new Error(`Erwartet list, bekommen ${list.type}`);
 		}
 		const text = list.values[2]!;
-		expect(getDeclaredResolvedType(text)).to.equal(undefined);
+		expect(getDeclaredResolvedType(checkResult, text)).to.equal(undefined);
 	});
 
 	// Der Parametertyp des Callbacks steht in der core-lib als TypeOf(values)/ElementType und ist
@@ -295,7 +296,7 @@ l: [Integer Text Float] = [1 ...xs §a§]
 		const code = `values: List(Integer) = [1]
 x = values.map((v) => v)
 `;
-		const functionCall = getDefinitionValue(code, 1);
+		const { checkResult, value: functionCall } = getDefinitionValue(code, 1);
 		if (functionCall.type !== 'functionCall' || functionCall.arguments?.type !== 'list') {
 			throw new Error('Erwartet functionCall mit list-Argumenten');
 		}
@@ -303,7 +304,7 @@ x = values.map((v) => v)
 		if (callback?.type !== 'functionLiteral') {
 			throw new Error(`Erwartet functionLiteral, bekommen ${callback?.type}`);
 		}
-		const paramsType = getDeclaredResolvedType(callback.params);
+		const paramsType = getDeclaredResolvedType(checkResult, callback.params);
 		if (paramsType?.julType !== 'parameters') {
 			throw new Error(`Erwartet parameters, bekommen ${paramsType?.julType}`);
 		}
@@ -320,7 +321,7 @@ x: MyType = []
 		if (definition?.type !== 'definition' || definition.value?.type !== 'empty') {
 			throw new Error('Erwartet definition mit empty value');
 		}
-		const completionItems = getDictionaryLiteralFieldCompletionItems(definition.value);
+		const completionItems = getDictionaryLiteralFieldCompletionItems(parsed.checkResult!, definition.value);
 		expect(completionItems?.map(item => item.label)).to.include('f1');
 	});
 
@@ -334,7 +335,7 @@ buttons: List(Button) = [...defaults []]
 		if (definition?.type !== 'definition' || definition.value?.type !== 'list') {
 			throw new Error('Erwartet definition mit list value');
 		}
-		const completionItems = getDictionaryLiteralFieldCompletionItems(definition.value.values[1]);
+		const completionItems = getDictionaryLiteralFieldCompletionItems(parsed.checkResult!, definition.value.values[1]);
 		expect(completionItems?.map(item => item.label)).to.include('label');
 	});
 
@@ -353,7 +354,7 @@ x: MyType = [f]
 		if (reference?.type !== 'reference') {
 			throw new Error(`Erwartet reference, bekommen ${reference?.type}`);
 		}
-		const completionItems = getDictionaryLiteralFieldCompletionItems(reference);
+		const completionItems = getDictionaryLiteralFieldCompletionItems(parsed.checkResult!, reference);
 		expect(completionItems?.map(item => item.label)).to.include('f1');
 	});
 
@@ -370,7 +371,7 @@ x: MyType = [
 			throw new Error(`Erwartet definition mit data value, bekommen ${definition?.type}`);
 		}
 		const field = definition.value.fields.at(-1);
-		const completionItems = getDictionaryLiteralFieldCompletionItems(field?.name);
+		const completionItems = getDictionaryLiteralFieldCompletionItems(parsed.checkResult!, field?.name);
 		expect(completionItems?.map(item => item.label)).to.deep.equal(['f2']);
 	});
 });
@@ -505,7 +506,7 @@ describe('getCompletionItems', () => {
 		const columnIndex = lines[rowIndex]!.indexOf('|');
 		const parsed = parse(codeWithCursor.replace('|', ''));
 		const { expression, scopes } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
-		return getCompletionItems(expression, scopes, rowIndex, columnIndex, false) ?? [];
+		return getCompletionItems(parsed.checkResult!, expression, scopes, rowIndex, columnIndex, false) ?? [];
 	}
 
 	it('fügt hinter einem Wert Funktionen samt Punkt und Klammern ein', () => {
@@ -612,7 +613,7 @@ describe('getLambdaCompletionItem', () => {
 		const columnIndex = lines[rowIndex]!.indexOf('|');
 		const parsed = parse(codeWithCursor.replace('|', ''));
 		const { expression, scopes } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
-		return getLambdaCompletionItem(expression, rowIndex, columnIndex, [...scopes, builtInSymbols]);
+		return getLambdaCompletionItem(parsed.checkResult!, expression, rowIndex, columnIndex, [...scopes, builtInSymbols]);
 	}
 
 	it('bietet an einer Funktionsposition das Lambda mit den festen Parameternamen an', () => {
@@ -644,22 +645,23 @@ describe('getLambdaCompletionItem', () => {
 // `values` schon das Präfixargument ist und die leere Argumentliste auch ein positionales
 // Argument (z.B. ein Lambda) erlaubt.
 describe('leere Argumentliste eines Infix-Aufrufs', () => {
-	function emptyArguments(code: string): PositionedExpression {
+	function emptyArguments(code: string): { checkResult: CheckResult; args: PositionedExpression; } {
 		const parsed = parse(code);
 		const functionCall = parsed.checked!.expressions!.at(-1);
 		if (functionCall?.type !== 'functionCall' || functionCall.arguments?.type !== 'empty') {
 			throw new Error(`Erwartet functionCall mit empty Argumenten, bekommen ${functionCall?.type}`);
 		}
-		return functionCall.arguments;
+		return { checkResult: parsed.checkResult!, args: functionCall.arguments };
 	}
 
 	it('schlägt das Präfixargument nicht als Feldname vor', () => {
-		const completionItems = getDictionaryLiteralFieldCompletionItems(emptyArguments('[].map()\n'));
+		const { checkResult, args } = emptyArguments('[].map()\n');
+		const completionItems = getDictionaryLiteralFieldCompletionItems(checkResult, args);
 		expect(completionItems?.map(item => item.label)).to.deep.equal(['transform']);
 	});
 
 	it('lässt neben Feldnamen auch positionale Argumente zu', () => {
-		expect(getFieldNamePositionKind(emptyArguments('[].map()\n'))).to.equal('mixed');
+		expect(getFieldNamePositionKind(emptyArguments('[].map()\n').args)).to.equal('mixed');
 	});
 });
 

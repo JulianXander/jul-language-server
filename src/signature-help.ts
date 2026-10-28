@@ -1,3 +1,4 @@
+import { getFileCheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { ParameterInformation, SignatureHelp } from 'vscode-languageserver';
 import { findSymbolInScopesWithBuiltIns } from 'jul-compiler/out/checker/checker.js';
 import { typeToString } from 'jul-compiler/out/checker/type-algebra.js';
@@ -16,6 +17,7 @@ export function getSignatureHelp(
 	rowIndex: number,
 	columnIndex: number,
 ): SignatureHelp | undefined {
+	const checkResult = getFileCheckResult(parsed);
 	// TODO find functiontLiteral, show param + return type
 	const { expression, scopes } = findExpressionInParsedFile(parsed, rowIndex, columnIndex);
 	if (expression?.parent?.type !== 'functionCall') {
@@ -38,14 +40,14 @@ export function getSignatureHelp(
 			paramsType.singleFields.forEach(singleField => {
 				parameterResults.push({
 					label: singleField.name.name,
-					documentation: getTypeMarkdown(singleField.typeInfo, singleField.description),
+					documentation: getTypeMarkdown(getTypeInfo(checkResult, singleField), singleField.description),
 				});
 			});
 			const rest = paramsType.rest;
 			if (rest) {
 				parameterResults.push({
 					label: rest.name.name,
-					documentation: getTypeMarkdown(rest.typeInfo, rest.description),
+					documentation: getTypeMarkdown(getTypeInfo(checkResult, rest), rest.description),
 				});
 			}
 		}

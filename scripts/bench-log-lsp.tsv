@@ -359,3 +359,15 @@
 2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	signatureHelp	582	0.06	0.10	0.71	Klon weg: Recheck parst neu statt checkTypes auf Klon
 2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	documentSymbol	3	5.12	6.01	6.01	Klon weg: Recheck parst neu statt checkTypes auf Klon
 2026-10-28 13:12:30	3d8933a+	jul-compiler 1a29f2f+	ADV-DEV-56627	yugioh	semanticTokens	3	7.24	9.09	9.09	Klon weg: Recheck parst neu statt checkTypes auf Klon
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	12.90	168.64	1480.97	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	269.68	299.39	299.39	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	244.35	265.69	265.69	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	832.41	1041.46	1041.46	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	268.68	282.55	282.55	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	693.22	706.28	706.28	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	hover	582	0.08	0.19	0.78	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	definition	582	0.06	0.09	0.23	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	completion	582	5.44	6.60	16.36	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	signatureHelp	582	0.07	0.11	0.87	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	documentSymbol	3	6.65	6.97	6.97	Schritt 2: Zugriffsschicht CheckResult
+2026-10-28 14:43:19	3af5885+	jul-compiler 6f39675+	ADV-DEV-56627	yugioh	semanticTokens	3	8.51	9.72	9.72	Schritt 2: Zugriffsschicht CheckResult

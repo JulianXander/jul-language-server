@@ -49,7 +49,8 @@ import {
 	SymbolDefinition,
 	SymbolTable,
 } from 'jul-compiler/out/syntax-tree.js';
-import { checkTypes, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
+import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
+import { CheckResult, getFileCheckResult } from 'jul-compiler/out/checker/check-result.js';
 import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isTestFilePath, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
@@ -577,7 +578,7 @@ connection.onCompletion(completionParams => {
 		//#endregion import path
 	}
 
-	return getCompletionItems(expression, scopes, rowIndex, columnIndex, isCoreLibPath(documentPath));
+	return getCompletionItems(getFileCheckResult(parsedFile), expression, scopes, rowIndex, columnIndex, isCoreLibPath(documentPath));
 });
 
 
@@ -714,7 +715,7 @@ connection.onDefinition((definitionParams) => {
 	}
 	//#endregion go to imported file
 
-	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
+	const foundSymbol = getSymbolDefinition(getFileCheckResult(parsedFile), expression, scopes, folderPath, parsedDocuments);
 	const typeFields = foundSymbol
 		&& !foundSymbol.isBuiltIn
 		&& getFieldAccessTypeFields(
@@ -768,7 +769,7 @@ connection.onPrepareRename(prepareRenameParams => {
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const foundSymbol = getSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
+	const foundSymbol = getSymbolDefinition(getFileCheckResult(parsedFile), expression, scopes, folderPath, parsedDocuments);
 	if (!foundSymbol || foundSymbol.isBuiltIn) {
 		return;
 	}
@@ -784,16 +785,18 @@ connection.onPrepareRename(prepareRenameParams => {
  * Alias zielen auf die Felder ihres Typs, bei einer Union auf mehrere.
  */
 function resolveRenameTargets(
+	checkResult: CheckResult,
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	documentPath: string,
 	folderPath: string,
 ): { symbol: SymbolDefinition; filePath: string; }[] | undefined {
-	const canonical = resolveCanonicalRenameTarget(expression, scopes, documentPath, folderPath);
+	const canonical = resolveCanonicalRenameTarget(checkResult, expression, scopes, documentPath, folderPath);
 	return canonical && resolveRelatedTargets(canonical, referenceIndex);
 }
 
 function resolveCanonicalRenameTarget(
+	checkResult: CheckResult,
 	expression: PositionedExpression,
 	scopes: SymbolTable[],
 	documentPath: string,
@@ -815,7 +818,7 @@ function resolveCanonicalRenameTarget(
 		// landet er beim Typfeld.
 		return resolveImportBinding(field, documentPath, parsedDocuments) ?? local;
 	}
-	const raw = getRawSymbolDefinition(expression, scopes, folderPath, parsedDocuments);
+	const raw = getRawSymbolDefinition(checkResult, expression, scopes, folderPath, parsedDocuments);
 	if (!raw || raw.isBuiltIn) {
 		return undefined;
 	}
@@ -835,7 +838,7 @@ connection.onRenameRequest(renameParams => {
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const targets = resolveRenameTargets(expression, scopes, documentPath, folderPath);
+	const targets = resolveRenameTargets(getFileCheckResult(parsedFile), expression, scopes, documentPath, folderPath);
 	if (!targets) {
 		return;
 	}
@@ -959,7 +962,7 @@ connection.onReferences(referenceParams => {
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const targets = resolveRenameTargets(expression, scopes, documentPath, folderPath);
+	const targets = resolveRenameTargets(getFileCheckResult(parsedFile), expression, scopes, documentPath, folderPath);
 	if (!targets) {
 		return;
 	}
@@ -984,7 +987,7 @@ connection.onDocumentHighlight(highlightParams => {
 	}
 	const documentPath = uriToPath(documentUri);
 	const folderPath = dirname(documentPath);
-	const targets = resolveRenameTargets(expression, scopes, documentPath, folderPath);
+	const targets = resolveRenameTargets(getFileCheckResult(parsedFile), expression, scopes, documentPath, folderPath);
 	if (!targets) {
 		return;
 	}
