@@ -51,6 +51,16 @@ x = f(1)`, 'f: function()');
 			.to.include('data: variable(declaration)');
 	});
 
+	it('assume bekommt keinen Token, die Grammatik färbt es als Keyword', () => {
+		expect(tokensOf(`x = assume(1 Any)`).filter(token => token.startsWith('assume:')))
+			.to.deep.equal([]);
+	});
+
+	it('assume in der Präfixform bekommt keinen Token', () => {
+		expect(tokensOf(`x = 1.assume(Any)`).filter(token => token.startsWith('assume:')))
+			.to.deep.equal([]);
+	});
+
 	it('ein Typ ist type', () => {
 		expectToken(`x: Integer = 1`, 'Integer: type(defaultLibrary)');
 	});

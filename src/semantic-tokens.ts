@@ -64,10 +64,11 @@ export function getSemanticTokens(parsedFile: ParsedFile | undefined): SemanticT
 }
 
 /**
- * Funktionen mit Sonderverhalten, die nur direkt aufgerufen werden dürfen und deshalb wie ein
- * Keyword gefärbt werden, über die Grammatik statt über Semantic Tokens.
+ * Funktionen mit Sonderverhalten, die wie ein Keyword gefärbt werden, über die Grammatik statt über
+ * Semantic Tokens. import und test dürfen nur direkt aufgerufen werden, assume behandelt der
+ * Emitter gesondert.
  */
-const keywordFunctionNames = ['import', 'test'];
+const keywordFunctionNames = ['import', 'test', 'assume'];
 
 function collectSemanticTokens(
 	checkResult: CheckResult,
@@ -102,10 +103,10 @@ function addSemanticToken(
 				|| (isTypeOfType(referencedType) && referencedType.value.julType === 'booleanLiteral')) {
 				return;
 			}
-			// import und test bekommen ebenfalls keinen Semantic Token: beide sind nur als direkter
-			// Aufruf erlaubt (JUL3140, JUL2704), sollen also wie ein Keyword gefärbt werden
-			// (Grammatik-Scopes keyword.control.import.jul/keyword.control.test.jul), nicht wie eine
-			// eingebaute Funktion/Variable.
+			// import, test und assume bekommen ebenfalls keinen Semantic Token: Sie haben
+			// Sonderverhalten und sollen wie ein Keyword gefärbt werden (Grammatik-Scopes
+			// keyword.control.import.jul, keyword.control.test.jul, keyword.control.assume.jul),
+			// nicht wie eine eingebaute Funktion/Variable.
 			if (keywordFunctionNames.includes(expression.name.name)) {
 				return;
 			}
@@ -118,7 +119,7 @@ function addSemanticToken(
 			return;
 		}
 		case 'definition': {
-			// Die Deklarationen von import/test/true/false in core-lib.jul bekommen ebenfalls keinen
+			// Die Deklarationen von import/test/assume/true/false in core-lib.jul bekommen ebenfalls keinen
 			// Semantic Token, aus demselben Grund wie an der jeweiligen Referenzstelle oben.
 			if (keywordFunctionNames.includes(expression.name.name)) {
 				return;
