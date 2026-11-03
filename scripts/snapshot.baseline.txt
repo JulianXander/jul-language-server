@@ -560,7 +560,7 @@ semanticTokens
   7: 6+6 typeConstructor(defaultLibrary) 13+2 parameter(readonly) 17+10 property(readonly)
   8: 4+5 parameter(readonly)
   9: 4+6 parameter(readonly) 11+6 function(defaultLibrary) 20+3 function(defaultLibrary) 31+4 parameter(readonly)
-  11: 4+4 variable(declaration,readonly) 11+18 variable(readonly) 30+6 parameter(readonly) 37+4 parameter(readonly) 42+2 parameter(readonly) 45+5 parameter(readonly) 51+3 function(defaultLibrary) 58+4 parameter(readonly)
+  11: 4+4 variable(declaration,readonly) 11+18 function 30+6 parameter(readonly) 37+4 parameter(readonly) 42+2 parameter(readonly) 45+5 parameter(readonly) 51+3 function(defaultLibrary) 58+4 parameter(readonly)
   12: 4+2 parameter(readonly) 7+4 variable(readonly) 12+6 parameter(readonly) 19+10 function(defaultLibrary) 30+5 parameter(readonly) 37+5 parameter(readonly)
   14: 1+10 variable(declaration,readonly)
   20: 1+10 variable(declaration,readonly) 14+10 variable(readonly) 25+9 function(defaultLibrary) 35+7 type(defaultLibrary) 46+11 parameter(declaration,readonly) 58+5 parameter(declaration,readonly) 68+11 parameter(readonly) 80+3 function(defaultLibrary) 84+5 parameter(readonly)
@@ -3790,7 +3790,7 @@ semanticTokens
   78:3 definition: kein
   78:3 completion: n=144 Player,Cell,GameBoard
   78:3 signatureHelp: kein
-  86:9 hover: ```jul Or( Empty List(Or( [ rowIndex: 1 columnIndex: 1 value: Cell ] [ rowIndex: 1 columnIndex: 2 va...
+  86:9 hover: ```jul Or(Empty List(PositionedCell)) ```
   86:9 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:85:2
   86:9 completion: n=142 Player,Cell,GameBoard
   86:9 signatureHelp: ( values: Or(Empty List(Any)) transform: ( value: Any index: And(PositiveInteger Not(GreaterInteger(... param=1
@@ -3806,10 +3806,10 @@ semanticTokens
   107:12 definition: kein
   107:12 completion: n=151 Player,Cell,GameBoard
   107:12 signatureHelp: kein
-  113:33 hover: ```jul (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Or( Empty List([ rowInde...
+  113:33 hover: ```jul (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Or(Empty List(CellChange...
   113:33 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:84:1
   113:33 completion: n=150 Player,Cell,GameBoard
-  113:33 signatureHelp: (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Or( Empty List([ rowIndex: Or(1... param=0
+  113:33 signatureHelp: (gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]]) -> Or(Empty List(CellChange)) param=0
   121:9 hover: kein
   121:9 definition: kein
   121:9 completion: n=150 Player,Cell,GameBoard
@@ -3819,7 +3819,7 @@ semanticTokens
   129:24 completion: n=144 Player,Cell,GameBoard
   129:24 signatureHelp: kein
   136:14 hover: ```jul Or(§§ Player) ```
-  136:14 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:77:5
+  136:14 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:19:2
   136:14 completion: n=145 Player,Cell,GameBoard
   136:14 signatureHelp: kein
   142:9 hover: ```jul false ```
@@ -4232,7 +4232,7 @@ semanticTokens
   104:3 hover: ```jul ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) ```
   104:3 definition: kein
   104:3 completion: n=131 allEqual,applyDelta,checkWinner
-  104:3 signatureHelp: ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) -> [ cellChanges: List(Or( click... param=0
+  104:3 signatureHelp: ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) -> GameStateChange param=0
   117:8 hover: ```jul Or(§§ Player) ```
   117:8 definition: kein
   117:8 completion: n=131 allEqual,applyDelta,checkWinner
@@ -4257,7 +4257,7 @@ semanticTokens
   180:3 definition: jul-core-lib:/core-lib.jul:1607:1
   180:3 completion: n=130 allEqual,applyDelta,checkWinner
   180:3 signatureHelp: ( name: Text callback: () :> Boolean ) ~> Empty param=0
-  192:17 hover: ```jul Or( Empty List(Or( [ rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) enabled: true ] [ rowIndex: O...
+  192:17 hover: ```jul Or(Empty List(CellChange)) ```
   192:17 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:31:2
   192:17 completion: n=131 allEqual,applyDelta,checkWinner
   192:17 signatureHelp: kein
@@ -4433,7 +4433,7 @@ semanticTokens
   5:8 definition: ui/tic-tac-toe/dom.ts:5:17
   5:8 completion: n=0 
   5:8 signatureHelp: kein
-  9:9 hover: ```jul ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) -> [ cellChanges: List(Or...
+  9:9 hover: ```jul ( gameState: GameState rowIndex: Or(1 2 3) columnIndex: Or(1 2 3) ) -> GameStateChange ``` Be...
   9:9 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:92:1
   9:9 completion: n=11 Player,Cell,GameBoard
   9:9 signatureHelp: kein
