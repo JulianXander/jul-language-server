@@ -744,6 +744,49 @@ semanticTokens
   18:1 completion: n=126 () =>,aggregateRecursive,testValues
   18:1 signatureHelp: ( name: Text callback: () :> Boolean ) ~> Empty param=0
 
+=== core-lib/assume/assume.jul
+symbols
+  second kind=12 3:1
+    values kind=13 3:11
+      keine
+semanticTokens
+  3: 1+6 function(declaration) 11+6 parameter(declaration,readonly) 19+4 typeConstructor(defaultLibrary) 24+7 type(defaultLibrary)
+  4: 9+6 parameter(readonly) 16+10 function(defaultLibrary) 30+7 type(defaultLibrary)
+  6: 1+3 function(defaultLibrary,impure) 5+6 function
+  3:18 hover: kein
+  3:18 definition: kein
+  3:18 completion: n=125 second,values,true
+  3:18 signatureHelp: kein
+  4:19 hover: ```jul ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Or(Empty Integer) ``` Liefert das E...
+  4:19 definition: jul-core-lib:/core-lib.jul:778:1
+  4:19 completion: n=43 second,List,And
+  4:19 signatureHelp: ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any param=1
+  6:11 hover: ```jul (values: List(Integer)) -> Integer ``` getElement liefert Empty, wenn die Position nicht exis...
+  6:11 definition: core-lib/assume/assume.jul:3:1
+  6:11 completion: n=124 second,true,false
+  6:11 signatureHelp: (values: List(Integer)) -> Integer param=0
+
+=== core-lib/assume/assume.test.jul
+symbols
+  second kind=8 2:2
+    keine
+semanticTokens
+  2: 2+6 function(declaration)
+  4: 41+5 function(defaultLibrary) 47+6 function
+  6: 32+5 function(defaultLibrary) 38+6 function
+  2:17 hover: ```jul (path: Text) ~> [second: (values: List(Integer)) -> Integer] ``` Supported file types: .jul ....
+  2:17 definition: jul-core-lib:/core-lib.jul:1592:1
+  2:17 completion: n=124 second,true,false
+  2:17 signatureHelp: (path: Text) ~> Any param=0
+  4:33 hover: ```jul Text ```
+  4:33 definition: kein
+  4:33 completion: n=124 second,true,false
+  4:33 signatureHelp: kein
+  6:27 hover: ```jul () ```
+  6:27 definition: kein
+  6:27 completion: n=0 
+  6:27 signatureHelp: kein
+
 === core-lib/filter/filter.jul
 symbols
   isInteger kind=12 3:1
