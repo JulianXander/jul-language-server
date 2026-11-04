@@ -3149,7 +3149,7 @@ semanticTokens
   79:14 definition: kein
   79:14 completion: n=50 findElement,onClick,onDialogClose
   79:14 signatureHelp: kein
-  82:4 hover: kein
+  82:4 hover: Passt ein Arm, ist sein Wert das Ergebnis der Funktion und sie endet hier. Sonst geht es mit der näc...
   82:4 definition: kein
   82:4 completion: n=136 appendHtml,elementById,findElement
   82:4 signatureHelp: kein
@@ -4512,7 +4512,7 @@ semanticTokens
   60:28 definition: ui/tic-tac-toe/dom.ts:13:17
   60:28 completion: n=146 elementById,setEnabled,setText
   60:28 signatureHelp: ( element: Any text: Text ) ~> Empty param=0
-  64:4 hover: kein
+  64:4 hover: Passt ein Arm, ist sein Wert das Ergebnis der Funktion und sie endet hier. Sonst geht es mit der näc...
   64:4 definition: kein
   64:4 completion: n=145 elementById,setEnabled,setText
   64:4 signatureHelp: kein
