@@ -407,3 +407,39 @@
 2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	signatureHelp	582	0.06	0.11	0.36	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
 2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	documentSymbol	3	5.73	7.29	7.29	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
 2026-10-28 18:06:13	f1acca7+	jul-compiler ebd578d+	ADV-DEV-56627	yugioh	semanticTokens	3	8.84	12.09	12.09	Schritt 5: Recheck der Importeure ohne Neuparsen (recheckFile)
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	13.72	219.06	1405.77	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	261.06	340.85	340.85	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	244.08	305.94	305.94	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	638.79	858.73	858.73	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	258.93	264.38	264.38	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	666.87	702.27	702.27	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	hover	582	0.10	0.24	3.33	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	definition	582	0.07	0.17	0.29	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	completion	582	6.70	8.53	15.25	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	signatureHelp	582	0.06	0.19	0.36	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	documentSymbol	3	6.90	7.20	7.20	vor early return
+2026-11-04 13:08:52	cd8fefd	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	semanticTokens	3	9.43	10.78	10.78	vor early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	12.54	166.46	1336.52	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	285.62	308.56	308.56	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	265.81	305.87	305.87	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	643.23	1006.23	1006.23	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	579.08	695.14	695.14	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	805.62	816.34	816.34	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	hover	597	0.22	0.34	5.37	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	definition	597	0.21	0.28	0.57	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	completion	597	11.32	14.96	25.77	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	signatureHelp	597	0.10	0.30	0.81	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	documentSymbol	3	10.95	11.71	11.71	nach early return
+2026-11-04 13:34:54	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	semanticTokens	3	18.69	23.71	23.71	nach early return
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	40	10.32	161.34	1356.37	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	394.19	417.94	417.94	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	236.05	375.16	375.16	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	543.23	1362.04	1362.04	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	248.26	252.16	252.16	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	679.41	688.96	688.96	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	hover	597	0.08	0.18	2.88	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	definition	597	0.06	0.13	0.25	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	completion	597	5.78	7.33	14.17	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	signatureHelp	597	0.06	0.13	0.49	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	documentSymbol	3	6.07	7.41	7.41	nach early return, wiederholt ohne parallele last
+2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	semanticTokens	3	7.28	10.81	10.81	nach early return, wiederholt ohne parallele last

@@ -48,6 +48,7 @@ import {
 	ParseValueExpression,
 	SymbolDefinition,
 	SymbolTable,
+	discardName,
 } from 'jul-compiler/out/syntax-tree.js';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { CheckResult, getFileCheckResult } from 'jul-compiler/out/checker/check-result.js';
@@ -1031,6 +1032,10 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 					? getDocumentSymbolsFromExpression(expression.value)
 					: []),
 			];
+			// _ bindet nichts und gehört nicht in die Gliederung, was darin steht schon.
+			if (expression.name.name === discardName) {
+				return children;
+			}
 			return createDocumentSymbol(expression, expression.name, getSymbolKindFromExpression(expression.value), children);
 		}
 		case 'destructuring':
@@ -1046,6 +1051,9 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 					? getDocumentSymbolsFromExpression(expression.typeGuard)
 					: []),
 			];
+			if (expression.name.name === discardName) {
+				return children;
+			}
 			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
 		}
 		case 'destructuringFields':
@@ -1079,7 +1087,9 @@ function getDocumentSymbolsFromExpression(expression: PositionedExpression): Doc
 		case 'list':
 			return getDocumentSymbolsFromExpressions(expression.values);
 		case 'parameter':
-			return createDocumentSymbol(expression, expression.name, SymbolKind.Variable);
+			return expression.name.name === discardName
+				? []
+				: createDocumentSymbol(expression, expression.name, SymbolKind.Variable);
 		case 'parameters':
 			return getDocumentSymbolsFromExpressions(expression.singleFields);
 		case 'singleDictionaryField': {

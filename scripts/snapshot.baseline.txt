@@ -186,7 +186,7 @@ semanticTokens
   60: 6+1 parameter(readonly)
   63: 2+1 parameter(declaration,readonly) 8+3 function(defaultLibrary,impure) 12+1 parameter(readonly)
   66: 2+3 function(defaultLibrary,impure)
-  69: 3+1 variable(readonly) 5+1 variable(readonly)
+  69: 1+1 variable(declaration,readonly) 7+1 variable(readonly) 9+1 variable(readonly)
   70: 3+1 parameter(declaration,readonly) 6+4 type(defaultLibrary)
   71: 3+1 parameter(declaration,readonly) 6+4 type(defaultLibrary)
   2:13 hover: ```jul [ a: 1 b: 4 ] ```
@@ -280,9 +280,9 @@ symbols
     keine
   b kind=13 37:14
     keine
-  a kind=8 41:3
+  a kind=8 41:7
     keine
-  b kind=8 41:9
+  b kind=8 41:13
     keine
   a kind=13 42:3
     keine
@@ -301,35 +301,38 @@ symbols
       keine
 semanticTokens
   5: 1+5 variable(declaration,readonly)
-  9: 3+5 variable(readonly)
+  9: 1+1 variable(declaration,readonly) 7+5 variable(readonly)
   10: 9+3 function(defaultLibrary,impure)
   11: 9+3 function(defaultLibrary,impure)
   12: 8+3 function(defaultLibrary,impure)
-  15: 3+5 variable(readonly)
+  15: 1+1 variable(declaration,readonly) 7+5 variable(readonly)
   16: 3+1 parameter(declaration,readonly) 12+3 function(defaultLibrary,impure) 16+1 parameter(readonly)
   17: 3+1 parameter(declaration,readonly) 6+7 type(defaultLibrary) 18+3 function(defaultLibrary,impure) 22+1 parameter(readonly)
-  21: 3+5 variable(readonly)
+  21: 1+1 variable(declaration,readonly) 7+5 variable(readonly)
   22: 2+3 type(defaultLibrary) 9+3 function(defaultLibrary,impure) 13+5 variable(readonly)
+  25: 1+1 variable(declaration,readonly)
   26: 2+5 type(defaultLibrary) 11+3 function(defaultLibrary,impure)
   29: 1+7 variable(declaration,readonly)
-  30: 3+7 variable(readonly)
+  30: 1+1 variable(declaration,readonly) 7+7 variable(readonly)
   31: 3+5 type(defaultLibrary) 13+3 function(defaultLibrary,impure)
   32: 8+3 function(defaultLibrary,impure)
+  35: 1+1 variable(declaration,readonly)
   36: 11+3 function(defaultLibrary,impure)
   37: 3+1 parameter(declaration,readonly) 6+7 type(defaultLibrary) 14+1 parameter(declaration,readonly) 17+7 type(defaultLibrary) 29+3 function(defaultLibrary,impure) 33+1 parameter(readonly) 35+1 parameter(readonly)
   38: 8+3 function(defaultLibrary,impure)
-  41: 3+1 property(declaration,readonly) 9+1 property(declaration,readonly)
+  41: 1+1 variable(declaration,readonly) 7+1 property(declaration,readonly) 13+1 property(declaration,readonly)
   42: 3+1 parameter(declaration,readonly) 5+1 parameter(declaration,readonly) 11+3 function(defaultLibrary,impure) 15+1 parameter(readonly) 17+1 parameter(readonly)
   43: 8+3 function(defaultLibrary,impure)
   46: 1+6 variable(declaration,readonly)
-  47: 6+6 variable(readonly)
+  47: 1+1 variable(declaration,readonly) 10+6 variable(readonly)
   48: 3+1 parameter(declaration,readonly) 6+7 type(defaultLibrary) 14+1 parameter(declaration,readonly) 17+7 type(defaultLibrary) 29+3 function(defaultLibrary,impure) 33+1 parameter(readonly) 35+1 parameter(readonly)
   49: 8+3 function(defaultLibrary,impure)
-  52: 3+6 variable(readonly)
+  52: 1+1 variable(declaration,readonly) 7+6 variable(readonly)
   53: 3+1 parameter(declaration,readonly) 6+4 typeConstructor(defaultLibrary) 11+7 type(defaultLibrary) 24+3 function(defaultLibrary,impure) 28+1 parameter(readonly)
   54: 8+3 function(defaultLibrary,impure)
   57: 1+10 function(declaration,impure) 15+1 parameter(declaration,readonly) 18+7 type(defaultLibrary) 30+3 function(defaultLibrary,impure) 34+1 parameter(readonly)
   58: 1+10 function(impure)
+  59: 1+1 variable(declaration,readonly)
   60: 2+10 function(impure)
   5:5 hover: ```jul 6 ```
   5:5 definition: branching.jul:5:1
@@ -347,14 +350,14 @@ semanticTokens
   16:9 definition: kein
   16:9 completion: n=128 myVal,myEmpty,myList
   16:9 signatureHelp: kein
-  21:5 hover: ```jul 6 ```
-  21:5 definition: branching.jul:5:1
-  21:5 completion: n=127 myVal,myEmpty,myList
-  21:5 signatureHelp: kein
-  25:2 hover: kein
-  25:2 definition: kein
-  25:2 completion: n=127 myVal,myEmpty,myList
-  25:2 signatureHelp: kein
+  21:7 hover: ```jul 6 ```
+  21:7 definition: branching.jul:5:1
+  21:7 completion: n=127 myVal,myEmpty,myList
+  21:7 signatureHelp: kein
+  25:4 hover: kein
+  25:4 definition: kein
+  25:4 completion: n=127 myVal,myEmpty,myList
+  25:4 signatureHelp: kein
   29:7 hover: ```jul Empty ``` Ein leerer Wert ist dagegen ein Argument: die Kollektion hat ein Element, der Kopf ...
   29:7 definition: branching.jul:29:1
   29:7 completion: n=127 myVal,myEmpty,myList
@@ -363,26 +366,26 @@ semanticTokens
   31:20 definition: kein
   31:20 completion: n=127 myVal,myEmpty,myList
   31:20 signatureHelp: kein
-  35:4 hover: kein
-  35:4 definition: kein
-  35:4 completion: n=39 myFunction,List,And
-  35:4 signatureHelp: kein
+  35:6 hover: kein
+  35:6 definition: kein
+  35:6 completion: n=127 myVal,myEmpty,myList
+  35:6 signatureHelp: kein
   37:19 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
   37:19 definition: jul-core-lib:/core-lib.jul:86:1
   37:19 completion: n=129 myVal,myEmpty,myList
   37:19 signatureHelp: kein
-  41:8 hover: kein
-  41:8 definition: kein
-  41:8 completion: n=39 myFunction,List,And
-  41:8 signatureHelp: kein
+  41:10 hover: kein
+  41:10 definition: kein
+  41:10 completion: n=127 myVal,myEmpty,myList
+  41:10 signatureHelp: kein
   43:14 hover: kein
   43:14 definition: kein
   43:14 completion: n=127 myVal,myEmpty,myList
   43:14 signatureHelp: kein
-  47:7 hover: ```jul [1 2] ``` Erst ein geschriebenes ... macht die Elemente des Werts zu Argumenten.
-  47:7 definition: branching.jul:46:1
-  47:7 completion: n=127 myVal,myEmpty,myList
-  47:7 signatureHelp: kein
+  47:9 hover: kein
+  47:9 definition: kein
+  47:9 completion: n=127 myVal,myEmpty,myList
+  47:9 signatureHelp: kein
   49:14 hover: kein
   49:14 definition: kein
   49:14 completion: n=127 myVal,myEmpty,myList
@@ -395,10 +398,10 @@ semanticTokens
   57:18 definition: jul-core-lib:/core-lib.jul:86:1
   57:18 completion: n=128 myVal,myEmpty,myList
   57:18 signatureHelp: kein
-  59:3 hover: kein
-  59:3 definition: kein
-  59:3 completion: n=127 myVal,myEmpty,myList
-  59:3 signatureHelp: kein
+  59:5 hover: ```jul Empty ```
+  59:5 definition: kein
+  59:5 completion: n=127 myVal,myEmpty,myList
+  59:5 signatureHelp: kein
 
 === cli/cli.jul
 symbols
@@ -536,19 +539,19 @@ symbols
       keine
     curr kind=13 6:2
       keine
-    prev kind=14 11:4
+    prev kind=14 10:2
       keine
-  testValues kind=14 14:1
+  testValues kind=14 13:1
     keine
-  sumBuiltin kind=14 20:1
-    accumulator kind=13 20:46
+  sumBuiltin kind=14 19:1
+    accumulator kind=13 19:46
       keine
-    value kind=13 20:58
+    value kind=13 19:58
       keine
-  sumRecursive kind=14 22:1
-    acc kind=13 24:3
+  sumRecursive kind=14 21:1
+    acc kind=13 23:3
       keine
-    val kind=13 24:7
+    val kind=13 23:7
       keine
 semanticTokens
   1: 1+18 function(declaration)
@@ -560,12 +563,12 @@ semanticTokens
   7: 6+6 typeConstructor(defaultLibrary) 13+2 parameter(readonly) 17+10 property(readonly)
   8: 4+5 parameter(readonly)
   9: 4+6 parameter(readonly) 11+6 function(defaultLibrary) 20+3 function(defaultLibrary) 31+4 parameter(readonly)
-  11: 4+4 variable(declaration,readonly) 11+18 function 30+6 parameter(readonly) 37+4 parameter(readonly) 42+2 parameter(readonly) 45+5 parameter(readonly) 51+3 function(defaultLibrary) 58+4 parameter(readonly)
-  12: 4+2 parameter(readonly) 7+4 variable(readonly) 12+6 parameter(readonly) 19+10 function(defaultLibrary) 30+5 parameter(readonly) 37+5 parameter(readonly)
-  14: 1+10 variable(declaration,readonly)
-  20: 1+10 variable(declaration,readonly) 14+10 variable(readonly) 25+9 function(defaultLibrary) 35+7 type(defaultLibrary) 46+11 parameter(declaration,readonly) 58+5 parameter(declaration,readonly) 68+11 parameter(readonly) 80+3 function(defaultLibrary) 84+5 parameter(readonly)
-  22: 1+12 variable(declaration,readonly) 16+10 variable(readonly) 27+18 function
-  24: 3+3 parameter(declaration,readonly) 7+3 parameter(declaration,readonly) 15+3 parameter(readonly) 19+3 function(defaultLibrary) 23+3 parameter(readonly)
+  10: 2+4 variable(declaration,readonly) 9+18 function 28+6 parameter(readonly) 35+4 parameter(readonly) 40+2 parameter(readonly) 43+5 parameter(readonly) 49+3 function(defaultLibrary) 56+4 parameter(readonly)
+  11: 2+2 parameter(readonly) 5+4 variable(readonly) 10+6 parameter(readonly) 17+10 function(defaultLibrary) 28+5 parameter(readonly) 35+5 parameter(readonly)
+  13: 1+10 variable(declaration,readonly)
+  19: 1+10 variable(declaration,readonly) 14+10 variable(readonly) 25+9 function(defaultLibrary) 35+7 type(defaultLibrary) 46+11 parameter(declaration,readonly) 58+5 parameter(declaration,readonly) 68+11 parameter(readonly) 80+3 function(defaultLibrary) 84+5 parameter(readonly)
+  21: 1+12 variable(declaration,readonly) 16+10 variable(readonly) 27+18 function
+  23: 3+3 parameter(declaration,readonly) 7+3 parameter(declaration,readonly) 15+3 parameter(readonly) 19+3 function(defaultLibrary) 23+3 parameter(readonly)
   1:12 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
   1:12 definition: core-lib/aggregate/aggregate.jul:1:1
   1:12 completion: n=127 aggregateRecursive,testValues,sumBuiltin
@@ -602,22 +605,22 @@ semanticTokens
   9:18 definition: kein
   9:18 completion: n=132 aggregateRecursive,testValues,sumBuiltin
   9:18 signatureHelp: (values: Or(Empty List(Any))) -> Or(0 LengthOf(List(Any))) param=1
-  10:4 hover: kein
-  10:4 definition: kein
-  10:4 completion: n=133 aggregateRecursive,testValues,sumBuiltin
-  10:4 signatureHelp: kein
-  11:32 hover: ```jul List(Any) ```
-  11:32 definition: core-lib/aggregate/aggregate.jul:2:2
-  11:32 completion: n=133 aggregateRecursive,testValues,sumBuiltin
-  11:32 signatureHelp: kein
-  12:22 hover: ```jul ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any ``` Liefert das Element an der ...
-  12:22 definition: jul-core-lib:/core-lib.jul:778:1
-  12:22 completion: n=46 aggregateRecursive,fn,List
-  12:22 signatureHelp: ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any param=1
-  14:8 hover: ```jul [1 2 3] ```
-  14:8 definition: core-lib/aggregate/aggregate.jul:14:1
-  14:8 completion: n=127 aggregateRecursive,testValues,sumBuiltin
-  14:8 signatureHelp: kein
+  10:31 hover: ```jul List(Any) ```
+  10:31 definition: core-lib/aggregate/aggregate.jul:2:2
+  10:31 completion: n=133 aggregateRecursive,testValues,sumBuiltin
+  10:31 signatureHelp: kein
+  11:21 hover: ```jul ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any ``` Liefert das Element an der ...
+  11:21 definition: jul-core-lib:/core-lib.jul:778:1
+  11:21 completion: n=46 aggregateRecursive,fn,List
+  11:21 signatureHelp: ( values: Or(Empty List(Any)) index: PositiveInteger ) -> Any param=1
+  13:8 hover: ```jul [1 2 3] ```
+  13:8 definition: core-lib/aggregate/aggregate.jul:13:1
+  13:8 completion: n=127 aggregateRecursive,testValues,sumBuiltin
+  13:8 signatureHelp: kein
+  14:2 hover: kein
+  14:2 definition: kein
+  14:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
+  14:2 signatureHelp: kein
   15:2 hover: kein
   15:2 definition: kein
   15:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
@@ -626,42 +629,38 @@ semanticTokens
   16:2 definition: kein
   16:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
   16:2 signatureHelp: kein
-  17:2 hover: kein
-  17:2 definition: kein
-  17:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
-  17:2 signatureHelp: kein
-  18:1 hover: ```jul [1 2 3] ```
-  18:1 definition: kein
-  18:1 completion: n=127 aggregateRecursive,testValues,sumBuiltin
-  18:1 signatureHelp: kein
-  20:46 hover: ```jul Integer ```
-  20:46 definition: core-lib/aggregate/aggregate.jul:20:46
-  20:46 completion: n=129 aggregateRecursive,testValues,sumBuiltin
-  20:46 signatureHelp: kein
-  22:23 hover: ```jul [1 2 3] ```
-  22:23 definition: core-lib/aggregate/aggregate.jul:14:1
-  22:23 completion: n=127 aggregateRecursive,testValues,sumBuiltin
-  22:23 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=1
-  23:2 hover: kein
-  23:2 definition: kein
-  23:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
-  23:2 signatureHelp: kein
-  24:14 hover: ```jul ( acc: Any val: Any i: Any ) :> Any ```
-  24:14 definition: kein
-  24:14 completion: n=130 (acc2 = acc val2 = val i) =>,aggregateRecursive,testValues
-  24:14 signatureHelp: kein
-  25:2 hover: ```jul GreaterInteger(0) ```
+  17:1 hover: ```jul [1 2 3] ```
+  17:1 definition: kein
+  17:1 completion: n=127 aggregateRecursive,testValues,sumBuiltin
+  17:1 signatureHelp: kein
+  19:46 hover: ```jul Integer ```
+  19:46 definition: core-lib/aggregate/aggregate.jul:19:46
+  19:46 completion: n=129 aggregateRecursive,testValues,sumBuiltin
+  19:46 signatureHelp: kein
+  21:23 hover: ```jul [1 2 3] ```
+  21:23 definition: core-lib/aggregate/aggregate.jul:13:1
+  21:23 completion: n=127 aggregateRecursive,testValues,sumBuiltin
+  21:23 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=1
+  22:2 hover: kein
+  22:2 definition: kein
+  22:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
+  22:2 signatureHelp: kein
+  23:14 hover: ```jul ( acc: Any val: Any i: Any ) :> Any ```
+  23:14 definition: kein
+  23:14 completion: n=130 (acc2 = acc val2 = val i) =>,aggregateRecursive,testValues
+  23:14 signatureHelp: kein
+  24:2 hover: ```jul GreaterInteger(0) ```
+  24:2 definition: kein
+  24:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
+  24:2 signatureHelp: kein
+  25:2 hover: kein
   25:2 definition: kein
   25:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
   25:2 signatureHelp: kein
-  26:2 hover: kein
-  26:2 definition: kein
-  26:2 completion: n=127 aggregateRecursive,testValues,sumBuiltin
-  26:2 signatureHelp: kein
-  27:1 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
-  27:1 definition: kein
-  27:1 completion: n=127 aggregateRecursive,testValues,sumBuiltin
-  27:1 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=4
+  26:1 hover: ```jul ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger ...
+  26:1 definition: kein
+  26:1 completion: n=127 aggregateRecursive,testValues,sumBuiltin
+  26:1 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=4
 
 === core-lib/aggregate/aggregate.test.jul
 symbols
@@ -830,10 +829,10 @@ semanticTokens
   5:10 definition: jul-core-lib:/core-lib.jul:86:1
   5:10 completion: n=129 isInteger,integersOf,allOf
   5:10 signatureHelp: kein
-  6:7 hover: kein
-  6:7 definition: kein
-  6:7 completion: n=129 isInteger,integersOf,allOf
-  6:7 signatureHelp: kein
+  6:4 hover: ```jul false ```
+  6:4 definition: jul-core-lib:/core-lib.jul:2:1
+  6:4 completion: n=129 isInteger,integersOf,allOf
+  6:4 signatureHelp: kein
   9:37 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
   9:37 definition: jul-core-lib:/core-lib.jul:86:1
   9:37 completion: n=129 isInteger,integersOf,allOf
@@ -1387,7 +1386,7 @@ semanticTokens
   12: 2+8 parameter(declaration,readonly) 12+7 type(defaultLibrary)
   14: 4+9 parameter(readonly)
   15: 10+8 parameter(readonly)
-  16: 9+15 variable(readonly) 25+8 function(defaultLibrary) 34+9 parameter(readonly) 47+3 function(defaultLibrary) 51+7 parameter(readonly) 59+8 parameter(readonly) 69+7 parameter(readonly)
+  16: 2+15 variable(readonly) 18+8 function(defaultLibrary) 27+9 parameter(readonly) 40+3 function(defaultLibrary) 44+7 parameter(readonly) 52+8 parameter(readonly) 62+7 parameter(readonly)
   17: 1+9 function(declaration) 14+1 parameter(declaration,readonly) 17+7 type(defaultLibrary)
   18: 2+15 function 18+1 parameter(readonly)
   27: 1+6 variable(declaration,readonly) 10+9 function
@@ -1420,10 +1419,10 @@ semanticTokens
   15:9 definition: kein
   15:9 completion: n=129 fibonacciHelper,fibonacci,result
   15:9 signatureHelp: kein
-  16:39 hover: ```jul And(Integer Not(0)) ```
-  16:39 definition: fibonacci/fibonacci.jul:10:2
-  16:39 completion: n=129 fibonacciHelper,fibonacci,result
-  16:39 signatureHelp: kein
+  16:35 hover: ```jul And(Integer Not(0)) ```
+  16:35 definition: fibonacci/fibonacci.jul:10:2
+  16:35 completion: n=129 fibonacciHelper,fibonacci,result
+  16:35 signatureHelp: kein
   17:14 hover: ```jul Integer ```
   17:14 definition: fibonacci/fibonacci.jul:17:14
   17:14 completion: n=127 fibonacciHelper,fibonacci,result
@@ -1505,7 +1504,7 @@ semanticTokens
   6: 4+11 function
   7: 4+11 function
   8: 4+11 function
-  9: 3+3 type(defaultLibrary) 10+5 parameter(readonly)
+  9: 2+5 parameter(readonly)
   11: 1+7 variable(declaration,readonly) 11+5 function(defaultLibrary)
   12: 1+16 variable(declaration,readonly) 20+7 variable(readonly) 28+3 function(defaultLibrary) 32+18 function
   14: 1+16 variable(readonly) 18+7 function(defaultLibrary,impure) 27+5 parameter(declaration,readonly) 37+3 function(defaultLibrary,impure) 41+5 parameter(readonly)
@@ -1537,10 +1536,10 @@ semanticTokens
   8:15 definition: fizz-buzz/fizz-buzz-functional.jul:1:1
   8:15 completion: n=128 divisibleBy,getFizzBuzzMessage,numbers
   8:15 signatureHelp: (divisor: NonZeroInteger) -> (dividend: Integer) -> Boolean param=0
-  9:8 hover: kein
-  9:8 definition: kein
-  9:8 completion: n=128 divisibleBy,getFizzBuzzMessage,numbers
-  9:8 signatureHelp: kein
+  9:4 hover: ```jul And(PositiveInteger Not(Or(divisibleBy(15) divisibleBy(5) divisibleBy(3)))) ```
+  9:4 definition: fizz-buzz/fizz-buzz-functional.jul:4:23
+  9:4 completion: n=128 divisibleBy,getFizzBuzzMessage,numbers
+  9:4 signatureHelp: kein
   11:12 hover: ```jul ( start: Integer end: Integer ) -> Or(Empty List(Or(1 100 And(LessInteger(100) GreaterInteger...
   11:12 definition: jul-core-lib:/core-lib.jul:966:1
   11:12 completion: n=127 divisibleBy,getFizzBuzzMessage,numbers
@@ -1570,7 +1569,7 @@ semanticTokens
   1: 1+11 function(declaration) 16+7 parameter(declaration,readonly) 25+14 type(defaultLibrary)
   2: 3+8 parameter(declaration,readonly) 13+7 type(defaultLibrary) 25+8 parameter(readonly) 34+6 function(defaultLibrary) 41+7 parameter(readonly) 50+5 function(defaultLibrary)
   4: 1+8 function(declaration,impure) 13+5 parameter(declaration,readonly) 20+15 type(defaultLibrary)
-  5: 4+5 parameter(readonly)
+  5: 2+1 variable(declaration,readonly) 8+5 parameter(readonly)
   7: 3+3 type(defaultLibrary) 10+8 variable(readonly) 19+5 parameter(readonly) 25+8 function(defaultLibrary)
   8: 2+7 variable(declaration,readonly) 14+5 parameter(readonly)
   9: 4+11 function
@@ -1591,10 +1590,10 @@ semanticTokens
   4:20 definition: jul-core-lib:/core-lib.jul:109:1
   4:20 completion: n=127 divisibleBy,fizzBuzz,index
   4:20 signatureHelp: kein
-  5:5 hover: ```jul GreaterInteger(0) ```
-  5:5 definition: fizz-buzz/fizz-buzz-recursive.jul:4:13
-  5:5 completion: n=127 divisibleBy,fizzBuzz,index
-  5:5 signatureHelp: kein
+  5:7 hover: kein
+  5:7 definition: kein
+  5:7 completion: n=127 divisibleBy,fizzBuzz,index
+  5:7 signatureHelp: kein
   6:6 hover: kein
   6:6 definition: kein
   6:6 completion: n=42 List,And,Or
@@ -1794,6 +1793,7 @@ semanticTokens
   30: 1+12 function(impure) 14+1 property(declaration,readonly) 20+1 property(declaration,readonly)
   33: 1+21 function(declaration,impure) 25+7 type(defaultLibrary) 36+3 function(defaultLibrary,impure)
   34: 1+21 function(impure)
+  37: 1+1 variable(declaration,readonly)
   38: 2+21 function(impure)
   41: 1+12 function(declaration,impure) 20+13 parameter(declaration,readonly) 38+3 function(defaultLibrary,impure) 42+13 parameter(readonly)
   43: 1+12 function(impure)
@@ -2580,7 +2580,7 @@ symbols
       keine
   typeFnShort kind=12 6:1
     keine
-  typeFnLong kind=14 7:1
+  typeFnLong kind=12 7:1
     keine
   parameterFn2 kind=12 9:1
     x kind=13 9:17
@@ -2623,7 +2623,7 @@ semanticTokens
   2: 2+1 property(declaration,readonly) 5+4 typeConstructor(defaultLibrary) 10+4 type(defaultLibrary)
   3: 2+1 property(declaration,readonly) 5+2 typeConstructor(defaultLibrary) 11+4 type(defaultLibrary)
   6: 1+11 function(declaration) 15+8 type
-  7: 1+10 variable(declaration,readonly)
+  7: 1+10 function(declaration) 15+1 parameter(declaration,readonly) 18+8 type
   9: 1+12 function(declaration) 17+1 parameter(declaration,readonly)
   10: 2+9 property(declaration,readonly) 13+4 typeConstructor(defaultLibrary) 18+4 type(defaultLibrary)
   11: 2+10 property(declaration,readonly) 14+2 typeConstructor(defaultLibrary) 20+4 type(defaultLibrary)
@@ -2706,7 +2706,7 @@ symbols
     keine
 semanticTokens
   1: 1+7 variable(declaration,readonly)
-  3: 3+7 variable(readonly)
+  3: 1+1 variable(declaration,readonly) 7+7 variable(readonly)
   6: 3+6 variable(readonly) 14+3 function(defaultLibrary) 18+7 variable(readonly)
   7: 3+5 parameter(declaration,readonly) 9+6 parameter(declaration,readonly) 20+3 function(defaultLibrary) 24+5 parameter(readonly) 30+6 parameter(readonly)
   8: 3+1 parameter(declaration,readonly) 6+4 type(defaultLibrary)
@@ -2716,10 +2716,10 @@ semanticTokens
   1:7 definition: type-switch.jul:1:1
   1:7 completion: n=124 someVar,true,false
   1:7 signatureHelp: kein
-  3:6 hover: ```jul 32 ```
-  3:6 definition: type-switch.jul:1:1
-  3:6 completion: n=124 someVar,true,false
-  3:6 signatureHelp: kein
+  3:8 hover: ```jul 32 ```
+  3:8 definition: type-switch.jul:1:1
+  3:8 completion: n=124 someVar,true,false
+  3:8 signatureHelp: kein
   4:8 hover: kein
   4:8 definition: kein
   4:8 completion: n=124 someVar,true,false
@@ -3149,10 +3149,10 @@ semanticTokens
   79:14 definition: kein
   79:14 completion: n=50 findElement,onClick,onDialogClose
   79:14 signatureHelp: kein
-  82:7 hover: kein
-  82:7 definition: kein
-  82:7 completion: n=136 appendHtml,elementById,findElement
-  82:7 signatureHelp: kein
+  82:4 hover: kein
+  82:4 definition: kein
+  82:4 completion: n=136 appendHtml,elementById,findElement
+  82:4 signatureHelp: kein
 
 === ui/dynamic-form/dynamic-form.jul
 symbols
@@ -3781,7 +3781,7 @@ semanticTokens
   162: 6+8 parameter(declaration,readonly) 16+4 type
   163: 6+6 variable(declaration,readonly) 15+3 variable(readonly) 19+10 function(defaultLibrary) 30+10 variable(readonly) 41+11 property(readonly) 53+8 parameter(readonly)
   164: 6+9 variable(readonly) 16+10 function(defaultLibrary) 27+10 variable(readonly) 38+8 property(readonly) 47+6 variable(readonly)
-  165: 11+9 variable(readonly)
+  165: 4+9 variable(readonly)
   168: 3+9 property(declaration,readonly) 15+12 variable(readonly)
   169: 3+13 property(declaration,readonly) 19+5 parameter(readonly) 25+13 property(readonly)
   170: 3+6 property(declaration,readonly) 12+5 parameter(readonly) 18+6 property(readonly)
@@ -4443,7 +4443,7 @@ semanticTokens
   56: 3+5 variable(readonly) 9+11 property(readonly) 21+7 function(defaultLibrary,impure)
   57: 5+10 variable(declaration,readonly) 18+5 parameter(readonly)
   58: 5+11 variable(declaration,readonly) 19+11 function(impure) 34+10 variable(readonly) 45+8 property(readonly) 57+10 variable(readonly) 68+11 property(readonly)
-  59: 7+10 variable(readonly) 18+5 property(readonly)
+  59: 5+1 variable(declaration,readonly) 11+10 variable(readonly) 22+5 property(readonly)
   60: 7+8 parameter(declaration,readonly) 17+4 type(defaultLibrary) 26+7 function(impure) 34+11 variable(readonly) 46+8 parameter(readonly)
   62: 7+10 variable(readonly) 18+7 property(readonly)
   63: 7+7 parameter(declaration,readonly) 16+7 type(defaultLibrary) 28+10 function(impure) 39+11 variable(readonly) 51+7 parameter(readonly)
@@ -4512,10 +4512,10 @@ semanticTokens
   60:28 definition: ui/tic-tac-toe/dom.ts:13:17
   60:28 completion: n=146 elementById,setEnabled,setText
   60:28 signatureHelp: ( element: Any text: Text ) ~> Empty param=0
-  64:7 hover: kein
-  64:7 definition: kein
-  64:7 completion: n=145 elementById,setEnabled,setText
-  64:7 signatureHelp: kein
+  64:4 hover: kein
+  64:4 definition: kein
+  64:4 completion: n=145 elementById,setEnabled,setText
+  64:4 signatureHelp: kein
   70:20 hover: ```jul [ gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] currentPlayer: Player statu...
   70:20 definition: ui/tic-tac-toe/tic-tac-toe.jul:70:15
   70:20 completion: n=143 elementById,setEnabled,setText
@@ -4641,10 +4641,10 @@ semanticTokens
   19:27 definition: ui/todo-list/dom.ts:13:17
   19:27 completion: n=129 addHtml,removeElement,subscribeEvent
   19:27 signatureHelp: (element: Any) ~> Any param=0
-  20:6 hover: kein
-  20:6 definition: kein
-  20:6 completion: n=129 addHtml,removeElement,subscribeEvent
-  20:6 signatureHelp: kein
+  20:3 hover: kein
+  20:3 definition: kein
+  20:3 completion: n=129 addHtml,removeElement,subscribeEvent
+  20:3 signatureHelp: kein
   21:1 hover: ```jul ( listener: ( sender: Any event: Text ) :> Any ) ```
   21:1 definition: kein
   21:1 completion: n=128 (sender event) =>,addHtml,removeElement

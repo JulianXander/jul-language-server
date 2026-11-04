@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { join, resolve } from 'path';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { createInMemoryHost, loadFile } from 'jul-compiler/out/compiler/project-loader.js';
-import { getHover } from './hover.js';
+import { getHover, statementBranchingHint } from './hover.js';
 
 const folder = resolve('/hover-test');
 const filePath = join(folder, 'main.jul');
@@ -116,4 +116,37 @@ f = (node: Node) =>
 	node/left/val¦ue`;
 		expect(hoverAt(code)).to.equal(typeMarkdown('Or(Empty Integer)'));
 	});
+
+	//#region Branching als Anweisung
+	it('das ? eines Branchings als Anweisung sagt, dass ein Treffer die Funktion beendet', () => {
+		const code = `f = (x: Integer) =>
+	¦?(x)
+		[0] => 1
+	2`;
+		expect(hoverAt(code)).to.equal(statementBranchingHint);
+	});
+	it('das ? eines zugewiesenen Branchings zeigt keinen Hinweis', () => {
+		const code = `f = (x: Integer) =>
+	y = ¦?(x)
+		[0] => 1
+		() => 2
+	y`;
+		expect(hoverAt(code)).to.not.equal(statementBranchingHint);
+	});
+	it('ein Name im Rest hinter dem Branching zeigt seinen Typ', () => {
+		const code = `f = (x: Or(Integer Text)) =>
+	?(x)
+		[Integer] => 1
+	¦x`;
+		expect(hoverAt(code)).to.equal(typeMarkdown('Text'));
+	});
+	it('eine Definition im Rest hinter dem Branching zeigt ihren Typ', () => {
+		const code = `f = (x: Integer) =>
+	?(x)
+		[0] => 1
+	y = 2
+	¦y`;
+		expect(hoverAt(code)).to.equal(typeMarkdown('2'));
+	});
+	//#endregion Branching als Anweisung
 });
