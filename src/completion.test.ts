@@ -291,7 +291,7 @@ l: [Integer Text Float] = [1 ...xs §a§]
 
 	// Der Parametertyp des Callbacks steht in der core-lib als TypeOf(values)/ElementType und ist
 	// erst mit den Argumenten dieses Aufrufs bekannt. Das Symbol values hat den Typ seines Typguards
-	// (docs/definition-typeguard-plan.md im Compiler), das Element ist also Integer.
+	// (Signatur statt Rumpf, docs/design-principles.md im Compiler), das Element ist also Integer.
 	it('liefert für die Parameter eines Callbacks den mit dem Aufruf instanziierten Typ', () => {
 		const code = `values: List(Integer) = [1]
 x = values.map((v) => v)
