@@ -2419,7 +2419,7 @@ symbols
     keine
 semanticTokens
   2: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
-  4: 1+10 type(declaration) 13+5 type(defaultLibrary) 21+5 type(defaultLibrary)
+  4: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary) 21+5 type(defaultLibrary)
   6: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
   8: 1+17 variable(declaration,readonly)
   10: 1+17 variable(declaration,readonly)
@@ -2427,8 +2427,7 @@ semanticTokens
   14: 1+17 variable(declaration,readonly) 26+1 property(declaration,readonly)
   16: 1+19 variable(declaration,readonly)
   18: 1+19 variable(declaration,readonly)
-  20: 1+18 variable(declaration,readonly)
-  22: 15+7 type(defaultLibrary)
+  22: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary)
   24: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary)
   26: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary)
   28: 1+12 variable(declaration,readonly) 15+7 type(defaultLibrary)
@@ -2456,8 +2455,8 @@ semanticTokens
   68: 3+1 property(declaration,readonly)
   70: 2+1 property(declaration,readonly)
   71: 2+1 property(declaration,readonly)
-  74: 11+3 typeConstructor(defaultLibrary)
-  76: 11+3 typeConstructor(defaultLibrary)
+  74: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
+  76: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
   77: 6+7 type(defaultLibrary) 14+3 typeConstructor(defaultLibrary)
   78: 6+7 type(defaultLibrary) 14+3 typeConstructor(defaultLibrary) 18+3 typeConstructor(defaultLibrary)
   79: 6+7 type(defaultLibrary) 14+7 typeConstructor(defaultLibrary)
@@ -2494,15 +2493,15 @@ semanticTokens
   2:12 definition: kein
   2:12 completion: n=177 testEmpty1,testEmpty2,testEmpty3
   2:12 signatureHelp: kein
-  10:13 hover: ```jul 4 ``` should error
+  10:13 hover: ```jul Empty ``` should error
   10:13 definition: type-checking-test.jul:10:1
   10:13 completion: n=177 testEmpty1,testEmpty2,testEmpty3
   10:13 signatureHelp: kein
-  18:14 hover: ```jul 5 ``` should error
+  18:14 hover: ```jul 4 ``` should error
   18:14 definition: type-checking-test.jul:18:1
   18:14 completion: n=177 testEmpty1,testEmpty2,testEmpty3
   18:14 signatureHelp: kein
-  26:13 hover: ```jul 4 ``` should not error
+  26:13 hover: ```jul Integer ``` should not error
   26:13 definition: type-checking-test.jul:26:1
   26:13 completion: n=177 testEmpty1,testEmpty2,testEmpty3
   26:13 signatureHelp: kein
@@ -2518,7 +2517,7 @@ semanticTokens
   50:14 definition: jul-core-lib:/core-lib.jul:86:1
   50:14 completion: n=177 testEmpty1,testEmpty2,testEmpty3
   50:14 signatureHelp: kein
-  58:8 hover: ```jul [ a: 4 b: 5 ] ``` should error: Records sind geschlossen, ein Wert hat nicht a und zugleich n...
+  58:8 hover: ```jul Never ``` should error: Records sind geschlossen, ein Wert hat nicht a und zugleich nur b
   58:8 definition: type-checking-test.jul:58:1
   58:8 completion: n=177 testEmpty1,testEmpty2,testEmpty3
   58:8 signatureHelp: kein
@@ -2834,7 +2833,7 @@ semanticTokens
   5:11 definition: jul-core-lib:/core-lib.jul:118:1
   5:11 completion: n=130 myVar,myVarIsText,Article
   5:11 signatureHelp: kein
-  10:5 hover: ```jul 3 ```
+  10:5 hover: ```jul 4 ```
   10:5 definition: types.jul:30:1
   10:5 completion: n=130 myVar,myVarIsText,Article
   10:5 signatureHelp: kein
@@ -4488,7 +4487,7 @@ semanticTokens
   27:11 definition: ui/tic-tac-toe/tic-tac-toe-logic.jul:32:2
   27:11 completion: n=142 elementById,setEnabled,setText
   27:11 signatureHelp: kein
-  33:16 hover: ```jul [ gameBoard: [[§§ §§ §§] [§§ §§ §§] [§§ §§ §§]] currentPlayer: §x§ status: §running§ ] ```
+  33:16 hover: ```jul [ gameBoard: [[Cell Cell Cell] [Cell Cell Cell] [Cell Cell Cell]] currentPlayer: Player statu...
   33:16 definition: ui/tic-tac-toe/tic-tac-toe.jul:33:1
   33:16 completion: n=142 elementById,setEnabled,setText
   33:16 signatureHelp: kein

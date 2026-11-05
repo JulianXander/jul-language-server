@@ -290,8 +290,8 @@ l: [Integer Text Float] = [1 ...xs §a§]
 	});
 
 	// Der Parametertyp des Callbacks steht in der core-lib als TypeOf(values)/ElementType und ist
-	// erst mit den Argumenten dieses Aufrufs bekannt. Das Symbol values behält den Typ seines Werts,
-	// das Element ist also das Literal 1.
+	// erst mit den Argumenten dieses Aufrufs bekannt. Das Symbol values hat den Typ seines Typguards
+	// (docs/definition-typeguard-plan.md im Compiler), das Element ist also Integer.
 	it('liefert für die Parameter eines Callbacks den mit dem Aufruf instanziierten Typ', () => {
 		const code = `values: List(Integer) = [1]
 x = values.map((v) => v)
@@ -308,7 +308,7 @@ x = values.map((v) => v)
 		if (paramsType?.julType !== 'parameters') {
 			throw new Error(`Erwartet parameters, bekommen ${paramsType?.julType}`);
 		}
-		expect(paramsType.singleNames[0]?.type?.julType).to.equal('integerLiteral');
+		expect(paramsType.singleNames[0]?.type?.julType).to.equal('integer');
 	});
 });
 

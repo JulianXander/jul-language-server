@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { join, resolve } from 'path';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
-import { getSymbolTypeInfo } from 'jul-compiler/out/checker/check-result.js';
+import { getSymbolTypeInfo, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { ReferenceIndex, SymbolLocation } from 'jul-compiler/out/checker/reference-index.js';
 import { createInMemoryHost, loadFile } from 'jul-compiler/out/compiler/project-loader.js';
 import { PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
@@ -32,6 +32,16 @@ function getTypeField(documents: ParsedDocuments, typeName: string, fieldName: s
 	const type = getSymbolTypeInfo(documents[filePath]!.checkResult!, documents[filePath]!.checked!.symbols[typeName])!.type as any;
 	const declaration = (type.julType === 'typeOf' ? type.value : type).declaration;
 	return { symbol: declaration.expression.symbols[fieldName], filePath: filePath };
+}
+
+/**
+ * Das Feld des Record-Literals im Wert der Definition definitionName. Über den Typ des Werts, nicht
+ * des Symbols: Hat die Definition einen Typguard, ist der der Typ des Symbols.
+ */
+function getLiteralField(documents: ParsedDocuments, definitionName: string, fieldName: string): SymbolLocation {
+	const value = getDefinitionValue(documents, definitionName);
+	const type = getTypeInfo(documents[filePath]!.checkResult!, value)!.type as any;
+	return { symbol: type.declaration.expression.symbols[fieldName], filePath: filePath };
 }
 
 /** Der Wert der Top-Level-Definition name. */
@@ -79,7 +89,7 @@ describe('references', () => {
 
 		it('ein Literalfeld an einer Stelle mit erwartetem Typ zielt auf das Typfeld', () => {
 			const { documents, referenceIndex } = check(fieldCode);
-			const literalField = getTypeField(documents, 'a', 'name');
+			const literalField = getLiteralField(documents, 'a', 'name');
 			expect(resolveRelatedTargets(literalField, referenceIndex)).to.deep.equal([getTypeField(documents, 'MyType', 'name')]);
 		});
 	});
@@ -102,19 +112,19 @@ f = y/name
 
 		it('ein Zugriff auf ein Literalfeld mit erwartetem Typ zielt auf das Typfeld', () => {
 			const { documents, referenceIndex } = check(code);
-			expect(getFieldAccessTypeFields(getFieldAccessKey(documents, 'e'), getTypeField(documents, 'a', 'name'), referenceIndex))
+			expect(getFieldAccessTypeFields(getFieldAccessKey(documents, 'e'), getLiteralField(documents, 'a', 'name'), referenceIndex))
 				.to.deep.equal([getTypeField(documents, 'MyType', 'name')]);
 		});
 
 		it('ein Zugriff auf eine mehrdeutige Stelle zielt auf alle Typfelder', () => {
 			const { documents, referenceIndex } = check(code);
-			expect(getFieldAccessTypeFields(getFieldAccessKey(documents, 'f'), getTypeField(documents, 'y', 'name'), referenceIndex))
+			expect(getFieldAccessTypeFields(getFieldAccessKey(documents, 'f'), getLiteralField(documents, 'y', 'name'), referenceIndex))
 				.to.deep.equal([getTypeField(documents, 'Person', 'name'), getTypeField(documents, 'Pet', 'name')]);
 		});
 
 		it('Gegenprobe: ein Zugriff auf ein Literalfeld ohne erwarteten Typ bleibt beim Literalfeld', () => {
 			const { documents, referenceIndex } = check(code);
-			expect(getFieldAccessTypeFields(getFieldAccessKey(documents, 'g'), getTypeField(documents, 'x', 'name'), referenceIndex))
+			expect(getFieldAccessTypeFields(getFieldAccessKey(documents, 'g'), getLiteralField(documents, 'x', 'name'), referenceIndex))
 				.to.equal(undefined);
 		});
 
@@ -172,7 +182,7 @@ f = y/name
 Pet = [name: Text species?: Text]
 y: Or(Person Pet) = [name = §Rex§]
 `);
-			const targets = resolveRelatedTargets(getTypeField(documents, 'y', 'name'), referenceIndex);
+			const targets = resolveRelatedTargets(getLiteralField(documents, 'y', 'name'), referenceIndex);
 			const edits = getRenameEdits(targets, 'label', referenceIndex, documents);
 			expect(describeEdits(edits)).to.deep.equal([
 				'1:11 label',
