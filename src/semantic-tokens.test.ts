@@ -61,6 +61,13 @@ x = f(1)`, 'f: function()');
 			.to.deep.equal([]);
 	});
 
+	it('assert bekommt keinen Token, die Grammatik färbt es als Keyword', () => {
+		expect(tokensOf(`f = (a: Boolean) =>
+	assert(§m§ a)
+	a`).filter(token => token.startsWith('assert:')))
+			.to.deep.equal([]);
+	});
+
 	it('ein Typ ist type', () => {
 		expectToken(`x: Integer = 1`, 'Integer: type(defaultLibrary)');
 	});
