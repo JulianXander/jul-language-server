@@ -188,6 +188,8 @@ export interface RenameEdit extends ReferenceLocation {
  * die Zugriffe darauf und der lokale Name eines Destructurings ohne Alias samt seinen Verwendungen.
  * Kollidiert der neue Name dort mit einem vorhandenen, wird stattdessen ein Alias geschrieben
  * ((name) = a wird zu (name = label) = a), der lokale Name und seine Verwendungen bleiben.
+ * Umgekehrt bekommt ein lokaler Name, dessen Quelle nicht mit umbenannt wird, einen Alias auf sie
+ * ((greeting) = import(§./data.yaml§) wird zu (gruss = greeting) = import(…)).
  * Änderungen, die erst über ein weiteres Ziel hinzukommen, müssen bestätigt werden.
  */
 export function getRenameEdits(
@@ -205,7 +207,19 @@ export function getRenameEdits(
 	};
 	const conflictingLocals: SymbolLocation[] = [];
 	targets.forEach((target, targetIndex) => {
-		add(toLocation(target.filePath, target.symbol), targetIndex);
+		// Ist der lokale Name eines Destructurings ohne Alias selbst das Ziel, gibt es keine Quelle,
+		// die mit umbenannt wird (Schlüssel einer YAML- oder JSON-Datei, Dictionary ohne Typ). Sein
+		// alter Name ist aber der Schlüssel, den er herausholt, und bleibt deshalb als Alias stehen.
+		const sourceName = getDestructuredLocalName(target);
+		const declaration = toLocation(target.filePath, target.symbol);
+		if (sourceName) {
+			edits.set(getLocationKey(target.filePath, declaration), {
+				...declaration,
+				newText: `${newName} = ${sourceName}`,
+				needsConfirmation: targetIndex > 0,
+			});
+		}
+		add(declaration, targetIndex);
 		referenceIndex.getDirectReferences(target.symbol, target.filePath).forEach(location => {
 			add(location, targetIndex);
 		});

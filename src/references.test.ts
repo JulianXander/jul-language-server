@@ -10,6 +10,7 @@ import {
 	getFieldAccessTypeFields,
 	getReferenceLocations,
 	getRenameEdits,
+	getTargetsAt,
 	RenameEdit,
 	resolveRelatedTargets,
 } from './references.js';
@@ -188,6 +189,74 @@ y: Or(Person Pet) = [name = §Rex§]
 				'1:11 label',
 				'2:8 label (bestätigen)',
 				'3:22 label',
+			]);
+		});
+	});
+
+	describe('Rename über einen Import', () => {
+		const mathPath = join(folder, 'math.jul');
+		const mainCode = `(double) = import(§./math.jul§)
+log(double(4))`;
+		const mathCode = `double = (x: Integer) => x.multiply(2)`;
+
+		/**
+		 * Rename an der Stelle (0-basiert) in der Datei, als Datei Zeile:Spalte (1-basiert) und
+		 * neuer Text.
+		 */
+		function renameAt(
+			atPath: string,
+			rowIndex: number,
+			columnIndex: number,
+			newName: string,
+			files: { [filePath: string]: string; } = { [filePath]: mainCode, [mathPath]: mathCode },
+		): string[] {
+			const documents: ParsedDocuments = {};
+			const referenceIndex = new ReferenceIndex();
+			const host = createInMemoryHost(files, { referenceIndex: referenceIndex });
+			Object.keys(files).forEach(path => {
+				if (!documents[path]) {
+					loadFile(path, documents, host);
+				}
+			});
+			const targets = getTargetsAt(documents[atPath]!, rowIndex, columnIndex, documents, referenceIndex);
+			if (!targets) {
+				return [];
+			}
+			return getRenameEdits(targets, newName, referenceIndex, documents)
+				.map(edit => `${edit.filePath.slice(folder.length + 1)} ${edit.startRowIndex + 1}:${edit.startColumnIndex + 1} ${edit.newText}`)
+				.sort();
+		}
+
+		const expectedEdits = [
+			'main.jul 1:2 twice',
+			'main.jul 2:5 twice',
+			'math.jul 1:1 twice',
+		];
+
+		it('von der Definition aus werden auch der Import und seine Verwendungen umbenannt', () => {
+			expect(renameAt(mathPath, 0, 1, 'twice')).to.deep.equal(expectedEdits);
+		});
+
+		// Nur main.jul umzubenennen bräche den Import: math.jul hat kein Feld twice.
+		it('von einer Verwendung des importierten Namens aus wird auch die Definition umbenannt', () => {
+			expect(renameAt(filePath, 1, 5, 'twice')).to.deep.equal(expectedEdits);
+		});
+
+		it('vom importierten Namen ohne Alias aus wird auch die Definition umbenannt', () => {
+			expect(renameAt(filePath, 0, 2, 'twice')).to.deep.equal(expectedEdits);
+		});
+
+		// Nur main.jul umzubenennen bräche den Import: data.yaml hat kein Feld gruss. Die Datendatei
+		// bleibt unverändert, der Import bekommt einen Alias.
+		it('aus einer YAML-Datei: der lokale Name wird umbenannt, der Schlüssel bleibt als Alias', () => {
+			const files = {
+				[filePath]: `(greeting) = import(§./data.yaml§)
+log(greeting)`,
+				[join(folder, 'data.yaml')]: `greeting: Hallo`,
+			};
+			expect(renameAt(filePath, 1, 5, 'gruss', files)).to.deep.equal([
+				'main.jul 1:2 gruss = greeting',
+				'main.jul 2:5 gruss',
 			]);
 		});
 	});
