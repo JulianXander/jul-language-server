@@ -736,7 +736,7 @@ semanticTokens
   16:3 signatureHelp: ( values: List(Any) init: Any fn: ( acc: Any val: Any i: Any ) :> Any index: PositiveInteger curr: A... param=1
   17:7 hover: ```jul ( first: Any second: Any ) -> Boolean ``` Liefert true, wenn die beiden Werte gleich sind (Re...
   17:7 definition: jul-core-lib:/core-lib.jul:302:1
-  17:7 completion: n=38 List,And,Or
+  17:7 completion: n=48 List,And,Or
   17:7 signatureHelp: ( first: Any second: Any ) -> Boolean param=1
   18:1 hover: ```jul ( name: Text callback: () :> Boolean ) ```
   18:1 definition: kein
@@ -2101,7 +2101,7 @@ semanticTokens
   53:1 signatureHelp: (...restParameter: Any) ~> Empty param=0
   60:20 hover: kein
   60:20 definition: kein
-  60:20 completion: n=40 myFunction,myFunction4,List
+  60:20 completion: n=50 myFunction,myFunction4,List
   60:20 signatureHelp: kein
   64:28 hover: ```jul TypeOf(Boolean) ``` true or false
   64:28 definition: jul-core-lib:/core-lib.jul:79:1
@@ -2524,128 +2524,131 @@ symbols
     keine
   testFloat2 kind=14 38:1
     keine
-  testText1 kind=14 40:1
-    keine
-  testText2 kind=14 42:1
-    keine
-  testText3 kind=14 44:1
-    keine
-  testOr1 kind=14 46:1
-    keine
-  testOr2 kind=14 48:1
-    keine
-  testOr3 kind=14 50:1
-    keine
-  testAnd1 kind=14 52:1
-    keine
-  testAnd2 kind=14 54:1
-    keine
-  testAnd3 kind=14 56:1
-    keine
-  testAnd4 kind=14 58:1
-    a kind=8 59:3
+  testFloat3 kind=12 40:1
+    a kind=13 40:15
       keine
-    b kind=8 60:3
+  testText1 kind=14 42:1
+    keine
+  testText2 kind=14 44:1
+    keine
+  testText3 kind=14 46:1
+    keine
+  testOr1 kind=14 48:1
+    keine
+  testOr2 kind=14 50:1
+    keine
+  testOr3 kind=14 52:1
+    keine
+  testAnd1 kind=14 54:1
+    keine
+  testAnd2 kind=14 56:1
+    keine
+  testAnd3 kind=14 58:1
+    keine
+  testAnd4 kind=14 60:1
+    a kind=8 61:3
       keine
-    a kind=8 62:2
+    b kind=8 62:3
       keine
-    b kind=8 63:2
+    a kind=8 64:2
       keine
-  testAnd5 kind=14 66:1
-    a kind=8 67:3
+    b kind=8 65:2
       keine
-    b kind=8 68:3
+  testAnd5 kind=14 68:1
+    a kind=8 69:3
       keine
-    a kind=8 70:2
+    b kind=8 70:3
       keine
-    b kind=8 71:2
+    a kind=8 72:2
       keine
-  testNot1 kind=14 74:1
-    keine
-  testNot2 kind=14 76:1
-    keine
-  t1 kind=14 77:1
-    keine
-  t2 kind=14 78:1
-    keine
-  t3 kind=14 79:1
-    keine
-  testWithout1 kind=14 81:1
-    keine
-  testWithout11 kind=14 82:1
-    keine
-  testWithout2 kind=14 84:1
-    keine
-  testWithout21 kind=14 85:1
-    keine
-  testTuple1 kind=14 87:1
-    keine
-  testTuple2 kind=14 89:1
-    keine
-  testList1 kind=14 91:1
-    keine
-  testList2 kind=14 93:1
-    keine
-  testList3 kind=14 95:1
-    keine
-  testDictionaryLiteral1 kind=14 97:1
-    a kind=8 97:26
+    b kind=8 73:2
       keine
-    a kind=8 97:35
-      keine
-  testDictionaryLiteral2 kind=14 99:1
+  testNot1 kind=14 76:1
+    keine
+  testNot2 kind=14 78:1
+    keine
+  t1 kind=14 79:1
+    keine
+  t2 kind=14 80:1
+    keine
+  t3 kind=14 81:1
+    keine
+  testWithout1 kind=14 83:1
+    keine
+  testWithout11 kind=14 84:1
+    keine
+  testWithout2 kind=14 86:1
+    keine
+  testWithout21 kind=14 87:1
+    keine
+  testTuple1 kind=14 89:1
+    keine
+  testTuple2 kind=14 91:1
+    keine
+  testList1 kind=14 93:1
+    keine
+  testList2 kind=14 95:1
+    keine
+  testList3 kind=14 97:1
+    keine
+  testDictionaryLiteral1 kind=14 99:1
     a kind=8 99:26
       keine
     a kind=8 99:35
       keine
-  testDictionaryLiteral3 kind=14 101:1
-    a kind=8 102:2
+  testDictionaryLiteral2 kind=14 101:1
+    a kind=8 101:26
       keine
-    b kind=8 103:2
+    a kind=8 101:35
       keine
-    a kind=8 105:2
+  testDictionaryLiteral3 kind=14 103:1
+    a kind=8 104:2
       keine
-    b kind=8 106:2
+    b kind=8 105:2
       keine
-  testDictionaryLiteral3a kind=14 109:1
-    a kind=8 110:2
+    a kind=8 107:2
       keine
+    b kind=8 108:2
+      keine
+  testDictionaryLiteral3a kind=14 111:1
     a kind=8 112:2
       keine
-    b kind=8 113:2
+    a kind=8 114:2
       keine
-  testDictionaryLiteral4 kind=14 116:1
-    a kind=8 116:26
-      b kind=8 116:30
-        keine
-    a kind=8 116:40
-      b kind=8 116:45
-        keine
-  testDictionaryLiteral5 kind=14 118:1
+    b kind=8 115:2
+      keine
+  testDictionaryLiteral4 kind=14 118:1
     a kind=8 118:26
       b kind=8 118:30
         keine
     a kind=8 118:40
       b kind=8 118:45
         keine
-  testDictionaryLiteral6 kind=14 120:1
+  testDictionaryLiteral5 kind=14 120:1
     a kind=8 120:26
-      keine
-    a kind=8 120:39
-      b kind=8 120:44
+      b kind=8 120:30
         keine
-  testDictionaryLiteral7 kind=14 122:1
+    a kind=8 120:40
+      b kind=8 120:45
+        keine
+  testDictionaryLiteral6 kind=14 122:1
     a kind=8 122:26
       keine
     a kind=8 122:39
+      b kind=8 122:44
+        keine
+  testDictionaryLiteral7 kind=14 124:1
+    a kind=8 124:26
       keine
-  testDictionary1 kind=14 124:1
-    a kind=8 124:38
+    a kind=8 124:39
       keine
-  testDictionary2 kind=14 126:1
+  testDictionary1 kind=14 126:1
     a kind=8 126:38
       keine
-  testDictionary3 kind=14 128:1
+  testDictionary2 kind=14 128:1
+    a kind=8 128:38
+      keine
+  testDictionary3 kind=14 130:1
     keine
 semanticTokens
   2: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
@@ -2666,139 +2669,144 @@ semanticTokens
   34: 1+19 variable(declaration,readonly) 22+14 type(defaultLibrary)
   36: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
   38: 1+10 variable(declaration,readonly) 13+5 type(defaultLibrary)
-  40: 1+9 variable(declaration,readonly) 12+4 type(defaultLibrary)
+  40: 1+10 function(declaration) 15+1 parameter(declaration,readonly) 18+7 type(defaultLibrary) 30+11 function(defaultLibrary) 42+1 parameter(readonly)
   42: 1+9 variable(declaration,readonly) 12+4 type(defaultLibrary)
   44: 1+9 variable(declaration,readonly) 12+4 type(defaultLibrary)
-  46: 1+7 variable(declaration,readonly) 10+2 typeConstructor(defaultLibrary)
+  46: 1+9 variable(declaration,readonly) 12+4 type(defaultLibrary)
   48: 1+7 variable(declaration,readonly) 10+2 typeConstructor(defaultLibrary)
-  50: 1+7 variable(declaration,readonly) 10+2 typeConstructor(defaultLibrary) 13+7 type(defaultLibrary)
-  52: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
+  50: 1+7 variable(declaration,readonly) 10+2 typeConstructor(defaultLibrary)
+  52: 1+7 variable(declaration,readonly) 10+2 typeConstructor(defaultLibrary) 13+7 type(defaultLibrary)
   54: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
   56: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
   58: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
-  59: 3+1 property(declaration,readonly)
-  60: 3+1 property(declaration,readonly)
-  62: 2+1 property(declaration,readonly)
-  63: 2+1 property(declaration,readonly)
-  66: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
-  67: 3+1 property(declaration,readonly)
-  68: 3+1 property(declaration,readonly)
-  70: 2+1 property(declaration,readonly)
-  71: 2+1 property(declaration,readonly)
-  74: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
+  60: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
+  61: 3+1 property(declaration,readonly)
+  62: 3+1 property(declaration,readonly)
+  64: 2+1 property(declaration,readonly)
+  65: 2+1 property(declaration,readonly)
+  68: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
+  69: 3+1 property(declaration,readonly)
+  70: 3+1 property(declaration,readonly)
+  72: 2+1 property(declaration,readonly)
+  73: 2+1 property(declaration,readonly)
   76: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
-  77: 6+7 type(defaultLibrary) 14+3 typeConstructor(defaultLibrary)
-  78: 6+7 type(defaultLibrary) 14+3 typeConstructor(defaultLibrary) 18+3 typeConstructor(defaultLibrary)
-  79: 6+7 type(defaultLibrary) 14+7 typeConstructor(defaultLibrary)
-  81: 15+7 type(defaultLibrary) 23+7 typeConstructor(defaultLibrary)
-  82: 16+7 type(defaultLibrary) 24+3 typeConstructor(defaultLibrary) 28+3 typeConstructor(defaultLibrary)
-  84: 15+7 type(defaultLibrary) 23+7 typeConstructor(defaultLibrary)
-  85: 16+7 type(defaultLibrary) 24+3 typeConstructor(defaultLibrary) 28+3 typeConstructor(defaultLibrary)
-  87: 1+10 variable(declaration,readonly) 14+5 type(defaultLibrary) 20+7 type(defaultLibrary)
-  89: 1+10 variable(declaration,readonly) 14+5 type(defaultLibrary)
-  91: 1+9 variable(declaration,readonly) 12+4 typeConstructor(defaultLibrary) 17+4 type(defaultLibrary)
+  78: 1+8 variable(declaration,readonly) 11+3 typeConstructor(defaultLibrary)
+  79: 6+7 type(defaultLibrary) 14+3 typeConstructor(defaultLibrary)
+  80: 6+7 type(defaultLibrary) 14+3 typeConstructor(defaultLibrary) 18+3 typeConstructor(defaultLibrary)
+  81: 6+7 type(defaultLibrary) 14+7 typeConstructor(defaultLibrary)
+  83: 15+7 type(defaultLibrary) 23+7 typeConstructor(defaultLibrary)
+  84: 16+7 type(defaultLibrary) 24+3 typeConstructor(defaultLibrary) 28+3 typeConstructor(defaultLibrary)
+  86: 15+7 type(defaultLibrary) 23+7 typeConstructor(defaultLibrary)
+  87: 16+7 type(defaultLibrary) 24+3 typeConstructor(defaultLibrary) 28+3 typeConstructor(defaultLibrary)
+  89: 1+10 variable(declaration,readonly) 14+5 type(defaultLibrary) 20+7 type(defaultLibrary)
+  91: 1+10 variable(declaration,readonly) 14+5 type(defaultLibrary)
   93: 1+9 variable(declaration,readonly) 12+4 typeConstructor(defaultLibrary) 17+4 type(defaultLibrary)
   95: 1+9 variable(declaration,readonly) 12+4 typeConstructor(defaultLibrary) 17+4 type(defaultLibrary)
-  97: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 35+1 property(declaration,readonly)
+  97: 1+9 variable(declaration,readonly) 12+4 typeConstructor(defaultLibrary) 17+4 type(defaultLibrary)
   99: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 35+1 property(declaration,readonly)
-  101: 1+22 variable(declaration,readonly)
-  102: 2+1 property(declaration,readonly)
-  103: 2+1 property(declaration,readonly)
+  101: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 35+1 property(declaration,readonly)
+  103: 1+22 variable(declaration,readonly)
+  104: 2+1 property(declaration,readonly)
   105: 2+1 property(declaration,readonly)
-  106: 2+1 property(declaration,readonly)
-  109: 1+23 variable(declaration,readonly)
-  110: 2+1 property(declaration,readonly)
+  107: 2+1 property(declaration,readonly)
+  108: 2+1 property(declaration,readonly)
+  111: 1+23 variable(declaration,readonly)
   112: 2+1 property(declaration,readonly)
-  113: 2+1 property(declaration,readonly)
-  116: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 30+1 property(declaration,readonly) 40+1 property(declaration,readonly) 45+1 property(declaration,readonly)
+  114: 2+1 property(declaration,readonly)
+  115: 2+1 property(declaration,readonly)
   118: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 30+1 property(declaration,readonly) 40+1 property(declaration,readonly) 45+1 property(declaration,readonly)
-  120: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 29+5 type(defaultLibrary) 39+1 property(declaration,readonly) 44+1 property(declaration,readonly)
-  122: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 29+5 type(defaultLibrary) 39+1 property(declaration,readonly)
-  124: 1+15 variable(declaration,readonly) 18+10 typeConstructor(defaultLibrary) 29+4 type(defaultLibrary) 38+1 property(declaration,readonly)
+  120: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 30+1 property(declaration,readonly) 40+1 property(declaration,readonly) 45+1 property(declaration,readonly)
+  122: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 29+5 type(defaultLibrary) 39+1 property(declaration,readonly) 44+1 property(declaration,readonly)
+  124: 1+22 variable(declaration,readonly) 26+1 property(declaration,readonly) 29+5 type(defaultLibrary) 39+1 property(declaration,readonly)
   126: 1+15 variable(declaration,readonly) 18+10 typeConstructor(defaultLibrary) 29+4 type(defaultLibrary) 38+1 property(declaration,readonly)
-  128: 1+15 variable(declaration,readonly) 18+10 typeConstructor(defaultLibrary) 29+4 type(defaultLibrary)
-  130: 3+8 function(defaultLibrary)
-  132: 4+8 function(defaultLibrary)
+  128: 1+15 variable(declaration,readonly) 18+10 typeConstructor(defaultLibrary) 29+4 type(defaultLibrary) 38+1 property(declaration,readonly)
+  130: 1+15 variable(declaration,readonly) 18+10 typeConstructor(defaultLibrary) 29+4 type(defaultLibrary)
+  132: 3+8 function(defaultLibrary)
+  134: 4+8 function(defaultLibrary)
   2:12 hover: kein
   2:12 definition: kein
-  2:12 completion: n=182 testEmpty1,testEmpty2,testEmpty3
+  2:12 completion: n=183 testEmpty1,testEmpty2,testEmpty3
   2:12 signatureHelp: kein
   10:13 hover: ```jul Empty ``` should error
   10:13 definition: type-checking-test.jul:10:1
-  10:13 completion: n=182 testEmpty1,testEmpty2,testEmpty3
+  10:13 completion: n=183 testEmpty1,testEmpty2,testEmpty3
   10:13 signatureHelp: kein
   18:14 hover: ```jul 4 ``` should error
   18:14 definition: type-checking-test.jul:18:1
-  18:14 completion: n=182 testEmpty1,testEmpty2,testEmpty3
+  18:14 completion: n=183 testEmpty1,testEmpty2,testEmpty3
   18:14 signatureHelp: kein
   26:13 hover: ```jul Integer ``` should not error
   26:13 definition: type-checking-test.jul:26:1
-  26:13 completion: n=182 testEmpty1,testEmpty2,testEmpty3
+  26:13 completion: n=183 testEmpty1,testEmpty2,testEmpty3
   26:13 signatureHelp: kein
   34:21 hover: kein
   34:21 definition: kein
-  34:21 completion: n=182 testEmpty1,testEmpty2,testEmpty3
+  34:21 completion: n=183 testEmpty1,testEmpty2,testEmpty3
   34:21 signatureHelp: kein
-  42:16 hover: ```jul TypeOf(Text) ``` sequence of characters (String)
-  42:16 definition: jul-core-lib:/core-lib.jul:122:1
-  42:16 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  42:16 signatureHelp: kein
-  50:14 hover: ```jul TypeOf(Integer) ``` Ganzzahl beliebiger Größe
-  50:14 definition: jul-core-lib:/core-lib.jul:86:1
-  50:14 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  50:14 signatureHelp: kein
-  58:8 hover: ```jul Never ``` should error: Records sind geschlossen, ein Wert hat nicht a und zugleich nur b
-  58:8 definition: type-checking-test.jul:58:1
-  58:8 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  58:8 signatureHelp: kein
-  62:4 hover: kein
-  62:4 definition: kein
-  62:4 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  62:4 signatureHelp: kein
-  67:4 hover: kein
-  67:4 definition: kein
-  67:4 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  67:4 signatureHelp: kein
-  71:4 hover: kein
-  71:4 definition: kein
-  71:4 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  71:4 signatureHelp: kein
-  77:12 hover: ```jul TypeOf(Boolean) ``` true or false
-  77:12 definition: jul-core-lib:/core-lib.jul:79:1
-  77:12 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  77:12 signatureHelp: (...ChoiceTypes: List(Type)) -> Type param=1
-  82:23 hover: ```jul TypeOf(Boolean) ``` true or false
-  82:23 definition: jul-core-lib:/core-lib.jul:79:1
-  82:23 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  82:23 signatureHelp: (...ChoiceTypes: List(Type)) -> Type param=1
-  89:16 hover: ```jul TypeOf(Float) ``` 64 bit floating point number Erlaubt performante Hardware-Rechenoperationen
-  89:16 definition: jul-core-lib:/core-lib.jul:83:1
-  89:16 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  89:16 signatureHelp: kein
-  97:21 hover: ```jul [a: 4] ``` should not error
-  97:21 definition: type-checking-test.jul:97:1
-  97:21 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  97:21 signatureHelp: kein
-  103:3 hover: kein
-  103:3 definition: kein
-  103:3 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  103:3 signatureHelp: kein
-  107:1 hover: ```jul [ a: 4 b: 6 ] ```
-  107:1 definition: kein
-  107:1 completion: n=0 
-  107:1 signatureHelp: kein
-  112:4 hover: kein
-  112:4 definition: kein
-  112:4 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  112:4 signatureHelp: kein
+  42:11 hover: kein
+  42:11 definition: kein
+  42:11 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  42:11 signatureHelp: kein
+  50:11 hover: ```jul (...ChoiceTypes: List(Type)) -> TypeOf(Or(4 5)) ``` UnionType
+  50:11 definition: jul-core-lib:/core-lib.jul:35:1
+  50:11 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  50:11 signatureHelp: (...ChoiceTypes: List(Type)) -> Type param=0
+  58:12 hover: ```jul (...ChoiceTypes: List(Type)) -> TypeOf(Never) ``` IntersectionType
+  58:12 definition: jul-core-lib:/core-lib.jul:23:1
+  58:12 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  58:12 signatureHelp: (...ChoiceTypes: List(Type)) -> Type param=0
+  63:3 hover: kein
+  63:3 definition: kein
+  63:3 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  63:3 signatureHelp: kein
+  68:8 hover: ```jul Never ``` should error
+  68:8 definition: type-checking-test.jul:68:1
+  68:8 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  68:8 signatureHelp: kein
+  72:4 hover: kein
+  72:4 definition: kein
+  72:4 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  72:4 signatureHelp: kein
+  78:14 hover: ```jul (T: Type) -> TypeOf(Not(true)) ``` ComplementType
+  78:14 definition: jul-core-lib:/core-lib.jul:47:1
+  78:14 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  78:14 signatureHelp: (T: Type) -> Type param=0
+  83:22 hover: ```jul TypeOf(Boolean) ``` true or false
+  83:22 definition: jul-core-lib:/core-lib.jul:79:1
+  83:22 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  83:22 signatureHelp: ( Minuend: Type Subtrahend: Type ) -> TypeOf(Never) param=1
+  89:19 hover: ```jul TypeOf(Float) ``` 64 bit floating point number Erlaubt performante Hardware-Rechenoperationen
+  89:19 definition: jul-core-lib:/core-lib.jul:83:1
+  89:19 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  89:19 signatureHelp: kein
+  97:14 hover: ```jul (ElementType: Type) -> TypeOf(List(Text)) ``` Datenstruktur mit 1 oder mehr Elementen vom Typ...
+  97:14 definition: jul-core-lib:/core-lib.jul:11:1
+  97:14 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  97:14 signatureHelp: (ElementType: Type) -> TypeOf(List(Type)) param=0
+  104:3 hover: kein
+  104:3 definition: kein
+  104:3 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  104:3 signatureHelp: kein
+  108:4 hover: kein
+  108:4 definition: kein
+  108:4 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  108:4 signatureHelp: kein
+  113:3 hover: kein
+  113:3 definition: kein
+  113:3 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  113:3 signatureHelp: kein
   118:26 hover: kein
   118:26 definition: kein
-  118:26 completion: n=182 testEmpty1,testEmpty2,testEmpty3
+  118:26 completion: n=183 testEmpty1,testEmpty2,testEmpty3
   118:26 signatureHelp: kein
-  126:22 hover: ```jul (ElementType: Type) -> TypeOf(Dictionary(Text)) ``` Datenstruktur mit 1 oder mehr Feldern, de...
-  126:22 definition: jul-core-lib:/core-lib.jul:136:1
-  126:22 completion: n=182 testEmpty1,testEmpty2,testEmpty3
-  126:22 signatureHelp: (ElementType: Type) -> TypeOf(Dictionary(Type)) param=0
+  126:23 hover: ```jul (ElementType: Type) -> TypeOf(Dictionary(Text)) ``` Datenstruktur mit 1 oder mehr Feldern, de...
+  126:23 definition: jul-core-lib:/core-lib.jul:136:1
+  126:23 completion: n=183 testEmpty1,testEmpty2,testEmpty3
+  126:23 signatureHelp: (ElementType: Type) -> TypeOf(Dictionary(Type)) param=0
+  134:8 hover: ```jul ( minuend: Rational subtrahend: Rational ) -> Rational ``` minuend - subtrahend
+  134:8 definition: jul-core-lib:/core-lib.jul:420:1
+  134:8 completion: n=51 List,And,Or
+  134:8 signatureHelp: ( minuend: Rational subtrahend: Rational ) -> Rational param=1
 
 === type-function.jul
 symbols
@@ -2916,7 +2924,7 @@ semanticTokens
   32:11 signatureHelp: kein
   35:10 hover: kein
   35:10 definition: kein
-  35:10 completion: n=38 List,And,Or
+  35:10 completion: n=48 List,And,Or
   35:10 signatureHelp: kein
   37:7 hover: kein
   37:7 definition: kein

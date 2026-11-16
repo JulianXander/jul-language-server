@@ -31,11 +31,12 @@ import {
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import {
-	coreLibPath,
 	getPathFromImport,
 	isCoreLibPath,
 	isImportFunctionCall,
 } from 'jul-compiler/out/parser/parser.js';
+// Prüft beim Laden die core-lib und setzt TypeScript, vor dem ersten loadFile.
+import { coreLibPath } from 'jul-compiler/out/compiler/node-host.js';
 import { readWarnUnknown } from 'jul-compiler/out/compiler/config.js';
 import { loadFile, maxTypedFileSize, ProjectHost, recheckFile } from 'jul-compiler/out/compiler/project-loader.js';
 import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
