@@ -1,4 +1,4 @@
-import { Range } from 'vscode-languageserver';
+import { Range } from 'vscode-languageserver-types';
 import { getTestName } from 'jul-compiler/out/parser/parser-utils.js';
 import { ParsedFile } from 'jul-compiler/out/syntax-tree.js';
 import { isTestFilePath } from 'jul-compiler/out/util.js';

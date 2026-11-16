@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { TextEdit } from 'vscode-languageserver';
+import { TextEdit } from 'vscode-languageserver-types';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { getDocumentFormattingEdits, getOnTypeFormattingEdits } from './formatting.js';
 

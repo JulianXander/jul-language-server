@@ -1,5 +1,5 @@
 import { ErrorCode, errorInfos } from 'jul-compiler/out/compiler-errors.js';
-import { CodeAction, CodeActionKind, Diagnostic, TextEdit } from 'vscode-languageserver';
+import { CodeAction, CodeActionKind, Diagnostic, TextEdit } from 'vscode-languageserver-types';
 
 /**
  * Quick Fix "Warnung hier abschalten": eine Zeile `#ignore JUL<nr>` direkt über der Zeile,

@@ -1,5 +1,5 @@
 import { CheckResult, getFileCheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
-import { SemanticTokens, SemanticTokensBuilder } from 'vscode-languageserver';
+import { SemanticTokens } from 'vscode-languageserver-types';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
 import {
 	CompileTimeFunctionType,
@@ -50,17 +50,30 @@ export function getSemanticTokens(parsedFile: ParsedFile | undefined): SemanticT
 	const tokens: SemanticTokenInfo[] = [];
 	const scopes: SymbolTable[] = [checked.symbols];
 	expressions.forEach(expression => collectSemanticTokens(checkResult, expression, scopes, tokens));
-	// Der builder verlangt aufsteigende Positionen. forEachChild liefert Quelltextreihenfolge,
+	// Die Kodierung verlangt aufsteigende Positionen. forEachChild liefert Quelltextreihenfolge,
 	// aber ein infix call stellt das Aufrufziel hinter sein erstes Argument.
 	tokens.sort((a, b) => a.line - b.line || a.character - b.character);
-	const builder = new SemanticTokensBuilder();
-	tokens.forEach(token => builder.push(
-		token.line,
-		token.character,
-		token.length,
-		token.tokenType,
-		token.tokenModifiers));
-	return builder.build();
+	return { data: encodeSemanticTokens(tokens) };
+}
+
+/**
+ * Je Token fünf Zahlen, Zeile und Spalte relativ zum vorigen Token (die Spalte nur in derselben
+ * Zeile), wie es das Protokoll vorgibt.
+ */
+function encodeSemanticTokens(sortedTokens: SemanticTokenInfo[]): number[] {
+	const data: number[] = [];
+	let previousLine = 0;
+	let previousCharacter = 0;
+	sortedTokens.forEach(token => {
+		const deltaLine = token.line - previousLine;
+		const deltaCharacter = deltaLine === 0
+			? token.character - previousCharacter
+			: token.character;
+		data.push(deltaLine, deltaCharacter, token.length, token.tokenType, token.tokenModifiers);
+		previousLine = token.line;
+		previousCharacter = token.character;
+	});
+	return data;
 }
 
 /**

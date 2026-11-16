@@ -443,3 +443,27 @@
 2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	signatureHelp	597	0.06	0.13	0.49	nach early return, wiederholt ohne parallele last
 2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	documentSymbol	3	6.07	7.41	7.41	nach early return, wiederholt ohne parallele last
 2026-11-04 13:37:09	cd8fefd+	jul-compiler 5e305bf+	ADV-DEV-56627	yugioh	semanticTokens	3	7.28	10.81	10.81	nach early return, wiederholt ohne parallele last
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	didOpen -> diagnostics	51	8.60	98.03	2371.79	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	342.30	386.76	386.76	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	334.83	369.72	369.72	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	987.74	1597.71	1597.71	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	570.46	639.20	639.20	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	1039.93	1203.31	1203.31	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	hover	600	0.21	0.38	1.53	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	definition	600	0.18	0.28	0.50	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	completion	600	11.12	15.26	22.88	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	signatureHelp	600	0.12	0.21	0.63	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	documentSymbol	3	10.13	17.69	17.69	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:31:51	9bf775b+	jul-compiler b49f112	ADV-DEV-56627	yugioh	semanticTokens	3	19.47	20.78	20.78	vor Browser-Einstieg Sprachfeatures
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	51	15.32	164.79	2475.71	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	429.06	543.54	543.54	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	355.71	412.31	412.31	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	1215.20	1651.99	1651.99	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	330.24	682.12	682.12	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	863.19	890.80	890.80	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	hover	600	0.18	0.31	4.11	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	definition	600	0.08	0.20	0.56	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	completion	600	7.61	13.58	16.10	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	signatureHelp	600	0.06	0.15	1.51	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	documentSymbol	3	9.57	9.87	9.87	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	semanticTokens	3	11.69	13.66	13.66	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)

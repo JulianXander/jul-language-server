@@ -1,5 +1,5 @@
 import { CheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
-import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
+import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver-types';
 import { dereferenceNameFromObject, getStreamGetValueType, isDictionaryLiteralType, isFunctionType, isListType, isParameterReference, isParametersType, isSubtypeOf, isTextLiteralType, isTupleType, isTypeOfType, resolveAlias, resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import {
 	CompileTimeDictionary,

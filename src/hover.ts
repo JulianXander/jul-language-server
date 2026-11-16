@@ -1,5 +1,5 @@
 import { getFileCheckResult, getCalledFunctionType, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
-import { MarkupContent } from 'vscode-languageserver';
+import { MarkupContent } from 'vscode-languageserver-types';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import { ParseBranching, ParsedFile, PositionedExpression, TypeInfo } from 'jul-compiler/out/syntax-tree.js';

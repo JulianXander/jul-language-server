@@ -6,6 +6,7 @@
 		"test": "mocha --import=tsx --require ./test-setup.mjs \"src/**/*.test.ts\"",
 		"test-snapshot": "node scripts/snapshot.mjs",
 		"typecheck": "tsc -p tsconfig.json",
+		"check-browser": "node scripts/check-browser.mjs",
 		"bench": "node scripts/bench.mjs",
 		"bench-chart": "node scripts/bench-chart.mjs"
 	},
@@ -14,6 +15,7 @@
 		"vscode-html-languageservice": "^5.6.2",
 		"vscode-languageserver": "^10.1.1",
 		"vscode-languageserver-textdocument": "^1.0.14",
+		"vscode-languageserver-types": "^3.18.5",
 		"vscode-uri": "^3.2.0"
 	},
 	"devDependencies": {
@@ -23,6 +25,7 @@
 		"chai": "^6.2.2",
 		"mocha": "12.0.0",
 		"tsx": "^4.23.13",
-		"typescript": "^6.0.3"
+		"typescript": "^6.0.3",
+		"webpack": "^5.112.2"
 	}
 }

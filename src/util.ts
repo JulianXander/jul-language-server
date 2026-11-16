@@ -8,7 +8,7 @@ import {
 	PositionedExpression,
 	TypeInfo,
 } from 'jul-compiler/out/syntax-tree.js';
-import { Range } from 'vscode-languageserver';
+import { Range } from 'vscode-languageserver-types';
 import { URI } from 'vscode-uri';
 
 export function positionedToRange(positioned: Positioned): Range {

@@ -1,5 +1,5 @@
 import { dirname, relative, sep } from 'path';
-import { TextEdit } from 'vscode-languageserver';
+import { TextEdit } from 'vscode-languageserver-types';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { getPathFromImport, isCoreLibPath, isImportFunctionCall } from 'jul-compiler/out/parser/parser.js';
 import { isExportedSymbol } from 'jul-compiler/out/parser/parser-utils.js';

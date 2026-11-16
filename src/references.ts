@@ -1,11 +1,78 @@
+import { CheckResult, getFileCheckResult } from 'jul-compiler/out/checker/check-result.js';
 import { builtInSymbols, ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
-import { ReferenceIndex, ReferenceLocation, SymbolLocation } from 'jul-compiler/out/checker/reference-index.js';
+import {
+	ReferenceIndex,
+	ReferenceLocation,
+	resolveCanonicalSymbol,
+	resolveImportBinding,
+	SymbolLocation,
+} from 'jul-compiler/out/checker/reference-index.js';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
-import { forEachChild, PositionedExpression, SymbolTable } from 'jul-compiler/out/syntax-tree.js';
-import { AnnotatedTextEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver';
+import { dirname } from 'jul-compiler/out/path-util.js';
+import { forEachChild, ParsedFile, PositionedExpression, SymbolTable } from 'jul-compiler/out/syntax-tree.js';
+import { AnnotatedTextEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver-types';
+import { findExpressionInParsedFile, getRawSymbolDefinition, getSymbolDefinition } from './symbol-lookup.js';
 import { pathToUri, positionedToRange } from './util.js';
 
 //#region Ziele
+
+/**
+ * Die Ziele von Rename, Find-All-References und Document Highlight für den Ausdruck an der
+ * Position, siehe resolveCanonicalTarget und resolveRelatedTargets. undefined, wenn dort kein
+ * umbenennbares Symbol steht (auch bei Builtins).
+ */
+export function getTargetsAt(
+	parsedFile: ParsedFile,
+	rowIndex: number,
+	columnIndex: number,
+	parsedDocuments: ParsedDocuments,
+	referenceIndex: ReferenceIndex,
+): SymbolLocation[] | undefined {
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
+	if (!expression) {
+		return undefined;
+	}
+	const canonical = resolveCanonicalTarget(getFileCheckResult(parsedFile), expression, scopes, parsedFile.filePath, parsedDocuments);
+	return canonical && resolveRelatedTargets(canonical, referenceIndex);
+}
+
+/**
+ * Löst ein Rename-/Find-All-References-Ziel auf die kanonische Identität auf: ein Alias-Binding
+ * (`local = source` in einer destructuring-Zeile) ist dabei bewusst eine eigene Identität,
+ * unabhängig vom Ursprung - Cursor auf dem lokalen Alias-Namen darf den Ursprung nicht mitziehen,
+ * Cursor auf dem source-Token (bzw. dem Namen ohne Alias) zeigt dagegen auf den Ursprung.
+ * Ein Literalfeld an einer Stelle mit erwartetem Typ und der lokale Name eines Destructurings ohne
+ * Alias zielen auf die Felder ihres Typs, bei einer Union auf mehrere.
+ */
+function resolveCanonicalTarget(
+	checkResult: CheckResult,
+	expression: PositionedExpression,
+	scopes: SymbolTable[],
+	documentPath: string,
+	parsedDocuments: ParsedDocuments,
+): SymbolLocation | undefined {
+	if (expression.type === 'name' && expression.parent?.type === 'destructuringField') {
+		const field = expression.parent;
+		const localSymbol = field.parent?.type === 'destructuringFields'
+			? field.parent.symbols[field.name.name]
+			: undefined;
+		const local = localSymbol && {
+			symbol: localSymbol,
+			filePath: documentPath,
+		};
+		if (field.source && expression === field.name) {
+			return local;
+		}
+		// Kein Import: der lokale Name eines Dictionary-Destructurings, über die Verknüpfung
+		// landet er beim Typfeld.
+		return resolveImportBinding(field, documentPath, parsedDocuments) ?? local;
+	}
+	const raw = getRawSymbolDefinition(checkResult, expression, scopes, dirname(documentPath), parsedDocuments);
+	if (!raw || raw.isBuiltIn) {
+		return undefined;
+	}
+	return resolveCanonicalSymbol(raw.symbol, raw.filePath ?? documentPath, parsedDocuments);
+}
 
 /**
  * Die Symbole, auf die Rename und Find-All-References eigentlich zielen: Ein Literalfeld an einer
@@ -63,9 +130,49 @@ export function getReferenceLocations(
 	return [...locations.values()];
 }
 
+/**
+ * Anders als bei Find-All-References/Rename: nur Vorkommen in genau dieser Datei, kein
+ * Cross-File-Ergebnis - Document Highlight ist die stille Markierung im aktuell offenen Editor.
+ */
+export function getDocumentHighlightLocations(
+	parsedFile: ParsedFile,
+	rowIndex: number,
+	columnIndex: number,
+	parsedDocuments: ParsedDocuments,
+	referenceIndex: ReferenceIndex,
+): ReferenceLocation[] {
+	const targets = getTargetsAt(parsedFile, rowIndex, columnIndex, parsedDocuments, referenceIndex);
+	if (!targets) {
+		return [];
+	}
+	return getReferenceLocations(targets, referenceIndex, true)
+		.filter(location => location.filePath === parsedFile.filePath);
+}
+
 //#endregion Find-All-References
 
 //#region Rename
+
+/**
+ * Die Stelle, die ein Rename an der Position umbenennt, oder undefined, wenn dort kein
+ * umbenennbares Symbol steht.
+ */
+export function getRenameRange(
+	parsedFile: ParsedFile,
+	rowIndex: number,
+	columnIndex: number,
+	parsedDocuments: ParsedDocuments,
+): Positioned | undefined {
+	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
+	if (!expression) {
+		return undefined;
+	}
+	const foundSymbol = getSymbolDefinition(getFileCheckResult(parsedFile), expression, scopes, dirname(parsedFile.filePath), parsedDocuments);
+	if (!foundSymbol || foundSymbol.isBuiltIn) {
+		return undefined;
+	}
+	return expression;
+}
 
 export interface RenameEdit extends ReferenceLocation {
 	newText: string;

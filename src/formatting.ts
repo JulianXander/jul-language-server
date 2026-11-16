@@ -1,4 +1,4 @@
-import { Position, TextEdit } from 'vscode-languageserver';
+import { Position, TextEdit } from 'vscode-languageserver-types';
 import { FormatEdit, formatCode, getDiffEdits, getFormatEdits } from 'jul-compiler/out/formatter/formatter.js';
 
 /**

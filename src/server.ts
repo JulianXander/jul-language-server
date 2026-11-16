@@ -14,13 +14,11 @@ import {
 	DiagnosticSeverity,
 	DiagnosticTag,
 	DocumentHighlight,
-	DocumentSymbol,
 	InitializeParams,
 	InitializeResult,
 	Location,
 	ProposedFeatures,
 	Range,
-	SymbolKind,
 	TextDocuments,
 	TextDocumentSyncKind,
 	TextEdit,
@@ -30,30 +28,16 @@ import {
 	TextDocument
 } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import {
-	getPathFromImport,
-	isCoreLibPath,
-	isImportFunctionCall,
-} from 'jul-compiler/out/parser/parser.js';
+import { isCoreLibPath } from 'jul-compiler/out/parser/parser.js';
 // Prüft beim Laden die core-lib und setzt TypeScript, vor dem ersten loadFile.
 import { coreLibPath } from 'jul-compiler/out/compiler/node-host.js';
 import { readWarnUnknown } from 'jul-compiler/out/compiler/config.js';
 import { loadFile, maxTypedFileSize, ProjectHost, recheckFile } from 'jul-compiler/out/compiler/project-loader.js';
-import { getCheckedEscapableName } from 'jul-compiler/out/parser/parser-utils.js';
-import { CompilerErrorSeverity, ErrorCode, errorInfos, Positioned } from 'jul-compiler/out/compiler-errors.js';
-import {
-	ImportedDependency,
-	PositionedExpression,
-	ParsedFile,
-	ParseFunctionCall,
-	ParseValueExpression,
-	SymbolDefinition,
-	SymbolTable,
-	discardName,
-} from 'jul-compiler/out/syntax-tree.js';
+import { CompilerErrorSeverity, ErrorCode, errorInfos } from 'jul-compiler/out/compiler-errors.js';
+import { ImportedDependency, ParsedFile } from 'jul-compiler/out/syntax-tree.js';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
-import { CheckResult, getFileCheckResult } from 'jul-compiler/out/checker/check-result.js';
-import { ReferenceIndex, resolveCanonicalSymbol, resolveImportBinding } from 'jul-compiler/out/checker/reference-index.js';
+import { getFileCheckResult } from 'jul-compiler/out/checker/check-result.js';
+import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { isDefined, isTestFilePath, isValidExtension, map } from 'jul-compiler/out/util.js';
 import { createImportEdit, findImportCandidates } from './auto-import.js';
 import { createChangeDebouncer } from './change-debouncer.js';
@@ -61,11 +45,14 @@ import { emptyLiteralsNotification, EmptyLiteralsParams, findEmptyLiterals } fro
 import { getIgnoreCommentCodeActions } from './ignore-comment.js';
 import {
 	createRenameWorkspaceEdit,
-	getFieldAccessTypeFields,
+	getDocumentHighlightLocations,
 	getReferenceLocations,
 	getRenameEdits,
-	resolveRelatedTargets,
+	getRenameRange,
+	getTargetsAt,
 } from './references.js';
+import { getDefinitionLocations } from './definition.js';
+import { getDocumentSymbols } from './document-symbols.js';
 import { getCompletionItems } from './completion.js';
 import { getHover } from './hover.js';
 import { getFoldingRanges } from './folding.js';
@@ -73,11 +60,7 @@ import { getDocumentFormattingEdits, getOnTypeFormattingEdits } from './formatti
 import { getSemanticTokens, semanticTokenLegend } from './semantic-tokens.js';
 import { getSignatureHelp } from './signature-help.js';
 import { DiscoveredTest, findTests } from './test-discovery.js';
-import {
-	findExpressionInParsedFile,
-	getRawSymbolDefinition,
-	getSymbolDefinition,
-} from './symbol-lookup.js';
+import { findExpressionInParsedFile, isImportPath } from './symbol-lookup.js';
 import {
 	pathToUri,
 	positionedToRange,
@@ -675,64 +658,20 @@ connection.onRequest('jul/coreLibContent', () =>
 	tryReadTextFile(coreLibPath) ?? '');
 connection.onDefinition((definitionParams) => {
 	flushPendingChanges();
-	const documentUri = definitionParams.textDocument.uri;
-	const documentPath = uriToPath(documentUri);
-	const parsedFile = parsedDocuments[documentPath];
+	const parsedFile = parsedDocuments[uriToPath(definitionParams.textDocument.uri)];
 	if (!parsedFile) {
 		return;
 	}
-	const folderPath = dirname(documentPath);
-	const rowIndex = definitionParams.position.line;
-	const columnIndex = definitionParams.position.character;
-	const { expression, scopes } = findExpressionInParsedFile(parsedFile, rowIndex, columnIndex);
-	if (!expression) {
+	const locations = getDefinitionLocations(parsedFile, definitionParams.position.line, definitionParams.position.character, parsedDocuments, referenceIndex);
+	if (!locations.length) {
 		return;
 	}
-	//#region go to imported file
-	if (isImportPath(expression)) {
-		const { fullPath, error } = getPathFromImport(expression!.parent!.parent as ParseFunctionCall, folderPath);
-		if (error) {
-			connection.console.log(error.message);
-			return;
-		}
-		if (!fullPath) {
-			return;
-		}
-		const location: Location = {
-			uri: pathToUri(fullPath),
-			range: {
-				start: { character: 0, line: 0 },
-				end: { character: 0, line: 0 },
-			},
-		};
-		return location;
-	}
-	//#endregion go to imported file
-
-	const foundSymbol = getSymbolDefinition(getFileCheckResult(parsedFile), expression, scopes, folderPath, parsedDocuments);
-	const typeFields = foundSymbol
-		&& !foundSymbol.isBuiltIn
-		&& getFieldAccessTypeFields(
-			expression,
-			{ symbol: foundSymbol.symbol, filePath: foundSymbol.filePath || documentPath },
-			referenceIndex);
-	if (typeFields) {
-		return typeFields.map((typeField): Location => ({
-			uri: pathToUri(typeField.filePath),
-			range: positionedToRange(typeField.symbol),
-		}));
-	}
-	if (foundSymbol) {
-		const location: Location = {
-			uri: foundSymbol.isBuiltIn
-				? coreLibUri
-				: foundSymbol.filePath
-					? pathToUri(foundSymbol.filePath)
-					: documentUri,
-			range: positionedToRange(foundSymbol.symbol)
-		};
-		return location;
-	}
+	return locations.map((location): Location => ({
+		uri: location.filePath === undefined
+			? coreLibUri
+			: pathToUri(location.filePath),
+		range: positionedToRange(location),
+	}));
 });
 //#endregion go to definition
 
@@ -751,88 +690,20 @@ connection.onHover((hoverParams) => {
 
 //#region rename
 connection.onPrepareRename(prepareRenameParams => {
-	const documentUri = prepareRenameParams.textDocument.uri;
-	const parsedFile = getParsedFileByUri(documentUri);
+	const parsedFile = getParsedFileByUri(prepareRenameParams.textDocument.uri);
 	if (!parsedFile) {
 		return;
 	}
-
-	const { expression, scopes } = findExpressionInParsedFile(parsedFile, prepareRenameParams.position.line, prepareRenameParams.position.character);
-	if (!expression) {
-		return expression;
-	}
-	const documentPath = uriToPath(documentUri);
-	const folderPath = dirname(documentPath);
-	const foundSymbol = getSymbolDefinition(getFileCheckResult(parsedFile), expression, scopes, folderPath, parsedDocuments);
-	if (!foundSymbol || foundSymbol.isBuiltIn) {
-		return;
-	}
-
-	return positionedToRange(expression);
+	const range = getRenameRange(parsedFile, prepareRenameParams.position.line, prepareRenameParams.position.character, parsedDocuments);
+	return range && positionedToRange(range);
 });
-/**
- * Löst ein Rename-/Find-All-References-Ziel auf die kanonische Identität auf: ein Alias-Binding
- * (`local = source` in einer destructuring-Zeile) ist dabei bewusst eine eigene Identität,
- * unabhängig vom Ursprung - Cursor auf dem lokalen Alias-Namen darf den Ursprung nicht mitziehen,
- * Cursor auf dem source-Token (bzw. dem Namen ohne Alias) zeigt dagegen auf den Ursprung.
- * Ein Literalfeld an einer Stelle mit erwartetem Typ und der lokale Name eines Destructurings ohne
- * Alias zielen auf die Felder ihres Typs, bei einer Union auf mehrere.
- */
-function resolveRenameTargets(
-	checkResult: CheckResult,
-	expression: PositionedExpression,
-	scopes: SymbolTable[],
-	documentPath: string,
-	folderPath: string,
-): { symbol: SymbolDefinition; filePath: string; }[] | undefined {
-	const canonical = resolveCanonicalRenameTarget(checkResult, expression, scopes, documentPath, folderPath);
-	return canonical && resolveRelatedTargets(canonical, referenceIndex);
-}
-
-function resolveCanonicalRenameTarget(
-	checkResult: CheckResult,
-	expression: PositionedExpression,
-	scopes: SymbolTable[],
-	documentPath: string,
-	folderPath: string,
-): { symbol: SymbolDefinition; filePath: string; } | undefined {
-	if (expression.type === 'name' && expression.parent?.type === 'destructuringField') {
-		const field = expression.parent;
-		const localSymbol = field.parent?.type === 'destructuringFields'
-			? field.parent.symbols[field.name.name]
-			: undefined;
-		const local = localSymbol && {
-			symbol: localSymbol,
-			filePath: documentPath,
-		};
-		if (field.source && expression === field.name) {
-			return local;
-		}
-		// Kein Import: der lokale Name eines Dictionary-Destructurings, über die Verknüpfung
-		// landet er beim Typfeld.
-		return resolveImportBinding(field, documentPath, parsedDocuments) ?? local;
-	}
-	const raw = getRawSymbolDefinition(checkResult, expression, scopes, folderPath, parsedDocuments);
-	if (!raw || raw.isBuiltIn) {
-		return undefined;
-	}
-	return resolveCanonicalSymbol(raw.symbol, raw.filePath ?? documentPath, parsedDocuments);
-}
-
 
 connection.onRenameRequest(renameParams => {
-	const documentUri = renameParams.textDocument.uri;
-	const parsedFile = getParsedFileByUri(documentUri);
+	const parsedFile = getParsedFileByUri(renameParams.textDocument.uri);
 	if (!parsedFile) {
 		return;
 	}
-	const { expression, scopes } = findExpressionInParsedFile(parsedFile, renameParams.position.line, renameParams.position.character);
-	if (!expression) {
-		return;
-	}
-	const documentPath = uriToPath(documentUri);
-	const folderPath = dirname(documentPath);
-	const targets = resolveRenameTargets(getFileCheckResult(parsedFile), expression, scopes, documentPath, folderPath);
+	const targets = getTargetsAt(parsedFile, renameParams.position.line, renameParams.position.character, parsedDocuments, referenceIndex);
 	if (!targets) {
 		return;
 	}
@@ -945,18 +816,11 @@ connection.onCodeAction((params: CodeActionParams): CodeAction[] => {
 
 //#region references
 connection.onReferences(referenceParams => {
-	const documentUri = referenceParams.textDocument.uri;
-	const parsedFile = getParsedFileByUri(documentUri);
+	const parsedFile = getParsedFileByUri(referenceParams.textDocument.uri);
 	if (!parsedFile) {
 		return;
 	}
-	const { expression, scopes } = findExpressionInParsedFile(parsedFile, referenceParams.position.line, referenceParams.position.character);
-	if (!expression) {
-		return;
-	}
-	const documentPath = uriToPath(documentUri);
-	const folderPath = dirname(documentPath);
-	const targets = resolveRenameTargets(getFileCheckResult(parsedFile), expression, scopes, documentPath, folderPath);
+	const targets = getTargetsAt(parsedFile, referenceParams.position.line, referenceParams.position.character, parsedDocuments, referenceIndex);
 	if (!targets) {
 		return;
 	}
@@ -970,25 +834,11 @@ connection.onReferences(referenceParams => {
 
 //#region document highlight
 connection.onDocumentHighlight(highlightParams => {
-	const documentUri = highlightParams.textDocument.uri;
-	const parsedFile = getParsedFileByUri(documentUri);
+	const parsedFile = getParsedFileByUri(highlightParams.textDocument.uri);
 	if (!parsedFile) {
 		return;
 	}
-	const { expression, scopes } = findExpressionInParsedFile(parsedFile, highlightParams.position.line, highlightParams.position.character);
-	if (!expression) {
-		return;
-	}
-	const documentPath = uriToPath(documentUri);
-	const folderPath = dirname(documentPath);
-	const targets = resolveRenameTargets(getFileCheckResult(parsedFile), expression, scopes, documentPath, folderPath);
-	if (!targets) {
-		return;
-	}
-	// Anders als bei Find-All-References/Rename: nur Vorkommen in genau diesem Dokument, kein
-	// Cross-File-Ergebnis - Document Highlight ist die stille Markierung im aktuell offenen Editor.
-	return getReferenceLocations(targets, referenceIndex, true)
-		.filter(location => location.filePath === documentPath)
+	return getDocumentHighlightLocations(parsedFile, highlightParams.position.line, highlightParams.position.character, parsedDocuments, referenceIndex)
 		.map((location): DocumentHighlight => ({ range: positionedToRange(location) }));
 });
 //#endregion document highlight
@@ -996,158 +846,9 @@ connection.onDocumentHighlight(highlightParams => {
 //#region document symbols
 connection.onDocumentSymbol(documentSymbolParams => {
 	flushPendingChanges();
-	const documentUri = documentSymbolParams.textDocument.uri;
-	const documentPath = uriToPath(documentUri);
-	const parsedFile = parsedDocuments[documentPath];
-	if (!parsedFile) {
-		return;
-	}
-	const parsed2 = parsedFile.checked;
-	if (!parsed2) {
-		return;
-	}
-	return parsed2.expressions && getDocumentSymbolsFromExpressions(parsed2.expressions);
+	const parsedFile = parsedDocuments[uriToPath(documentSymbolParams.textDocument.uri)];
+	return parsedFile && getDocumentSymbols(parsedFile);
 });
-
-function getDocumentSymbolsFromExpressions(expressions: PositionedExpression[]): DocumentSymbol[] {
-	return expressions.flatMap(expression =>
-		getDocumentSymbolsFromExpression(expression));
-}
-
-function getDocumentSymbolsFromExpression(expression: PositionedExpression): DocumentSymbol[] {
-	switch (expression.type) {
-		case 'branching':
-		case 'typeBranching':
-			return [
-				...(expression.args
-					? getDocumentSymbolsFromExpression(expression.args)
-					: []),
-				...getDocumentSymbolsFromExpressions(expression.branches),
-			];
-		case 'definition': {
-			const children = [
-				...(expression.typeGuard
-					? getDocumentSymbolsFromExpression(expression.typeGuard)
-					: []),
-				...(expression.value
-					? getDocumentSymbolsFromExpression(expression.value)
-					: []),
-			];
-			// _ bindet nichts und gehört nicht in die Gliederung, was darin steht schon.
-			if (expression.name.name === discardName) {
-				return children;
-			}
-			return createDocumentSymbol(expression, expression.name, getSymbolKindFromExpression(expression.value), children);
-		}
-		case 'destructuring':
-			return [
-				...getDocumentSymbolsFromExpression(expression.fields),
-				...(expression.value
-					? getDocumentSymbolsFromExpression(expression.value)
-					: []),
-			];
-		case 'destructuringField': {
-			const children = [
-				...(expression.typeGuard
-					? getDocumentSymbolsFromExpression(expression.typeGuard)
-					: []),
-			];
-			if (expression.name.name === discardName) {
-				return children;
-			}
-			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
-		}
-		case 'destructuringFields':
-			return getDocumentSymbolsFromExpressions(expression.fields);
-		case 'dictionary':
-			return getDocumentSymbolsFromExpressions(expression.fields);
-		case 'dictionaryType':
-			return getDocumentSymbolsFromExpressions(expression.fields);
-		case 'functionCall':
-			return [
-				...(expression.prefixArgument
-					? getDocumentSymbolsFromExpression(expression.prefixArgument)
-					: []),
-				...(expression.arguments
-					? getDocumentSymbolsFromExpression(expression.arguments)
-					: []),
-			];
-		case 'functionLiteral':
-			return [
-				...getDocumentSymbolsFromExpression(expression.params),
-				...(expression.returnType
-					? getDocumentSymbolsFromExpression(expression.returnType)
-					: []),
-				...getDocumentSymbolsFromExpressions(expression.body),
-			];
-		case 'functionTypeLiteral':
-			return [
-				...getDocumentSymbolsFromExpression(expression.params),
-				...getDocumentSymbolsFromExpression(expression.returnType),
-			];
-		case 'list':
-			return getDocumentSymbolsFromExpressions(expression.values);
-		case 'parameter':
-			return expression.name.name === discardName
-				? []
-				: createDocumentSymbol(expression, expression.name, SymbolKind.Variable);
-		case 'parameters':
-			return getDocumentSymbolsFromExpressions(expression.singleFields);
-		case 'singleDictionaryField': {
-			const children = expression.value && getDocumentSymbolsFromExpression(expression.value);
-			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
-		}
-		case 'singleDictionaryTypeField': {
-			const children = expression.typeGuard && getDocumentSymbolsFromExpression(expression.typeGuard);
-			return createDocumentSymbol(expression, expression.name, SymbolKind.Field, children);
-		}
-		case 'binding':
-		case 'data':
-		case 'empty':
-		case 'field':
-		case 'float':
-		case 'fraction':
-		case 'index':
-		case 'integer':
-		case 'name':
-		case 'nestedReference':
-		case 'object':
-		case 'reference':
-		case 'spread':
-		case 'text':
-			return [];
-		default: {
-			const assertNever: never = expression;
-			throw new Error(`Unexpected expression.type for getDocumentSymbolsFromExpression: ${(assertNever as PositionedExpression).type}`);
-		}
-	}
-}
-
-function getSymbolKindFromExpression(expression: ParseValueExpression | undefined): SymbolKind {
-	return expression?.type === 'functionLiteral'
-		? SymbolKind.Function
-		: SymbolKind.Constant;
-}
-
-function createDocumentSymbol(
-	definitionPosition: Positioned,
-	nameExpression: PositionedExpression,
-	kind: SymbolKind,
-	children?: DocumentSymbol[],
-): DocumentSymbol[] {
-	const nameString = getCheckedEscapableName(nameExpression);
-	if (nameString === undefined) {
-		return [];
-	}
-	const documentSymbol: DocumentSymbol = {
-		kind: kind,
-		name: nameString,
-		range: positionedToRange(definitionPosition),
-		selectionRange: positionedToRange(nameExpression),
-		children: children,
-	};
-	return [documentSymbol];
-}
 //#endregion document symbols
 
 // Make the text document manager listen on the connection
@@ -1162,21 +863,6 @@ connection.listen();
 // Rename/Find-All-References laufen über den ReferenceIndex (siehe oben, Region "rename"/
 // "references") statt über eine Textsuche pro Datei - der Index kennt die tatsächlich aufgelösten
 // Bindungen (inkl. Scope/Shadowing/Cross-File), eine Textsuche wäre hier nur eine Annäherung.
-
-/**
- * Ermittelt den Index des Parameters, für den das Argument ist, das an der Position liegt.
- * Position muss in arguments liegen.
- */
-function isImportPath(expression: PositionedExpression | undefined): boolean {
-	if (expression
-		&& expression.type === 'text'
-		&& expression.parent?.type === 'list'
-		&& expression.parent.parent
-		&& isImportFunctionCall(expression.parent.parent)) {
-		return true;
-	}
-	return false;
-}
 
 /**
  * Der Compiler kennt die LSP-Zahlen nicht - er läuft auch als CLI.

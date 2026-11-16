@@ -1,5 +1,5 @@
 import { CheckResult, getSymbolTypeInfo, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
-import { dirname } from 'path';
+import { dirname } from 'jul-compiler/out/path-util.js';
 import { getPathFromImport, isImportFunctionCall } from 'jul-compiler/out/parser/parser.js';
 import { isExportedSymbol } from 'jul-compiler/out/parser/parser-utils.js';
 import { Positioned } from 'jul-compiler/out/compiler-errors.js';
@@ -21,6 +21,16 @@ import { getDeclaredResolvedType, getDeclaredType, getResolvedType } from './uti
 // Go-to-Definition, Rename und SignatureHelp; hängt nicht an der LSP-Verbindung.
 
 //#region findExpression
+
+/**
+ * Der Pfad in import(§...§).
+ */
+export function isImportPath(expression: PositionedExpression | undefined): boolean {
+	return expression?.type === 'text'
+		&& expression.parent?.type === 'list'
+		&& !!expression.parent.parent
+		&& isImportFunctionCall(expression.parent.parent);
+}
 
 /**
  * Liefert auch scopes

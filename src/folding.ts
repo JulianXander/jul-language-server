@@ -1,4 +1,4 @@
-import { FoldingRange, FoldingRangeKind } from 'vscode-languageserver';
+import { FoldingRange, FoldingRangeKind } from 'vscode-languageserver-types';
 import {
 	forEachChild,
 	ParsedFile,

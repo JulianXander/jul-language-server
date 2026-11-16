@@ -1,4 +1,4 @@
-import { Range } from 'vscode-languageserver';
+import { Range } from 'vscode-languageserver-types';
 import { forEachChild, ParsedFile, PositionedExpression } from 'jul-compiler/out/syntax-tree.js';
 import { positionedToRange } from './util.js';
 

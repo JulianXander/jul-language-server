@@ -12,6 +12,7 @@
 		"allowSyntheticDefaultImports": true
 	},
 	"files": [
-		"src/server.ts"
+		"src/server.ts",
+		"src/browser.ts"
 	]
 }

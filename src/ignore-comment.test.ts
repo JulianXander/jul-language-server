@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ErrorCode } from 'jul-compiler/out/compiler-errors.js';
-import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
+import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver-types';
 import { getIgnoreCommentCodeActions } from './ignore-comment.js';
 
 const uri = 'file:///main.jul';

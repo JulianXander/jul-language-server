@@ -1,5 +1,5 @@
 import { getFileCheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
-import { ParameterInformation, SignatureHelp } from 'vscode-languageserver';
+import { ParameterInformation, SignatureHelp } from 'vscode-languageserver-types';
 import { findSymbolInScopesWithBuiltIns, getScopeSymbolTypeInfo } from 'jul-compiler/out/checker/checker.js';
 import { typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import { ParseFunctionCall, ParsedFile, SymbolDefinition, SymbolTable } from 'jul-compiler/out/syntax-tree.js';

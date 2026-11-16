@@ -6,7 +6,7 @@ import { errorInfos } from 'jul-compiler/out/compiler-errors.js';
 import { parseCode } from 'jul-compiler/out/parser/parser.js';
 import { ParsedFile } from 'jul-compiler/out/syntax-tree.js';
 import { reportAtCaller } from 'jul-compiler/src/test-util.js';
-import { TextEdit } from 'vscode-languageserver';
+import { TextEdit } from 'vscode-languageserver-types';
 import { createImportEdit, findImportCandidates, ImportCandidate } from './auto-import.js';
 
 const folder = resolve('/auto-import-test');
