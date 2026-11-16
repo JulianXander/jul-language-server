@@ -34,9 +34,11 @@ import {
 import { getSemanticTokens } from './semantic-tokens.js';
 import { getSignatureHelp } from './signature-help.js';
 import { findExpressionInParsedFile, isImportPath } from './symbol-lookup.js';
+import { DiscoveredTest, findTests } from './test-discovery.js';
 
 export type { DefinitionLocation } from './definition.js';
 export type { RenameEdit } from './references.js';
+export type { DiscoveredTest } from './test-discovery.js';
 export { semanticTokenLegend } from './semantic-tokens.js';
 
 /**
@@ -142,6 +144,16 @@ export function rename(
 export function documentSymbols(workspace: Workspace, filePath: string): DocumentSymbol[] {
 	const parsedFile = workspace.documents[filePath];
 	return (parsedFile && getDocumentSymbols(parsedFile)) ?? [];
+}
+
+/**
+ * Die Tests einer *.test.jul-Datei, in anderen Dateien keine.
+ */
+export function tests(workspace: Workspace, filePath: string): DiscoveredTest[] {
+	const parsedFile = workspace.documents[filePath];
+	return parsedFile
+		? findTests(parsedFile)
+		: [];
 }
 
 export function foldingRanges(workspace: Workspace, filePath: string, code: string): FoldingRange[] {

@@ -3,7 +3,7 @@ import { join, resolve } from 'path';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
 import { createInMemoryHost, loadFile } from 'jul-compiler/out/compiler/project-loader.js';
-import { completion, documentHighlights, formatting, prepareRename, Workspace } from './browser.js';
+import { completion, documentHighlights, formatting, prepareRename, tests, Workspace } from './browser.js';
 
 const folder = resolve('/browser-test');
 const mainPath = join(folder, 'main.jul');
@@ -80,6 +80,25 @@ x = ¦double(2)`, {
 x = ans¦wer`);
 			const range = prepareRename(workspace, mainPath, rowIndex, columnIndex);
 			expect(range && `${range.startRowIndex + 1}:${range.startColumnIndex + 1}-${range.endColumnIndex + 1}`).to.equal('2:5-11');
+		});
+	});
+
+	describe('tests', () => {
+		it('die Tests einer Testdatei mit Namen und Stelle', () => {
+			const testPath = join(folder, 'main.test.jul');
+			const { workspace } = load(`¦`, {
+				[testPath]: `x = 1
+test(§eins§ () => equal(x 1))`,
+			});
+			expect(tests(workspace, testPath)).to.deep.equal([{
+				name: 'eins',
+				range: { start: { line: 1, character: 0 }, end: { line: 1, character: 29 } },
+			}]);
+		});
+
+		it('keine in einer Datei, die keine Testdatei ist', () => {
+			const { workspace } = load(`¦`);
+			expect(tests(workspace, mainPath)).to.deep.equal([]);
 		});
 	});
 
