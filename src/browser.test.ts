@@ -88,11 +88,11 @@ x = ans¦wer`);
 			const testPath = join(folder, 'main.test.jul');
 			const { workspace } = load(`¦`, {
 				[testPath]: `x = 1
-test(§eins§ () => equal(x 1))`,
+test(§eins§ () => assert(§x ist 1§ equal(x 1)))`,
 			});
 			expect(tests(workspace, testPath)).to.deep.equal([{
 				name: 'eins',
-				range: { start: { line: 1, character: 0 }, end: { line: 1, character: 29 } },
+				range: { start: { line: 1, character: 0 }, end: { line: 1, character: 47 } },
 			}]);
 		});
 
