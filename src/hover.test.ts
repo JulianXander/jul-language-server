@@ -117,6 +117,12 @@ f = (node: Node) =>
 		expect(hoverAt(code)).to.equal(typeMarkdown('Or(Empty Integer)'));
 	});
 
+	it('message an einem Error zeigt Typ und Beschreibung aus der core-lib', () => {
+		const code = `e = error(§kaputt§)
+m = e/mes¦sage`;
+		expect(hoverAt(code)).to.equal(`${typeMarkdown('Text')} Die Meldung, mit der der Error erzeugt wurde.`);
+	});
+
 	//#region Branching als Anweisung
 	it('das ? eines Branchings als Anweisung sagt, dass ein Treffer die Funktion beendet', () => {
 		const code = `f = (x: Integer) =>

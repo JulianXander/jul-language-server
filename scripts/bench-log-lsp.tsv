@@ -467,3 +467,15 @@
 2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	signatureHelp	600	0.06	0.15	1.51	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
 2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	documentSymbol	3	9.57	9.87	9.87	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
 2026-11-16 11:49:57	9bf775b+	jul-compiler b49f112+	ADV-DEV-56627	yugioh	semanticTokens	3	11.69	13.66	13.66	nach Browser-Einstieg Sprachfeatures (Umzug aus server.ts)
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	52	11.33	102.32	6151.05	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	421.17	640.70	640.70	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	312.06	355.37	355.37	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	1007.61	1384.06	1384.06	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	463.03	533.93	533.93	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	769.42	839.06	839.06	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	hover	591	0.10	0.23	3.41	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	definition	591	0.08	0.18	0.35	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	completion	591	6.87	8.32	17.42	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	signatureHelp	591	0.07	0.17	0.89	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	documentSymbol	3	9.65	9.87	9.87	Error-Felder aus der core-lib
+2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	semanticTokens	3	10.57	13.37	13.37	Error-Felder aus der core-lib

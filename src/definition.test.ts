@@ -1,7 +1,9 @@
 import { expect } from 'chai';
+import { readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { ParsedDocuments } from 'jul-compiler/out/checker/checker.js';
 import { ReferenceIndex } from 'jul-compiler/out/checker/reference-index.js';
+import { coreLibPath } from 'jul-compiler/out/compiler/node-host.js';
 import { createInMemoryHost, loadFile } from 'jul-compiler/out/compiler/project-loader.js';
 import { getDefinitionLocations } from './definition.js';
 
@@ -32,6 +34,18 @@ function definitionAt(mainCodeWithCursor: string, otherFiles: { [filePath: strin
 	}
 	return getDefinitionLocations(parsed, rowIndex, columnIndex, documents, referenceIndex).map(location =>
 		`${location.filePath === undefined ? 'core-lib' : location.filePath.slice(folder.length + 1)} ${location.startRowIndex + 1}:${location.startColumnIndex + 1}`);
+}
+
+/**
+ * Die Stelle des Felds message in der Deklaration von Error in der core-lib, im Format von
+ * definitionAt. Aus der Datei gelesen, damit der Test nicht an einer Zeilennummer hängt.
+ */
+function getErrorMessageFieldLocation(): string {
+	const rows = readFileSync(coreLibPath, 'utf8').split('\n');
+	const errorRowIndex = rows.findIndex(row => row.startsWith('Error = native('));
+	const messageRowIndex = rows.findIndex((row, rowIndex) => rowIndex > errorRowIndex && row.trim().startsWith('message:'));
+	const messageRow = rows[messageRowIndex] ?? '';
+	return `core-lib ${messageRowIndex + 1}:${messageRow.indexOf('message') + 1}`;
 }
 
 describe('getDefinitionLocations', () => {
@@ -68,6 +82,23 @@ double = (x: Integer) => x.multiply(2)`;
 a: MyType = [name = §a§]
 e = a/na¦me`;
 		expect(definitionAt(code)).to.deep.equal(['main.jul 2:2']);
+	});
+
+	it('message an einem Error springt zum Feld in der Deklaration von Error in der core-lib', () => {
+		const code = `e = error(§kaputt§)
+m = e/mes¦sage`;
+		expect(definitionAt(code)).to.deep.equal([getErrorMessageFieldLocation()]);
+	});
+
+	// Records sind geschlossen: message ist am Record Empty, die Deklaration liefert nur Error.
+	it('message an einem Record oder Error springt zum Feld von Error', () => {
+		const code = `Result = [value: Integer]
+getResult = (flag: Boolean) :> Or(Result Error) =>
+	?(flag)
+		[true] => error(§kaputt§)
+	[value = 1]
+m = getResult(true)/mes¦sage`;
+		expect(definitionAt(code)).to.deep.equal([getErrorMessageFieldLocation()]);
 	});
 
 	it('ohne Symbol an der Stelle gibt es kein Ziel', () => {
