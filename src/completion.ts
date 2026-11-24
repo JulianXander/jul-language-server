@@ -1,6 +1,6 @@
 import { CheckResult, getTypeInfo } from 'jul-compiler/out/checker/check-result.js';
 import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver-types';
-import { dereferenceNameFromObject, getErrorFieldsType, getStreamGetValueType, isDictionaryLiteralType, isFunctionType, isListType, isParameterReference, isParametersType, isSubtypeOf, isTextLiteralType, isTupleType, isTypeOfType, resolveAlias, resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
+import { dereferenceNameFromObject, getErrorFieldsType, isDictionaryLiteralType, isFunctionType, isListType, isParameterReference, isParametersType, isSubtypeOf, isTextLiteralType, isTupleType, isTypeOfType, resolveAlias, resolvePlaceholders, typeToString } from 'jul-compiler/out/checker/type-algebra.js';
 import {
 	CompileTimeDictionary,
 	CompileTimeType,
@@ -555,14 +555,6 @@ export function getFieldReferenceCompletionItems(dereferencedType: CompileTimeTy
 				? getFieldReferenceCompletionItems(errorFieldsType)
 				: [];
 		}
-		case 'stream':
-			return [
-				{
-					label: 'getValue',
-					kind: CompletionItemKind.Function,
-					detail: typeToString(getStreamGetValueType(dereferencedType), 0, 0),
-				},
-			];
 		case 'typeOf':
 			return getTypePropertyNames(resolveAlias(dereferencedType.value)).map(name => {
 				const propertyType = dereferenceNameFromObject(name, dereferencedType);

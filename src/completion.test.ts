@@ -574,10 +574,10 @@ describe('getFieldReferenceCompletionItems', () => {
 			.map(item => ({ label: item.label, detail: item.detail }));
 	}
 
-	// Typeigenschaften gibt es nur über einen Typwert, ein Stream-Wert hat nur getValue.
-	it('bietet bei einem Stream-Wert nur getValue an', () => {
+	// Typeigenschaften gibt es nur über einen Typwert, ein Stream-Wert hat keine Felder.
+	it('bietet bei einem Stream-Wert nichts an', () => {
 		expect(fieldReferenceItems('s$ = create$(Integer 1)', 's$').map(item => item.label))
-			.to.deep.equal(['getValue']);
+			.to.deep.equal([]);
 	});
 
 	it('bietet bei einem Error-Wert message an', () => {

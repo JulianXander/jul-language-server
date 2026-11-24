@@ -479,3 +479,15 @@
 2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	signatureHelp	591	0.07	0.17	0.89	Error-Felder aus der core-lib
 2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	documentSymbol	3	9.65	9.87	9.87	Error-Felder aus der core-lib
 2026-11-24 15:07:35	5ee7363+	jul-compiler 78e8b56+	ADV-DEV-56627	yugioh	semanticTokens	3	10.57	13.37	13.37	Error-Felder aus der core-lib
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	didOpen -> diagnostics	52	10.35	99.39	5850.31	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	didChange -> diagnostics	10	353.08	399.49	399.49	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	tippen -> diagnostics	5	306.63	363.80	363.80	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	tippen -> importeure fertig	5	1034.53	1315.58	1315.58	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	dauertippen -> diagnostics	3	520.23	567.96	567.96	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	dauertippen -> max Abstand diagnostics	3	799.90	833.66	833.66	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	hover	591	0.11	0.25	3.06	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	definition	591	0.08	0.18	0.38	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	completion	591	7.09	8.29	18.96	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	signatureHelp	591	0.06	0.15	0.54	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	documentSymbol	3	9.48	9.73	9.73	nach getCurrentValue statt Stream-Feld getValue
+2026-11-24 15:25:54	74c0e63+	jul-compiler bb04418+	ADV-DEV-56627	yugioh	semanticTokens	3	13.70	14.21	14.21	nach getCurrentValue statt Stream-Feld getValue
